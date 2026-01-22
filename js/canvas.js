@@ -7,7 +7,8 @@ class CanvasManager {
         this.stage = null;
         this.layer = null;
         this.nodes = []; // Array of FactoryNode objects
-        this.connections = []; // Array of connection lines
+        this.connections = []; // Array of Connection objects
+        this.selectedNode = null; // For connection mode
         this.initialize();
     }
 
@@ -37,6 +38,9 @@ class CanvasManager {
 
         // Handle window resize
         window.addEventListener('resize', () => this.handleResize());
+
+        // Setup event listeners for node interactions
+        this.setupEventListeners();
     }
 
     handleResize() {
@@ -48,6 +52,19 @@ class CanvasManager {
             this.stage.height(height);
             this.layer.draw();
         }
+    }
+
+    setupEventListeners() {
+        // Listen for node drag events to update connections
+        document.addEventListener('nodeDragged', (e) => {
+            this.updateConnections();
+            this.layer.draw();
+        });
+
+        // Listen for connection deletion requests
+        document.addEventListener('deleteConnection', (e) => {
+            this.deleteConnection(e.detail.connectionId);
+        });
     }
 
     // Draw test shapes (for Phase 1 testing)
@@ -133,6 +150,12 @@ class CanvasManager {
     addNode(node) {
         node.addToLayer(this.layer);
         this.nodes.push(node);
+
+        // Setup click handler for connection mode
+        node.group.on('click', () => {
+            this.onNodeClick(node);
+        });
+
         this.layer.draw();
         log(`Node added: ${node.buildingDef.name} at (${node.x}, ${node.y})`);
     }
@@ -161,6 +184,132 @@ class CanvasManager {
         this.layer.draw();
     }
 
+    // Connection Management
+
+    // Try to create connection from selected node to target node
+    tryCreateConnection(fromNode, toNode) {
+        // Validation
+        if (fromNode === toNode) {
+            log('Cannot connect node to itself');
+            return false;
+        }
+
+        // Check if connection already exists
+        const existing = this.connections.find(c =>
+            c.fromNode === fromNode && c.toNode === toNode
+        );
+        if (existing) {
+            log('Connection already exists');
+            return false;
+        }
+
+        // Check if nodes are compatible (validation logic)
+        if (!this.areNodesCompatible(fromNode, toNode)) {
+            log(`Cannot connect ${fromNode.buildingDef.name} to ${toNode.buildingDef.name}`);
+            return false;
+        }
+
+        // Determine resource type flowing through connection
+        const resourceType = this.getConnectionResourceType(fromNode, toNode);
+        if (!resourceType) {
+            log('No compatible resource found between nodes');
+            return false;
+        }
+
+        // Create connection
+        const connection = new Connection(fromNode, toNode, resourceType);
+        this.connections.push(connection);
+        connection.addToLayer(this.layer);
+
+        // Update node connections
+        fromNode.outputs.push(toNode.id);
+        toNode.inputs.push(fromNode.id);
+
+        this.layer.draw();
+        log(`Connected ${fromNode.buildingDef.name} -> ${toNode.buildingDef.name} (${resourceType})`);
+        return true;
+    }
+
+    // Check if two nodes can be connected
+    areNodesCompatible(fromNode, toNode) {
+        const fromDef = fromNode.buildingDef;
+        const toDef = toNode.buildingDef;
+
+        // From node must produce something
+        if (!fromDef.production || Object.keys(fromDef.production).length === 0) {
+            return false;
+        }
+
+        // To node must consume something
+        if (!toDef.consumption || Object.keys(toDef.consumption).length === 0) {
+            return false;
+        }
+
+        // Check if any produced resource matches any consumed resource
+        const producedResources = Object.keys(fromDef.production);
+        const consumedResources = Object.keys(toDef.consumption);
+
+        return producedResources.some(r => consumedResources.includes(r));
+    }
+
+    // Get the resource type that flows through this connection
+    getConnectionResourceType(fromNode, toNode) {
+        const fromDef = fromNode.buildingDef;
+        const toDef = toNode.buildingDef;
+
+        const producedResources = Object.keys(fromDef.production);
+        const consumedResources = Object.keys(toDef.consumption);
+
+        // Return first matching resource
+        return producedResources.find(r => consumedResources.includes(r)) || null;
+    }
+
+    // Delete connection by ID
+    deleteConnection(connectionId) {
+        const index = this.connections.findIndex(c => c.id === connectionId);
+        if (index !== -1) {
+            const connection = this.connections[index];
+
+            // Update nodes
+            const fromNode = connection.fromNode;
+            const toNode = connection.toNode;
+            fromNode.outputs = fromNode.outputs.filter(id => id !== toNode.id);
+            toNode.inputs = toNode.inputs.filter(id => id !== fromNode.id);
+
+            // Remove from layer
+            connection.removeFromLayer();
+            this.connections.splice(index, 1);
+            this.layer.draw();
+            log(`Connection deleted: ${connectionId}`);
+        }
+    }
+
+    // Update all connection positions (call when nodes are dragged)
+    updateConnections() {
+        this.connections.forEach(connection => {
+            connection.updatePosition();
+        });
+    }
+
+    // Handle node click for connection mode
+    onNodeClick(node) {
+        if (this.selectedNode === null) {
+            // First click - select source node
+            this.selectedNode = node;
+            node.setSelected(true);
+            this.layer.draw();
+            log(`Selected ${node.buildingDef.name} as connection source`);
+        } else {
+            // Second click - try to create connection
+            const success = this.tryCreateConnection(this.selectedNode, node);
+
+            // Deselect source node
+            this.selectedNode.setSelected(false);
+            this.selectedNode = null;
+            this.layer.draw();
+        }
+    }
+
     // Clear canvas
     clear() {
         this.nodes.forEach(node => node.removeFromLayer());
@@ -175,7 +324,7 @@ class CanvasManager {
     getSaveData() {
         return {
             nodes: this.nodes.map(node => node.getSaveData()),
-            connections: this.connections
+            connections: this.connections.map(conn => conn.getSaveData())
         };
     }
 
@@ -183,6 +332,7 @@ class CanvasManager {
     loadSaveData(data) {
         this.clear();
 
+        // Load nodes first
         if (data.nodes) {
             data.nodes.forEach(nodeData => {
                 const node = FactoryNode.loadFromSaveData(nodeData);
@@ -190,11 +340,18 @@ class CanvasManager {
             });
         }
 
+        // Load connections after nodes are loaded
         if (data.connections) {
-            this.connections = data.connections;
-            // TODO: Redraw connection lines
+            data.connections.forEach(connData => {
+                const connection = Connection.loadFromSaveData(connData, this.nodes);
+                if (connection) {
+                    this.connections.push(connection);
+                    connection.addToLayer(this.layer);
+                }
+            });
         }
 
+        this.layer.draw();
         log('Canvas loaded from save data');
     }
 }

@@ -85,6 +85,35 @@ class Game {
         this.canvas.updateNodes();
     }
 
+    // Check if a node has the required input connections
+    checkNodeInputs(node) {
+        const def = node.buildingDef;
+
+        // If no consumption, no inputs required
+        if (!def.consumption || Object.keys(def.consumption).length === 0) {
+            return true;
+        }
+
+        // Check each required resource
+        for (const [resource, _rate] of Object.entries(def.consumption)) {
+            // Find if any input node produces this resource
+            const hasInputForResource = node.inputs.some(inputNodeId => {
+                const inputNode = this.canvas.getNode(inputNodeId);
+                if (!inputNode) return false;
+
+                const inputDef = inputNode.buildingDef;
+                return inputDef.production && inputDef.production[resource];
+            });
+
+            // If any required resource lacks an input connection, return false
+            if (!hasInputForResource) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // Calculate production rates from all nodes
     calculateProduction() {
         // Reset all production rates to 0
@@ -109,16 +138,17 @@ class Game {
 
             // Check if node can produce (has inputs if required)
             if (def.consumption && Object.keys(def.consumption).length > 0) {
-                // Check if inputs available
-                const canProduce = this.resources.canAfford(def.consumption);
-                node.stalled = !canProduce;
+                // Phase 2: Check if node has required input connections
+                const hasRequiredInputs = this.checkNodeInputs(node);
 
-                if (canProduce) {
-                    // Consume inputs
-                    // Note: This is simplified, actual consumption happens per tick
-                    // For now we just check availability
-                }
+                // Also check if resources are available in global storage
+                const hasResources = this.resources.canAfford(def.consumption);
+
+                // Node can only produce if it has both inputs and resources
+                const canProduce = hasRequiredInputs && hasResources;
+                node.stalled = !canProduce;
             } else {
+                // No consumption requirements (like Ore Miner) - always works
                 node.stalled = false;
             }
 

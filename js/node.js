@@ -18,6 +18,7 @@ class FactoryNode {
         this.inputs = []; // Connected input node IDs
         this.outputs = []; // Connected output node IDs
         this.stalled = false; // True if can't produce due to lack of inputs
+        this.selected = false; // True if selected for connection mode
 
         // Konva shapes
         this.group = null; // Konva Group containing all shapes
@@ -82,19 +83,26 @@ class FactoryNode {
 
         // Add hover effects
         this.group.on('mouseenter', () => {
-            this.rect.stroke('#ffff00');
-            this.rect.strokeWidth(3);
+            if (!this.selected) {
+                this.rect.stroke('#ffff00');
+                this.rect.strokeWidth(3);
+            }
         });
 
         this.group.on('mouseleave', () => {
-            this.rect.stroke('#00ff00');
-            this.rect.strokeWidth(2);
+            if (!this.selected) {
+                this.rect.stroke('#00ff00');
+                this.rect.strokeWidth(2);
+            }
         });
 
         // Add drag event to update position
         this.group.on('dragmove', () => {
             this.x = this.group.x();
             this.y = this.group.y();
+            // Notify canvas to update connections
+            const event = new CustomEvent('nodeDragged', { detail: { nodeId: this.id } });
+            document.dispatchEvent(event);
         });
     }
 
@@ -134,6 +142,21 @@ class FactoryNode {
             this.rect.fill(this.buildingDef.color);
             this.text.fill('#00ff00');
         }
+
+        // Update stroke for selection state
+        if (this.selected) {
+            this.rect.stroke('#00ffff'); // Cyan when selected
+            this.rect.strokeWidth(4);
+        } else {
+            this.rect.stroke('#00ff00');
+            this.rect.strokeWidth(2);
+        }
+    }
+
+    // Set selection state
+    setSelected(selected) {
+        this.selected = selected;
+        this.updateDisplay();
     }
 
     // Get center position (for connection lines)
