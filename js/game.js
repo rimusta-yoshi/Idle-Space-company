@@ -10,6 +10,7 @@ class Game {
         this.buildingCounts = {}; // Track how many of each building type placed
         this.lastUpdate = Date.now();
         this.running = false;
+        this.frameCount = 0; // Debug: track frames
 
         this.initialize();
     }
@@ -62,6 +63,12 @@ class Game {
         // Update UI
         this.sidebar.updateResources();
 
+        // Debug: Log every 300 frames (~5 seconds)
+        this.frameCount++;
+        if (this.frameCount % 300 === 0) {
+            log(`Game loop active (frame ${this.frameCount}), ${this.canvas.nodes.length} nodes, deltaTime: ${deltaTime.toFixed(3)}s`);
+        }
+
         // Continue loop
         requestAnimationFrame(() => this.gameLoop());
     }
@@ -85,9 +92,20 @@ class Game {
             this.resources.setProduction(type, 0);
         });
 
+        // Debug: Log node count
+        if (this.canvas.nodes.length > 0 && Math.random() < 0.01) {
+            log(`Calculating production for ${this.canvas.nodes.length} nodes`);
+        }
+
         // Add production from each node
         this.canvas.nodes.forEach(node => {
             const def = node.buildingDef;
+
+            // Debug: Check if buildingDef exists
+            if (!def) {
+                console.error(`Node ${node.id} has no buildingDef!`);
+                return;
+            }
 
             // Check if node can produce (has inputs if required)
             if (def.consumption && Object.keys(def.consumption).length > 0) {

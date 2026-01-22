@@ -177,6 +177,14 @@ class FactoryNode {
         node.level = data.level || 1;
         node.inputs = data.inputs || [];
         node.outputs = data.outputs || [];
+
+        // Debug: Verify node was created correctly
+        if (!node.buildingDef) {
+            console.error(`Failed to load buildingDef for ${data.buildingType}`);
+        } else {
+            log(`Loaded node: ${node.buildingDef.name} (${node.id}) at (${node.x}, ${node.y})`);
+        }
+
         return node;
     }
 }
