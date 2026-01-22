@@ -103,9 +103,9 @@ class ResourceManager {
     getSaveData() {
         const data = {};
         Object.entries(this.resources).forEach(([type, res]) => {
+            // Only save current amount, NOT capacity (capacity comes from definitions)
             data[type] = {
-                current: res.current,
-                capacity: res.capacity
+                current: res.current
             };
         });
         return data;
@@ -115,8 +115,9 @@ class ResourceManager {
     loadSaveData(data) {
         Object.entries(data).forEach(([type, resData]) => {
             if (this.resources[type]) {
+                // Only load current amount, capacity always comes from RESOURCES definitions
                 this.resources[type].current = resData.current || 0;
-                this.resources[type].capacity = resData.capacity || this.resources[type].capacity;
+                // Don't load capacity - it's set from RESOURCES in initialize()
             }
         });
         log('Resources loaded from save data');
