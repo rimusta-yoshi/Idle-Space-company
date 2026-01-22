@@ -20,6 +20,16 @@ class SidebarManager {
                 amountElement.textContent = formatNumber(data.current);
             }
 
+            // Update capacity display (if it exists)
+            const capacityElement = document.getElementById(`${type}-capacity`);
+            if (capacityElement) {
+                if (data.capacity === Infinity) {
+                    capacityElement.textContent = ''; // Hide capacity for unlimited resources
+                } else {
+                    capacityElement.textContent = ' / ' + formatNumber(data.capacity);
+                }
+            }
+
             // Update production rates
             const rateElement = document.getElementById(`${type}-rate`);
             if (rateElement) {

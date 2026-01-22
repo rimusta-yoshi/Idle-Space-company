@@ -98,11 +98,17 @@ header p {
 
 .resource-name {
     color: #00aa00;
+    flex-shrink: 0;
 }
 
 .resource-amount, .production-rate {
     color: #00ff00;
     font-weight: bold;
+}
+
+.resource-capacity {
+    color: #008800;
+    margin-left: 2px;
 }
 
 /* Building Palette */

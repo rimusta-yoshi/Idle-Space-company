@@ -9,7 +9,7 @@ const RESOURCES = {
         icon: '⛏️',
         color: '#888888',
         initialAmount: 0,
-        initialCapacity: 200
+        initialCapacity: 5000 // Increased for better testing
     },
     metal: {
         id: 'metal',
@@ -18,7 +18,7 @@ const RESOURCES = {
         icon: '🔧',
         color: '#aaaaaa',
         initialAmount: 0,
-        initialCapacity: 100
+        initialCapacity: 2000 // Increased for better testing
     },
     credits: {
         id: 'credits',
