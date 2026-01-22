@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idle Space Company - Remote Worker Terminal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>IDLE SPACE COMPANY</h1>
+            <p>Remote Worker Terminal - Facility Alpha-1</p>
+        </header>
+
+        <!-- Main 3-Panel Layout -->
+        <div class="main-layout">
+            <!-- Left Sidebar: Resources -->
+            <aside id="resources-sidebar" class="sidebar left-sidebar">
+                <h2>RESOURCES</h2>
+                <div id="resource-list">
+                    <div class="resource-item">
+                        <span class="resource-name">Ore:</span>
+                        <span id="ore-amount" class="resource-amount">0</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-name">Metal:</span>
+                        <span id="metal-amount" class="resource-amount">0</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-name">Credits:</span>
+                        <span id="credits-amount" class="resource-amount">100</span>
+                    </div>
+                </div>
+
+                <h3>PRODUCTION</h3>
+                <div id="production-rates">
+                    <div class="production-item">
+                        <span class="resource-name">Ore:</span>
+                        <span id="ore-rate" class="production-rate">+0.0/s</span>
+                    </div>
+                    <div class="production-item">
+                        <span class="resource-name">Metal:</span>
+                        <span id="metal-rate" class="production-rate">+0.0/s</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-actions">
+                    <button id="save-button" class="btn">SAVE GAME</button>
+                </div>
+            </aside>
+
+            <!-- Center: Canvas -->
+            <main class="canvas-section">
+                <div id="canvas-container"></div>
+                <div class="canvas-info">
+                    <p>Drag buildings from the right palette onto the canvas</p>
+                </div>
+            </main>
+
+            <!-- Right Sidebar: Building Palette -->
+            <aside id="building-palette" class="sidebar right-sidebar">
+                <h2>BUILD</h2>
+                <div id="building-list">
+                    <div class="building-item" draggable="true" data-building="oreMiner">
+                        <div class="building-name">Ore Miner</div>
+                        <div class="building-cost">Cost: 10 Credits</div>
+                        <div class="building-description">Extracts raw ore from planet</div>
+                    </div>
+                    <div class="building-item" draggable="true" data-building="smelter">
+                        <div class="building-name">Smelter</div>
+                        <div class="building-cost">Cost: 50 Credits</div>
+                        <div class="building-description">Converts ore into metal</div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>System Status: ONLINE | Version 0.1.0 | Phase 1: Canvas Foundation</p>
+        </footer>
+    </div>
+
+    <!-- Load JavaScript files -->
+    <script src="js/utils.js"></script>
+    <script src="data/buildings-data.js"></script>
+    <script src="data/resources-data.js"></script>
+    <script src="js/resources.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/node.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
