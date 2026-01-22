@@ -6,6 +6,8 @@ class Game {
         this.resources = new ResourceManager();
         this.canvas = new CanvasManager('canvas-container');
         this.sidebar = new SidebarManager(this.resources);
+        this.upgrades = null; // Will be initialized after canvas setup
+        this.offlineCalc = null; // Will be initialized after canvas setup
 
         this.buildingCounts = {}; // Track how many of each building type placed
         this.lastUpdate = Date.now();
@@ -18,6 +20,12 @@ class Game {
     initialize() {
         log('Game initializing...');
 
+        // Initialize upgrade manager (needs game reference)
+        this.upgrades = new UpgradeManager(this);
+
+        // Initialize offline progress calculator
+        this.offlineCalc = new OfflineProgressCalculator(this);
+
         // Setup drag-and-drop
         this.sidebar.setupDragAndDrop((buildingType, x, y) => {
             this.onBuildingDropped(buildingType, x, y);
@@ -26,6 +34,11 @@ class Game {
         // Setup save button
         this.sidebar.setupSaveButton(() => {
             this.save();
+        });
+
+        // Listen for upgrade panel requests
+        document.addEventListener('openUpgradePanel', (e) => {
+            this.upgrades.openPanel(e.detail.node);
         });
 
         // Initial UI update
@@ -243,6 +256,17 @@ class Game {
             // Load building counts
             if (data.buildingCounts) {
                 this.buildingCounts = data.buildingCounts;
+            }
+
+            // Calculate production rates from loaded buildings
+            this.calculateProduction();
+
+            // Calculate offline progress (if any)
+            if (data.timestamp) {
+                const offlineData = this.offlineCalc.calculateOfflineProgress(data.timestamp);
+                if (offlineData) {
+                    this.offlineCalc.showOfflineNotification(offlineData);
+                }
             }
 
             // Update UI

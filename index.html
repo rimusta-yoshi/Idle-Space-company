@@ -58,7 +58,7 @@
             <main class="canvas-section">
                 <div id="canvas-container"></div>
                 <div class="canvas-info">
-                    <p>Drag buildings from the right palette | Click nodes to connect them | Right-click connections to delete</p>
+                    <p>Drag buildings from palette | Click nodes to connect | Double-click to upgrade | Right-click connections to delete</p>
                 </div>
             </main>
 
@@ -80,9 +80,36 @@
             </aside>
         </div>
 
+        <!-- Upgrade Panel Modal -->
+        <div id="upgrade-panel" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="upgrade-panel-title">Building Upgrade</h2>
+                    <button id="upgrade-panel-close" class="close-btn">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="upgrade-info">
+                        <p><strong>Level:</strong> <span id="upgrade-current-level">1</span></p>
+                        <p><strong>Production:</strong> <span id="upgrade-current-production">+1.0/s ore</span></p>
+                    </div>
+                    <hr>
+                    <div class="upgrade-actions">
+                        <button id="upgrade-btn" class="btn btn-primary">
+                            UPGRADE (Cost: <span id="upgrade-cost">10 credits</span>)
+                        </button>
+                        <p class="upgrade-next-level">Next level: <span id="upgrade-next-production">+2.0/s ore</span></p>
+                    </div>
+                    <hr>
+                    <div class="node-actions">
+                        <button id="delete-node-btn" class="btn btn-danger">DELETE BUILDING</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <footer>
-            <p>System Status: ONLINE | Version 0.2.0 | Phase 2: Connections & Production</p>
+            <p>System Status: ONLINE | Version 0.3.0 | Phase 3: Upgrades & Progression</p>
         </footer>
     </div>
 
@@ -95,6 +122,8 @@
     <script src="js/connection.js"></script>
     <script src="js/canvas.js"></script>
     <script src="js/sidebar.js"></script>
+    <script src="js/upgrades.js"></script>
+    <script src="js/offline.js"></script>
     <script src="js/game.js"></script>
     <script src="js/main.js"></script>
 </body>

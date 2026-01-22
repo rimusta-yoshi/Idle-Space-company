@@ -156,6 +156,11 @@ class CanvasManager {
             this.onNodeClick(node);
         });
 
+        // Setup double-click handler for upgrade panel
+        node.group.on('dblclick', () => {
+            this.onNodeDoubleClick(node);
+        });
+
         this.layer.draw();
         log(`Node added: ${node.buildingDef.name} at (${node.x}, ${node.y})`);
     }
@@ -301,13 +306,27 @@ class CanvasManager {
             log(`Selected ${node.buildingDef.name} as connection source`);
         } else {
             // Second click - try to create connection
-            const success = this.tryCreateConnection(this.selectedNode, node);
+            this.tryCreateConnection(this.selectedNode, node);
 
             // Deselect source node
             this.selectedNode.setSelected(false);
             this.selectedNode = null;
             this.layer.draw();
         }
+    }
+
+    // Handle node double-click for upgrade panel
+    onNodeDoubleClick(node) {
+        // Deselect any selected node first
+        if (this.selectedNode) {
+            this.selectedNode.setSelected(false);
+            this.selectedNode = null;
+            this.layer.draw();
+        }
+
+        // Dispatch event for upgrade panel
+        const event = new CustomEvent('openUpgradePanel', { detail: { node: node } });
+        document.dispatchEvent(event);
     }
 
     // Clear canvas

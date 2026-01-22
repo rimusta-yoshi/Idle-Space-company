@@ -279,3 +279,126 @@ footer p {
         min-height: 400px;
     }
 }
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #001100;
+    border: 3px solid #00ff00;
+    padding: 0;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 0 30px #00ff0055;
+}
+
+.modal-header {
+    background-color: #002200;
+    border-bottom: 2px solid #00ff00;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    color: #00ff00;
+    margin: 0;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #00ff00;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: #ffff00;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-body hr {
+    border: none;
+    border-top: 1px solid #00aa00;
+    margin: 15px 0;
+}
+
+.upgrade-info {
+    color: #00ff00;
+}
+
+.upgrade-info p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.upgrade-info strong {
+    color: #00aa00;
+}
+
+.upgrade-info span {
+    color: #00ff00;
+}
+
+.upgrade-actions {
+    margin: 15px 0;
+}
+
+.upgrade-next-level {
+    color: #00aa00;
+    font-size: 12px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.upgrade-next-level span {
+    color: #ffff00;
+}
+
+.btn-primary {
+    background-color: #002200;
+    border-color: #00ff00;
+}
+
+.btn-primary:hover {
+    background-color: #004400;
+    box-shadow: 0 0 15px #00ff0055;
+}
+
+.btn-danger {
+    background-color: #220000;
+    color: #ff0000;
+    border-color: #ff0000;
+}
+
+.btn-danger:hover {
+    background-color: #440000;
+    box-shadow: 0 0 15px #ff000055;
+}
+
+.node-actions {
+    margin-top: 15px;
+}
