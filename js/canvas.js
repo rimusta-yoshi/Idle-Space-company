@@ -2,8 +2,9 @@
 // Handles Konva canvas and node management
 
 class CanvasManager {
-    constructor(containerId) {
+    constructor(containerId, rootElement = document) {
         this.containerId = containerId;
+        this.rootElement = rootElement;
         this.stage = null;
         this.layer = null;
         this.nodes = []; // Array of FactoryNode objects
@@ -13,28 +14,41 @@ class CanvasManager {
     }
 
     initialize() {
-        const container = document.getElementById(this.containerId);
+        // Use querySelector which works on both document and DOM elements
+        const container = this.rootElement.querySelector(`#${this.containerId}`);
+
         if (!container) {
-            console.error(`Container ${this.containerId} not found`);
+            console.error(`Container ${this.containerId} not found in rootElement:`, this.rootElement);
+            console.error('Available elements:', this.rootElement.querySelectorAll('*'));
             return;
         }
 
+        console.log('Found canvas container:', container);
+
         // Get container size
-        const width = container.clientWidth;
-        const height = container.clientHeight;
+        const width = container.clientWidth || 800;
+        const height = container.clientHeight || 600;
 
-        // Create Konva stage
-        this.stage = new Konva.Stage({
-            container: this.containerId,
-            width: width,
-            height: height
-        });
+        console.log('Container size:', width, 'x', height);
 
-        // Create layer
-        this.layer = new Konva.Layer();
-        this.stage.add(this.layer);
+        // Create Konva stage - pass the actual DOM element, not the ID string
+        try {
+            this.stage = new Konva.Stage({
+                container: container,  // Pass the DOM element directly
+                width: width,
+                height: height
+            });
 
-        log('Canvas initialized: ' + width + 'x' + height);
+            // Create layer
+            this.layer = new Konva.Layer();
+            this.stage.add(this.layer);
+
+            log('Canvas initialized: ' + width + 'x' + height);
+        } catch (error) {
+            console.error('Failed to initialize Konva stage:', error);
+            console.error('Container element:', container);
+            console.error('Container parent:', container.parentElement);
+        }
 
         // Handle window resize
         window.addEventListener('resize', () => this.handleResize());
@@ -44,7 +58,7 @@ class CanvasManager {
     }
 
     handleResize() {
-        const container = document.getElementById(this.containerId);
+        const container = this.rootElement.querySelector(`#${this.containerId}`);
         if (container && this.stage) {
             const width = container.clientWidth;
             const height = container.clientHeight;

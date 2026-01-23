@@ -2,10 +2,11 @@
 // Core game logic and state management
 
 class Game {
-    constructor() {
+    constructor(rootElement = document) {
+        this.rootElement = rootElement; // Root element to scope queries
         this.resources = new ResourceManager();
-        this.canvas = new CanvasManager('canvas-container');
-        this.sidebar = new SidebarManager(this.resources);
+        this.canvas = new CanvasManager('canvas-container', rootElement);
+        this.sidebar = new SidebarManager(this.resources, rootElement);
         this.upgrades = null; // Will be initialized after canvas setup
         this.offlineCalc = null; // Will be initialized after canvas setup
 
@@ -21,7 +22,7 @@ class Game {
         log('Game initializing...');
 
         // Initialize upgrade manager (needs game reference)
-        this.upgrades = new UpgradeManager(this);
+        this.upgrades = new UpgradeManager(this, this.rootElement);
 
         // Initialize offline progress calculator
         this.offlineCalc = new OfflineProgressCalculator(this);

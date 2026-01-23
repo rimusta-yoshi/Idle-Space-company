@@ -2,8 +2,9 @@
 // Handles updating the left and right sidebars
 
 class SidebarManager {
-    constructor(resourceManager) {
+    constructor(resourceManager, rootElement = document) {
         this.resourceManager = resourceManager;
+        this.rootElement = rootElement;
         this.initialize();
     }
 
@@ -15,13 +16,13 @@ class SidebarManager {
     updateResources() {
         // Update resource amounts
         Object.entries(this.resourceManager.resources).forEach(([type, data]) => {
-            const amountElement = document.getElementById(`${type}-amount`);
+            const amountElement = this.rootElement.querySelector(`#${type}-amount`);
             if (amountElement) {
                 amountElement.textContent = formatNumber(data.current);
             }
 
             // Update capacity display (if it exists)
-            const capacityElement = document.getElementById(`${type}-capacity`);
+            const capacityElement = this.rootElement.querySelector(`#${type}-capacity`);
             if (capacityElement) {
                 if (data.capacity === Infinity) {
                     capacityElement.textContent = ''; // Hide capacity for unlimited resources
@@ -31,7 +32,7 @@ class SidebarManager {
             }
 
             // Update production rates
-            const rateElement = document.getElementById(`${type}-rate`);
+            const rateElement = this.rootElement.querySelector(`#${type}-rate`);
             if (rateElement) {
                 const sign = data.production >= 0 ? '+' : '';
                 rateElement.textContent = sign + formatRate(data.production);
@@ -41,7 +42,7 @@ class SidebarManager {
 
     // Update building palette (enable/disable based on affordability)
     updateBuildingPalette(buildingCounts) {
-        const buildingItems = document.querySelectorAll('.building-item');
+        const buildingItems = this.rootElement.querySelectorAll('.building-item');
 
         buildingItems.forEach(item => {
             const buildingType = item.getAttribute('data-building');
@@ -73,7 +74,7 @@ class SidebarManager {
 
     // Setup drag-and-drop for building palette
     setupDragAndDrop(onBuildingDropped) {
-        const buildingItems = document.querySelectorAll('.building-item');
+        const buildingItems = this.rootElement.querySelectorAll('.building-item');
 
         buildingItems.forEach(item => {
             item.addEventListener('dragstart', (e) => {
@@ -85,7 +86,7 @@ class SidebarManager {
         });
 
         // Setup drop zone (canvas container)
-        const canvasContainer = document.getElementById('canvas-container');
+        const canvasContainer = this.rootElement.querySelector('#canvas-container');
 
         canvasContainer.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -114,7 +115,7 @@ class SidebarManager {
 
     // Setup save button
     setupSaveButton(onSave) {
-        const saveButton = document.getElementById('save-button');
+        const saveButton = this.rootElement.querySelector('#save-button');
         if (saveButton) {
             saveButton.addEventListener('click', () => {
                 log('Save button clicked');

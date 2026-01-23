@@ -1,61 +1,51 @@
 // Main Entry Point
-// Initialize and start the game
+// Initialize Desktop OS and launch apps
 
-let game;
+let desktop;
 
-// Initialize game when DOM is loaded
+// Initialize Desktop OS when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    log('DOM loaded, starting game...');
+    log('DOM loaded, starting Desktop OS...');
 
-    // Create game instance
-    game = new Game();
+    // Create Desktop OS instance
+    desktop = new DesktopOS();
 
-    // Try to load saved game
-    const loaded = game.load();
-    if (loaded) {
-        log('Loaded existing save');
+    // Try to load saved desktop state
+    const loaded = desktop.load();
+    if (!loaded) {
+        // No saved state - launch factory app by default
+        log('No saved state, launching Factory Manager...');
+        desktop.launchApp('factory', {
+            x: 100,
+            y: 50,
+            width: 1000,
+            height: 700
+        });
     } else {
-        log('Starting new game');
-
-        // Draw test shapes for Phase 1
-        game.canvas.drawTestShapes();
+        log('Desktop state loaded from save');
     }
 
-    // Start game loop
-    game.start();
+    log('Desktop OS running! Double-click icons to launch apps.');
 
-    // Auto-save every 30 seconds
-    setInterval(() => {
-        game.save();
-    }, 30000);
-
-    log('Game running! Drag buildings from the right sidebar onto the canvas.');
-
-    // Expose game to console for debugging
-    window.game = game;
+    // Expose desktop to console for debugging
+    window.desktop = desktop;
 
     // Debug helper functions
-    window.debugGame = () => {
-        console.log('=== GAME DEBUG INFO ===');
-        console.log('Running:', game.running);
-        console.log('Frame count:', game.frameCount);
-        console.log('Nodes on canvas:', game.canvas.nodes.length);
-        game.canvas.nodes.forEach(node => {
-            console.log(`  - ${node.buildingDef?.name || 'UNKNOWN'} at (${node.x.toFixed(0)}, ${node.y.toFixed(0)}) level ${node.level}`);
+    window.debugDesktop = () => {
+        console.log('=== DESKTOP DEBUG INFO ===');
+        console.log('Windows open:', desktop.windowManager.windows.length);
+        desktop.windowManager.windows.forEach(w => {
+            console.log(`  - ${w.app.title} at (${w.x}, ${w.y}) size ${w.width}x${w.height}`);
         });
-        console.log('Resources:');
-        Object.entries(game.resources.resources).forEach(([type, data]) => {
-            console.log(`  - ${type}: ${data.current.toFixed(2)} / ${data.capacity} (production: ${data.production.toFixed(3)}/s)`);
-        });
-        console.log('Building counts:', game.buildingCounts);
+        console.log('Registered apps:', Object.keys(desktop.apps));
     };
 
-    console.log('Debug helper loaded! Type debugGame() in console to see game state');
+    console.log('Debug helper loaded! Type debugDesktop() in console to see desktop state');
 });
 
 // Handle page unload (save before closing)
 window.addEventListener('beforeunload', () => {
-    if (game) {
-        game.save();
+    if (desktop) {
+        desktop.save();
     }
 });

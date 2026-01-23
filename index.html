@@ -8,110 +8,169 @@
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header>
-            <h1>IDLE SPACE COMPANY</h1>
-            <p>Remote Worker Terminal - Facility Alpha-1</p>
-        </header>
-
-        <!-- Main 3-Panel Layout -->
-        <div class="main-layout">
-            <!-- Left Sidebar: Resources -->
-            <aside id="resources-sidebar" class="sidebar left-sidebar">
-                <h2>RESOURCES</h2>
-                <div id="resource-list">
-                    <div class="resource-item">
-                        <span class="resource-name">Ore:</span>
-                        <span id="ore-amount" class="resource-amount">0</span>
-                        <span id="ore-capacity" class="resource-capacity">/ 200</span>
-                    </div>
-                    <div class="resource-item">
-                        <span class="resource-name">Metal:</span>
-                        <span id="metal-amount" class="resource-amount">0</span>
-                        <span id="metal-capacity" class="resource-capacity">/ 100</span>
-                    </div>
-                    <div class="resource-item">
-                        <span class="resource-name">Credits:</span>
-                        <span id="credits-amount" class="resource-amount">100</span>
-                    </div>
-                </div>
-
-                <h3>PRODUCTION</h3>
-                <div id="production-rates">
-                    <div class="production-item">
-                        <span class="resource-name">Ore:</span>
-                        <span id="ore-rate" class="production-rate">+0.0/s</span>
-                    </div>
-                    <div class="production-item">
-                        <span class="resource-name">Metal:</span>
-                        <span id="metal-rate" class="production-rate">+0.0/s</span>
-                    </div>
-                </div>
-
-                <div class="sidebar-actions">
-                    <button id="save-button" class="btn">SAVE GAME</button>
-                </div>
-            </aside>
-
-            <!-- Center: Canvas -->
-            <main class="canvas-section">
-                <div id="canvas-container"></div>
-                <div class="canvas-info">
-                    <p>Drag buildings from palette | Click nodes to connect | Double-click to upgrade | Right-click connections to delete</p>
-                </div>
-            </main>
-
-            <!-- Right Sidebar: Building Palette -->
-            <aside id="building-palette" class="sidebar right-sidebar">
-                <h2>BUILD</h2>
-                <div id="building-list">
-                    <div class="building-item" draggable="true" data-building="oreMiner">
-                        <div class="building-name">Ore Miner</div>
-                        <div class="building-cost">Cost: 10 Credits</div>
-                        <div class="building-description">Extracts raw ore from planet</div>
-                    </div>
-                    <div class="building-item" draggable="true" data-building="smelter">
-                        <div class="building-name">Smelter</div>
-                        <div class="building-cost">Cost: 50 Credits</div>
-                        <div class="building-description">Converts ore into metal</div>
-                    </div>
-                </div>
-            </aside>
-        </div>
-
-        <!-- Upgrade Panel Modal -->
-        <div id="upgrade-panel" class="modal" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 id="upgrade-panel-title">Building Upgrade</h2>
-                    <button id="upgrade-panel-close" class="close-btn">×</button>
-                </div>
-                <div class="modal-body">
-                    <div class="upgrade-info">
-                        <p><strong>Level:</strong> <span id="upgrade-current-level">1</span></p>
-                        <p><strong>Production:</strong> <span id="upgrade-current-production">+1.0/s ore</span></p>
-                    </div>
-                    <hr>
-                    <div class="upgrade-actions">
-                        <button id="upgrade-btn" class="btn btn-primary">
-                            UPGRADE (Cost: <span id="upgrade-cost">10 credits</span>)
-                        </button>
-                        <p class="upgrade-next-level">Next level: <span id="upgrade-next-production">+2.0/s ore</span></p>
-                    </div>
-                    <hr>
-                    <div class="node-actions">
-                        <button id="delete-node-btn" class="btn btn-danger">DELETE BUILDING</button>
-                    </div>
-                </div>
+    <!-- Desktop OS Environment -->
+    <div id="desktop">
+        <!-- Desktop background -->
+        <div id="desktop-background">
+            <div class="desktop-icon" data-app="factory">
+                <div class="icon">🏭</div>
+                <div class="icon-label">Factory Manager</div>
             </div>
         </div>
 
-        <!-- Footer -->
-        <footer>
-            <p>System Status: ONLINE | Version 0.3.0 | Phase 3: Upgrades & Progression</p>
-        </footer>
+        <!-- Windows container (managed by WindowManager) -->
+        <div id="windows-container">
+            <!-- Windows created dynamically here -->
+        </div>
+
+        <!-- Taskbar -->
+        <div id="taskbar">
+            <div class="taskbar-start">
+                <button id="start-button">⚙ START</button>
+            </div>
+            <div class="taskbar-apps">
+                <!-- Running app icons -->
+            </div>
+            <div class="taskbar-tray">
+                <span id="system-clock">00:00</span>
+            </div>
+        </div>
     </div>
+
+    <!-- Window template (cloned for each window) -->
+    <template id="window-template">
+        <div class="os-window">
+            <div class="window-titlebar">
+                <span class="window-icon">📦</span>
+                <span class="window-title">Application</span>
+                <div class="window-controls">
+                    <button class="window-btn maximize" title="Maximize">□</button>
+                    <button class="window-btn close" title="Close">×</button>
+                </div>
+            </div>
+            <div class="window-content">
+                <!-- App content injected here -->
+            </div>
+            <div class="window-resize-handles">
+                <div class="resize-handle n"></div>
+                <div class="resize-handle e"></div>
+                <div class="resize-handle s"></div>
+                <div class="resize-handle w"></div>
+                <div class="resize-handle ne"></div>
+                <div class="resize-handle se"></div>
+                <div class="resize-handle sw"></div>
+                <div class="resize-handle nw"></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Factory app content template -->
+    <template id="factory-app-template">
+        <div class="factory-container">
+            <!-- Header -->
+            <header>
+                <h1>IDLE SPACE COMPANY</h1>
+                <p>Remote Worker Terminal - Facility Alpha-1</p>
+            </header>
+
+            <!-- Main 3-Panel Layout -->
+            <div class="main-layout">
+                <!-- Left Sidebar: Resources -->
+                <aside id="resources-sidebar" class="sidebar left-sidebar">
+                    <h2>RESOURCES</h2>
+                    <div id="resource-list">
+                        <div class="resource-item">
+                            <span class="resource-name">Ore:</span>
+                            <span id="ore-amount" class="resource-amount">0</span>
+                            <span id="ore-capacity" class="resource-capacity">/ 200</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-name">Metal:</span>
+                            <span id="metal-amount" class="resource-amount">0</span>
+                            <span id="metal-capacity" class="resource-capacity">/ 100</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-name">Credits:</span>
+                            <span id="credits-amount" class="resource-amount">100</span>
+                        </div>
+                    </div>
+
+                    <h3>PRODUCTION</h3>
+                    <div id="production-rates">
+                        <div class="production-item">
+                            <span class="resource-name">Ore:</span>
+                            <span id="ore-rate" class="production-rate">+0.0/s</span>
+                        </div>
+                        <div class="production-item">
+                            <span class="resource-name">Metal:</span>
+                            <span id="metal-rate" class="production-rate">+0.0/s</span>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-actions">
+                        <button id="save-button" class="btn">SAVE GAME</button>
+                    </div>
+                </aside>
+
+                <!-- Center: Canvas -->
+                <main class="canvas-section">
+                    <div id="canvas-container"></div>
+                    <div class="canvas-info">
+                        <p>Drag buildings from palette | Click nodes to connect | Double-click to upgrade | Right-click connections to delete</p>
+                    </div>
+                </main>
+
+                <!-- Right Sidebar: Building Palette -->
+                <aside id="building-palette" class="sidebar right-sidebar">
+                    <h2>BUILD</h2>
+                    <div id="building-list">
+                        <div class="building-item" draggable="true" data-building="oreMiner">
+                            <div class="building-name">Ore Miner</div>
+                            <div class="building-cost">Cost: 10 Credits</div>
+                            <div class="building-description">Extracts raw ore from planet</div>
+                        </div>
+                        <div class="building-item" draggable="true" data-building="smelter">
+                            <div class="building-name">Smelter</div>
+                            <div class="building-cost">Cost: 50 Credits</div>
+                            <div class="building-description">Converts ore into metal</div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+
+            <!-- Upgrade Panel Modal -->
+            <div id="upgrade-panel" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="upgrade-panel-title">Building Upgrade</h2>
+                        <button id="upgrade-panel-close" class="close-btn">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="upgrade-info">
+                            <p><strong>Level:</strong> <span id="upgrade-current-level">1</span></p>
+                            <p><strong>Production:</strong> <span id="upgrade-current-production">+1.0/s ore</span></p>
+                        </div>
+                        <hr>
+                        <div class="upgrade-actions">
+                            <button id="upgrade-btn" class="btn btn-primary">
+                                UPGRADE (Cost: <span id="upgrade-cost">10 credits</span>)
+                            </button>
+                            <p class="upgrade-next-level">Next level: <span id="upgrade-next-production">+2.0/s ore</span></p>
+                        </div>
+                        <hr>
+                        <div class="node-actions">
+                            <button id="delete-node-btn" class="btn btn-danger">DELETE BUILDING</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer>
+                <p>System Status: ONLINE | Version 0.4.0 | Virtual OS Mode</p>
+            </footer>
+        </div>
+    </template>
 
     <!-- Load JavaScript files -->
     <script src="js/utils.js"></script>
@@ -125,6 +184,13 @@
     <script src="js/upgrades.js"></script>
     <script src="js/offline.js"></script>
     <script src="js/game.js"></script>
+    <!-- Load OS system files -->
+    <script src="js/os/app.js"></script>
+    <script src="js/os/os-window.js"></script>
+    <script src="js/os/window-manager.js"></script>
+    <script src="js/os/taskbar.js"></script>
+    <script src="js/os/desktop.js"></script>
+    <script src="js/apps/factory-app.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

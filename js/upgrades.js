@@ -2,19 +2,27 @@
 // Handles node upgrades and upgrade panel UI
 
 class UpgradeManager {
-    constructor(game) {
+    constructor(game, rootElement = document) {
         this.game = game;
+        this.rootElement = rootElement;
         this.currentNode = null; // Currently selected node for upgrade
         this.panel = null;
         this.initialize();
     }
 
     initialize() {
-        this.panel = document.getElementById('upgrade-panel');
+        this.panel = this.rootElement.querySelector('#upgrade-panel');
+
+        if (!this.panel) {
+            console.error('Upgrade panel not found');
+            return;
+        }
 
         // Setup close button
-        const closeBtn = document.getElementById('upgrade-panel-close');
-        closeBtn.addEventListener('click', () => this.closePanel());
+        const closeBtn = this.rootElement.querySelector('#upgrade-panel-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closePanel());
+        }
 
         // Close on background click
         this.panel.addEventListener('click', (e) => {
@@ -25,18 +33,22 @@ class UpgradeManager {
 
         // Close on ESC key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.panel.style.display !== 'none') {
+            if (e.key === 'Escape' && this.panel && this.panel.style.display !== 'none') {
                 this.closePanel();
             }
         });
 
         // Setup upgrade button
-        const upgradeBtn = document.getElementById('upgrade-btn');
-        upgradeBtn.addEventListener('click', () => this.upgradeNode());
+        const upgradeBtn = this.rootElement.querySelector('#upgrade-btn');
+        if (upgradeBtn) {
+            upgradeBtn.addEventListener('click', () => this.upgradeNode());
+        }
 
         // Setup delete button
-        const deleteBtn = document.getElementById('delete-node-btn');
-        deleteBtn.addEventListener('click', () => this.deleteNode());
+        const deleteBtn = this.rootElement.querySelector('#delete-node-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => this.deleteNode());
+        }
 
         log('UpgradeManager initialized');
     }
@@ -63,24 +75,28 @@ class UpgradeManager {
         const def = node.buildingDef;
 
         // Update title
-        document.getElementById('upgrade-panel-title').textContent = def.name;
+        const titleElement = this.rootElement.querySelector('#upgrade-panel-title');
+        if (titleElement) titleElement.textContent = def.name;
 
         // Update current level
-        document.getElementById('upgrade-current-level').textContent = node.level;
+        const levelElement = this.rootElement.querySelector('#upgrade-current-level');
+        if (levelElement) levelElement.textContent = node.level;
 
         // Update current production
         const currentProduction = this.getProductionText(node);
-        document.getElementById('upgrade-current-production').textContent = currentProduction;
+        const productionElement = this.rootElement.querySelector('#upgrade-current-production');
+        if (productionElement) productionElement.textContent = currentProduction;
 
         // Update upgrade cost and next level
         const upgradeCost = this.calculateUpgradeCost(node);
-        const upgradeBtn = document.getElementById('upgrade-btn');
+        const upgradeBtn = this.rootElement.querySelector('#upgrade-btn');
 
-        if (upgradeCost) {
+        if (upgradeCost && upgradeBtn) {
             const costText = Object.entries(upgradeCost)
                 .map(([resource, amount]) => `${formatNumber(amount)} ${resource}`)
                 .join(', ');
-            document.getElementById('upgrade-cost').textContent = costText;
+            const costElement = this.rootElement.querySelector('#upgrade-cost');
+            if (costElement) costElement.textContent = costText;
 
             // Check if can afford
             const canAfford = this.game.resources.canAfford(upgradeCost);
@@ -88,8 +104,9 @@ class UpgradeManager {
 
             // Update next level production
             const nextLevelProduction = this.getProductionText(node, node.level + 1);
-            document.getElementById('upgrade-next-production').textContent = nextLevelProduction;
-        } else {
+            const nextProdElement = this.rootElement.querySelector('#upgrade-next-production');
+            if (nextProdElement) nextProdElement.textContent = nextLevelProduction;
+        } else if (upgradeBtn) {
             // Max level reached
             upgradeBtn.disabled = true;
             upgradeBtn.textContent = 'MAX LEVEL';

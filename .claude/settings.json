@@ -1,0 +1,30 @@
+{
+  "contextOptimization": {
+    "maxTokenBudget": 200000,
+    "targetAvailableTokens": 150000
+  },
+  "hooks": {
+    "postToolUse": [
+      {
+        "name": "console-log-detection",
+        "description": "Warn about console.log in modified files",
+        "filter": {
+          "tools": ["Edit", "Write"],
+          "filePattern": "**/*.js"
+        },
+        "action": "if grep -q 'console\\.\\(log\\|warn\\|error\\)' \"${FILE_PATH}\"; then echo '⚠️  Warning: console.log detected in ${FILE_PATH}. Remove before committing.'; fi"
+      }
+    ],
+    "preToolUse": [
+      {
+        "name": "git-push-review",
+        "description": "Pause before git push",
+        "filter": {
+          "tools": ["Bash"],
+          "commandPattern": "git push"
+        },
+        "action": "echo '⏸️  About to push to remote. Review changes first? (Press Enter to continue)'"
+      }
+    ]
+  }
+}
