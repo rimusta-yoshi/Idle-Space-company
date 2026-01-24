@@ -1,8 +1,20 @@
 // Main Entry Point
 // Initialize Boot Screen -> Desktop OS
 
+// Check if all dependencies loaded
+window.addEventListener('error', (e) => {
+    console.error('Resource loading error:', e.filename || e.message);
+});
+
 // Initialize Boot Screen when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    // Check critical dependencies
+    if (typeof Konva === 'undefined') {
+        console.error('CRITICAL: Konva library not loaded!');
+        alert('Failed to load Konva library. Please check your internet connection and refresh.');
+        return;
+    }
+
     log('DOM loaded, starting Boot Screen...');
 
     // Create and initialize boot screen
