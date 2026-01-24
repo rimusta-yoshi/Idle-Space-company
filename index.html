@@ -8,13 +8,32 @@
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 </head>
 <body>
-    <!-- Desktop OS Environment -->
-    <div id="desktop">
+    <!-- Boot Screen (shown first) -->
+    <div id="boot-screen" style="display: flex;">
+        <div class="boot-content">
+            <!-- Populated by BootScreen.getBootHTML() -->
+        </div>
+    </div>
+
+    <!-- Desktop OS Environment (hidden until boot complete) -->
+    <div id="desktop" style="display: none;">
         <!-- Desktop background -->
         <div id="desktop-background">
             <div class="desktop-icon" data-app="factory">
                 <div class="icon">🏭</div>
                 <div class="icon-label">Factory Manager</div>
+            </div>
+            <div class="desktop-icon" data-app="market">
+                <div class="icon">🏪</div>
+                <div class="icon-label">Space Market</div>
+            </div>
+            <div class="desktop-icon" data-app="warehouse">
+                <div class="icon">📦</div>
+                <div class="icon-label">Warehouse</div>
+            </div>
+            <div class="desktop-icon" data-app="logout">
+                <div class="icon">⚙️</div>
+                <div class="icon-label">System</div>
             </div>
         </div>
 
@@ -33,6 +52,42 @@
             </div>
             <div class="taskbar-tray">
                 <span id="system-clock">00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mr. Business Notification Modal -->
+    <div id="mr-business-notification" class="notification-modal" style="display: none;">
+        <div class="notification-overlay"></div>
+        <div class="notification-content">
+            <div class="notification-header">
+                <span class="notification-icon">📨</span>
+                <span class="notification-title">Message from Mr. Business</span>
+            </div>
+            <div class="notification-body">
+                <p>Hey there, space entrepreneur!</p>
+                <p>I've set up two new systems for you:</p>
+                <div class="notification-apps">
+                    <div class="notification-app-item">
+                        <span class="notification-app-icon">🏪</span>
+                        <div>
+                            <strong>SPACE MARKET</strong> - Your gateway to the galactic economy!<br>
+                            <span class="notification-app-desc">Open it to sell your resources for cold, hard credits.</span>
+                        </div>
+                    </div>
+                    <div class="notification-app-item">
+                        <span class="notification-app-icon">📦</span>
+                        <div>
+                            <strong>WAREHOUSE</strong> - Your new storage management hub!<br>
+                            <span class="notification-app-desc">Track your inventory, production, and upgrade capacity.</span>
+                        </div>
+                    </div>
+                </div>
+                <p>These tools will help you scale your operation!</p>
+                <p class="notification-signature">- Mr. Business</p>
+            </div>
+            <div class="notification-footer">
+                <button id="notification-close-btn" class="btn">Got it!</button>
             </div>
         </div>
     </div>
@@ -67,35 +122,28 @@
     <!-- Factory app content template -->
     <template id="factory-app-template">
         <div class="factory-container">
+            <!-- Sidebar Toggle Button (visible in tiny mode) -->
+            <button class="sidebar-toggle" id="sidebar-toggle-btn">Toggle Panels</button>
+
             <!-- Header -->
             <header>
                 <h1>IDLE SPACE COMPANY</h1>
                 <p>Remote Worker Terminal - Facility Alpha-1</p>
             </header>
 
-            <!-- Main 3-Panel Layout -->
+            <!-- Main 2-Panel Layout -->
             <div class="main-layout">
-                <!-- Left Sidebar: Resources -->
+                <!-- Left Sidebar: Production Info & Build Palette -->
                 <aside id="resources-sidebar" class="sidebar left-sidebar">
-                    <h2>RESOURCES</h2>
-                    <div id="resource-list">
+                    <h2>CREDITS</h2>
+                    <div id="credits-info">
                         <div class="resource-item">
-                            <span class="resource-name">Ore:</span>
-                            <span id="ore-amount" class="resource-amount">0</span>
-                            <span id="ore-capacity" class="resource-capacity">/ 200</span>
-                        </div>
-                        <div class="resource-item">
-                            <span class="resource-name">Metal:</span>
-                            <span id="metal-amount" class="resource-amount">0</span>
-                            <span id="metal-capacity" class="resource-capacity">/ 100</span>
-                        </div>
-                        <div class="resource-item">
-                            <span class="resource-name">Credits:</span>
+                            <span class="resource-name">Balance:</span>
                             <span id="credits-amount" class="resource-amount">100</span>
                         </div>
                     </div>
 
-                    <h3>PRODUCTION</h3>
+                    <h3>PRODUCTION RATES</h3>
                     <div id="production-rates">
                         <div class="production-item">
                             <span class="resource-name">Ore:</span>
@@ -107,22 +155,7 @@
                         </div>
                     </div>
 
-                    <div class="sidebar-actions">
-                        <button id="save-button" class="btn">SAVE GAME</button>
-                    </div>
-                </aside>
-
-                <!-- Center: Canvas -->
-                <main class="canvas-section">
-                    <div id="canvas-container"></div>
-                    <div class="canvas-info">
-                        <p>Drag buildings from palette | Click nodes to connect | Double-click to upgrade | Right-click connections to delete</p>
-                    </div>
-                </main>
-
-                <!-- Right Sidebar: Building Palette -->
-                <aside id="building-palette" class="sidebar right-sidebar">
-                    <h2>BUILD</h2>
+                    <h2 style="margin-top: 20px;">BUILD</h2>
                     <div id="building-list">
                         <div class="building-item" draggable="true" data-building="oreMiner">
                             <div class="building-name">Ore Miner</div>
@@ -136,6 +169,16 @@
                         </div>
                     </div>
                 </aside>
+
+                <!-- Right: Canvas -->
+                <main class="canvas-section">
+                    <div id="canvas-container">
+                        <div class="zoom-indicator" id="zoom-indicator">Zoom: 100%</div>
+                    </div>
+                    <div class="canvas-info">
+                        <p>🖱️ Middle Mouse/Space+Drag: Pan | 🔍 Scroll: Zoom | Drag buildings to place | Click nodes: Connect | Double-click: Upgrade</p>
+                    </div>
+                </main>
             </div>
 
             <!-- Upgrade Panel Modal -->
@@ -172,8 +215,151 @@
         </div>
     </template>
 
+    <!-- Market app content template -->
+    <template id="market-app-template">
+        <div class="market-container">
+            <!-- Browser-like navigation -->
+            <div class="market-nav">
+                <button data-page="store" class="nav-btn active">🏪 Store</button>
+                <button data-page="about" class="nav-btn">ℹ️ About</button>
+                <div class="url-bar">galactic://market.space/store</div>
+            </div>
+
+            <!-- Store page content -->
+            <div class="market-content store-page">
+                <h2>GALACTIC RESOURCE EXCHANGE</h2>
+                <p class="market-subtitle">Sell your resources for credits</p>
+
+                <div class="resource-listings">
+                    <!-- Ore listing -->
+                    <div class="market-listing" data-resource="ore">
+                        <div class="listing-icon">⛏️</div>
+                        <div class="listing-info">
+                            <div class="listing-name">Ore</div>
+                            <div class="listing-price">0.5 credits/unit</div>
+                            <div class="listing-inventory">Available: <span id="market-ore-amount">0</span></div>
+                            <div class="listing-value">Total Value: <span id="market-ore-value">0</span> credits</div>
+                        </div>
+                        <div class="listing-actions">
+                            <button class="sell-btn" data-resource="ore" data-amount="100">Sell 100</button>
+                            <button class="sell-btn" data-resource="ore" data-amount="1000">Sell 1000</button>
+                            <button class="sell-btn sell-all" data-resource="ore" data-amount="all">Sell All</button>
+                        </div>
+                    </div>
+
+                    <!-- Metal listing -->
+                    <div class="market-listing" data-resource="metal">
+                        <div class="listing-icon">🔧</div>
+                        <div class="listing-info">
+                            <div class="listing-name">Metal</div>
+                            <div class="listing-price">3.0 credits/unit</div>
+                            <div class="listing-inventory">Available: <span id="market-metal-amount">0</span></div>
+                            <div class="listing-value">Total Value: <span id="market-metal-value">0</span> credits</div>
+                        </div>
+                        <div class="listing-actions">
+                            <button class="sell-btn" data-resource="metal" data-amount="50">Sell 50</button>
+                            <button class="sell-btn" data-resource="metal" data-amount="500">Sell 500</button>
+                            <button class="sell-btn sell-all" data-resource="metal" data-amount="all">Sell All</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="market-footer">
+                    <p>Current Credits: <span id="market-credits">0</span></p>
+                </div>
+            </div>
+
+            <!-- About page content -->
+            <div class="market-content about-page" style="display: none;">
+                <h2>ABOUT THE GALACTIC MARKET</h2>
+                <div class="about-content">
+                    <p>Welcome to the Galactic Resource Exchange!</p>
+                    <p>We are the premier marketplace for selling raw materials and refined goods across the galaxy.</p>
+                    <h3>Current Buy Prices:</h3>
+                    <ul>
+                        <li>Ore: 0.5 credits per unit</li>
+                        <li>Metal: 3.0 credits per unit (refined goods command premium pricing!)</li>
+                    </ul>
+                    <p class="disclaimer">Prices subject to change based on galactic market conditions.</p>
+                    <p class="future-notice">🚀 Coming Soon: Automatic selling with Space Hauler logistics!</p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Warehouse app content template -->
+    <template id="warehouse-app-template">
+        <div class="warehouse-container">
+            <!-- Header with traffic lights -->
+            <div class="warehouse-header">
+                <h2>STORAGE MANAGEMENT</h2>
+                <div class="status-lights">
+                    <div class="status-light green"></div>
+                    <div class="status-light yellow"></div>
+                    <div class="status-light red"></div>
+                </div>
+            </div>
+
+            <!-- Resource table -->
+            <table class="warehouse-table">
+                <thead>
+                    <tr>
+                        <th>STATUS</th>
+                        <th>RESOURCE</th>
+                        <th>TOTAL</th>
+                        <th>OUTPUT</th>
+                        <th>DEMAND</th>
+                        <th>+/-</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Ore row -->
+                    <tr class="resource-row" data-resource="ore">
+                        <td><div id="wh-ore-indicator" class="status-indicator green"></div></td>
+                        <td class="resource-name">⛏️ Ore</td>
+                        <td id="wh-ore-total" class="resource-amount">0 / 5000</td>
+                        <td id="wh-ore-output" class="output-rate">+0.0/s</td>
+                        <td id="wh-ore-demand" class="demand-rate">0.0/s</td>
+                        <td id="wh-ore-net" class="net-rate">+0.0/s</td>
+                        <td>
+                            <button class="upgrade-capacity-btn" data-resource="ore">
+                                Upgrade (100 cr)
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Metal row -->
+                    <tr class="resource-row" data-resource="metal">
+                        <td><div id="wh-metal-indicator" class="status-indicator green"></div></td>
+                        <td class="resource-name">🔧 Metal</td>
+                        <td id="wh-metal-total" class="resource-amount">0 / 2000</td>
+                        <td id="wh-metal-output" class="output-rate">+0.0/s</td>
+                        <td id="wh-metal-demand" class="demand-rate">0.0/s</td>
+                        <td id="wh-metal-net" class="net-rate">+0.0/s</td>
+                        <td>
+                            <button class="upgrade-capacity-btn" data-resource="metal">
+                                Upgrade (100 cr)
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination (for future expansion) -->
+            <div class="warehouse-footer">
+                <div class="pagination">
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn" disabled>2</button>
+                    <button class="page-btn" disabled>3</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
     <!-- Load JavaScript files -->
     <script src="js/utils.js"></script>
+    <script src="js/save-manager.js"></script>
     <script src="data/buildings-data.js"></script>
     <script src="data/resources-data.js"></script>
     <script src="js/resources.js"></script>
@@ -191,6 +377,10 @@
     <script src="js/os/taskbar.js"></script>
     <script src="js/os/desktop.js"></script>
     <script src="js/apps/factory-app.js"></script>
+    <script src="js/apps/market-app.js"></script>
+    <script src="js/apps/warehouse-app.js"></script>
+    <script src="js/apps/logout-app.js"></script>
+    <script src="js/boot-screen.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,0 +1,186 @@
+/* Boot Screen Styling */
+/* Terminal aesthetic with dark background and green text */
+
+#boot-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #000000 0%, #001a00 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.boot-content {
+    text-align: center;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    max-width: 600px;
+    padding: 40px;
+}
+
+.boot-logo {
+    font-size: 120px;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+.boot-content h1 {
+    font-size: 48px;
+    margin: 0;
+    text-shadow: 0 0 10px #00ff00;
+    letter-spacing: 4px;
+}
+
+.boot-subtitle {
+    font-size: 18px;
+    color: #00aa00;
+    margin-top: 10px;
+    margin-bottom: 40px;
+}
+
+.boot-loading {
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.loading-bar {
+    width: 400px;
+    height: 30px;
+    border: 2px solid #00ff00;
+    background: #000000;
+    margin: 0 auto;
+    position: relative;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.loading-progress {
+    height: 100%;
+    background: #00ff00;
+    width: 0%;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+.loading-text {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #00aa00;
+    min-height: 20px;
+}
+
+/* Boot button styles removed - auto-load now */
+
+/* Logout App Styling */
+.logout-container {
+    padding: 20px;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    background: #000000;
+    min-height: 100%;
+}
+
+.logout-header {
+    border-bottom: 2px solid #00ff00;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.logout-header h2 {
+    margin: 0;
+    color: #00ff00;
+    font-size: 24px;
+    text-shadow: 0 0 5px #00ff00;
+}
+
+.logout-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.system-info {
+    background: rgba(0, 255, 0, 0.1);
+    padding: 20px;
+    border: 1px solid #00ff00;
+    border-radius: 4px;
+}
+
+.system-info p {
+    margin: 10px 0;
+    font-size: 16px;
+}
+
+.system-info strong {
+    color: #00ff00;
+}
+
+.status-online {
+    color: #00ff00;
+    font-weight: bold;
+}
+
+.system-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.system-actions .btn {
+    padding: 15px 30px;
+    font-size: 18px;
+    font-family: 'Courier New', monospace;
+    border: 2px solid;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.system-actions .btn-primary {
+    background: #00ff00;
+    color: #000000;
+    border-color: #00ff00;
+}
+
+.system-actions .btn-primary:hover {
+    background: #00cc00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+}
+
+.system-actions .btn-warning {
+    background: #ff6600;
+    color: #000000;
+    border-color: #ff6600;
+}
+
+.system-actions .btn-warning:hover {
+    background: #ff4400;
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.6);
+}
+
+.system-info-text {
+    background: rgba(0, 255, 0, 0.05);
+    padding: 15px;
+    border: 1px solid #00ff00;
+    border-radius: 4px;
+}
+
+.system-info-text p {
+    margin: 0;
+    color: #00ff00;
+    font-size: 14px;
+    text-align: center;
+}

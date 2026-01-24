@@ -8,7 +8,7 @@ const BUILDINGS = {
         description: 'Extracts raw ore from the planet surface',
         baseCost: { credits: 10 },
         costMultiplier: 1.15, // Each additional building costs 15% more
-        production: { ore: 1.0 }, // Produces 1 ore per second
+        production: { ore: 1.0 }, // Produces 1.0 ore per second (60/min Satisfactory-style)
         consumption: {}, // No inputs required
         width: 150,
         height: 80,
@@ -19,11 +19,11 @@ const BUILDINGS = {
     smelter: {
         id: 'smelter',
         name: 'Smelter',
-        description: 'Converts ore into refined metal',
+        description: 'Converts ore into refined metal (requires 2 ore miners)',
         baseCost: { credits: 50 },
         costMultiplier: 1.15,
-        production: { metal: 0.5 }, // Produces 0.5 metal per second
-        consumption: { ore: 1.0 }, // Consumes 1 ore per second
+        production: { metal: 1.0 }, // Produces 1.0 metal per second (60/min)
+        consumption: { ore: 2.0 }, // Consumes 2.0 ore per second (120/min) - needs 2 miners!
         width: 150,
         height: 80,
         color: '#440000',

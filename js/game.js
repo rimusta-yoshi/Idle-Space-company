@@ -32,11 +32,6 @@ class Game {
             this.onBuildingDropped(buildingType, x, y);
         });
 
-        // Setup save button
-        this.sidebar.setupSaveButton(() => {
-            this.save();
-        });
-
         // Listen for upgrade panel requests
         document.addEventListener('openUpgradePanel', (e) => {
             this.upgrades.openPanel(e.detail.node);
@@ -150,6 +145,7 @@ class Game {
                 return;
             }
 
+            // Regular building logic
             // Check if node can produce (has inputs if required)
             if (def.consumption && Object.keys(def.consumption).length > 0) {
                 // Phase 2: Check if node has required input connections
@@ -215,34 +211,67 @@ class Game {
 
     // Save game
     save() {
-        const saveData = {
-            version: 1,
-            timestamp: Date.now(),
-            resources: this.resources.getSaveData(),
-            canvas: this.canvas.getSaveData(),
-            buildingCounts: this.buildingCounts
-        };
-
         try {
-            localStorage.setItem('idleSpaceCompany_save', JSON.stringify(saveData));
-            log('Game saved successfully');
-            // TODO: Show success message to user
+            // Use desktop OS save system (integrated save)
+            if (window.desktop) {
+                window.desktop.save();
+                log('Game saved successfully');
+            } else {
+                console.warn('Desktop OS not available, cannot save');
+            }
         } catch (e) {
             console.error('Failed to save game:', e);
-            // TODO: Show error message to user
         }
     }
 
     // Load game
-    load() {
+    load(providedData = null) {
         try {
-            const saveData = localStorage.getItem('idleSpaceCompany_save');
-            if (!saveData) {
+            let data = providedData;
+
+            // If no data provided, try to load from old localStorage key (migration)
+            if (!data) {
+                const saveData = localStorage.getItem('idleSpaceCompany_save');
+                if (!saveData) {
+                    log('No save data found');
+                    return false;
+                }
+                data = JSON.parse(saveData);
+                log('Migrating save data from old format');
+            }
+
+            if (!data) {
                 log('No save data found');
                 return false;
             }
 
-            const data = JSON.parse(saveData);
+            // MIGRATION: Remove market buildings from old saves
+            if (data.canvas && data.canvas.nodes) {
+                const beforeCount = data.canvas.nodes.length;
+                data.canvas.nodes = data.canvas.nodes.filter(node =>
+                    node.buildingType !== 'market'
+                );
+                const removed = beforeCount - data.canvas.nodes.length;
+                if (removed > 0) {
+                    log(`Migration: Removed ${removed} market building(s) from save`);
+
+                    // Also clean up connections involving removed market nodes
+                    const marketNodeIds = new Set();
+                    // Since we already filtered, we need to check the original before filtering
+                    // But we don't have it anymore. Instead, clean up broken connections
+                    if (data.canvas.connections) {
+                        const nodeIds = new Set(data.canvas.nodes.map(n => n.id));
+                        const beforeConnCount = data.canvas.connections.length;
+                        data.canvas.connections = data.canvas.connections.filter(conn =>
+                            nodeIds.has(conn.fromNodeId) && nodeIds.has(conn.toNodeId)
+                        );
+                        const removedConns = beforeConnCount - data.canvas.connections.length;
+                        if (removedConns > 0) {
+                            log(`Migration: Removed ${removedConns} connection(s) to market buildings`);
+                        }
+                    }
+                }
+            }
 
             // Load resources
             if (data.resources) {

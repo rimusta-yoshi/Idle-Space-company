@@ -37,3 +37,48 @@ function pointInRect(px, py, rx, ry, rw, rh) {
 function log(message) {
     console.log(`[${new Date().toISOString()}] ${message}`);
 }
+
+// Throttle function - prevents excessive calls during drag/resize
+// Returns a throttled version that only executes once per delay period
+function throttle(func, delay) {
+    let timeoutId = null;
+    let lastExecTime = 0;
+
+    return function(...args) {
+        const currentTime = Date.now();
+
+        if (currentTime - lastExecTime >= delay) {
+            lastExecTime = currentTime;
+            func.apply(this, args);
+        } else {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                lastExecTime = Date.now();
+                func.apply(this, args);
+            }, delay - (currentTime - lastExecTime));
+        }
+    };
+}
+
+// Validate window position is on-screen
+// Returns corrected position object
+function validateWindowPosition(x, y, width, height) {
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight - 40; // Minus taskbar
+    const minVisiblePx = 50; // Minimum pixels that must be visible
+
+    // Ensure at least minVisiblePx of window is visible
+    const validX = clamp(x, -width + minVisiblePx, screenWidth - minVisiblePx);
+    const validY = clamp(y, 0, screenHeight - minVisiblePx);
+
+    // Ensure size constraints
+    const validWidth = clamp(width, 400, screenWidth);
+    const validHeight = clamp(height, 300, screenHeight);
+
+    return {
+        x: validX,
+        y: validY,
+        width: validWidth,
+        height: validHeight
+    };
+}

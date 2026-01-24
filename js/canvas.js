@@ -10,6 +10,18 @@ class CanvasManager {
         this.nodes = []; // Array of FactoryNode objects
         this.connections = []; // Array of Connection objects
         this.selectedNode = null; // For connection mode
+
+        // Canvas size (large virtual canvas)
+        this.canvasWidth = 2000;
+        this.canvasHeight = 2000;
+
+        // Pan and zoom state
+        this.isPanning = false;
+        this.lastPanPosition = { x: 0, y: 0 };
+        this.scale = 1;
+        this.minScale = 0.3;
+        this.maxScale = 2;
+
         this.initialize();
     }
 
@@ -36,22 +48,39 @@ class CanvasManager {
             this.stage = new Konva.Stage({
                 container: container,  // Pass the DOM element directly
                 width: width,
-                height: height
+                height: height,
+                draggable: false // We'll handle dragging manually
             });
 
-            // Create layer
+            // Create background layer for grid
+            this.backgroundLayer = new Konva.Layer();
+            this.stage.add(this.backgroundLayer);
+
+            // Draw grid
+            this.drawGrid();
+
+            // Create main layer for nodes and connections
             this.layer = new Konva.Layer();
             this.stage.add(this.layer);
 
-            log('Canvas initialized: ' + width + 'x' + height);
+            // Center the view initially
+            this.layer.position({ x: 0, y: 0 });
+            this.layer.scale({ x: this.scale, y: this.scale });
+            this.backgroundLayer.position({ x: 0, y: 0 });
+            this.backgroundLayer.scale({ x: this.scale, y: this.scale });
+
+            log('Canvas initialized: ' + width + 'x' + height + ' (virtual: ' + this.canvasWidth + 'x' + this.canvasHeight + ')');
         } catch (error) {
             console.error('Failed to initialize Konva stage:', error);
             console.error('Container element:', container);
             console.error('Container parent:', container.parentElement);
         }
 
-        // Handle window resize
+        // Handle window resize (only resize viewport, not scale)
         window.addEventListener('resize', () => this.handleResize());
+
+        // Setup pan and zoom controls
+        this.setupPanAndZoom();
 
         // Setup event listeners for node interactions
         this.setupEventListeners();
@@ -64,7 +93,183 @@ class CanvasManager {
             const height = container.clientHeight;
             this.stage.width(width);
             this.stage.height(height);
-            this.layer.draw();
+            this.stage.batchDraw();
+        }
+    }
+
+    drawGrid() {
+        const gridSize = 50; // Grid cell size
+        const gridColor = '#003300';
+        const gridOpacity = 0.3;
+
+        // Draw vertical lines
+        for (let x = 0; x <= this.canvasWidth; x += gridSize) {
+            const line = new Konva.Line({
+                points: [x, 0, x, this.canvasHeight],
+                stroke: gridColor,
+                strokeWidth: 1,
+                opacity: gridOpacity
+            });
+            this.backgroundLayer.add(line);
+        }
+
+        // Draw horizontal lines
+        for (let y = 0; y <= this.canvasHeight; y += gridSize) {
+            const line = new Konva.Line({
+                points: [0, y, this.canvasWidth, y],
+                stroke: gridColor,
+                strokeWidth: 1,
+                opacity: gridOpacity
+            });
+            this.backgroundLayer.add(line);
+        }
+
+        // Draw origin marker
+        const originMarker = new Konva.Circle({
+            x: 0,
+            y: 0,
+            radius: 10,
+            fill: '#00ff00',
+            opacity: 0.5
+        });
+        this.backgroundLayer.add(originMarker);
+
+        const originText = new Konva.Text({
+            x: 15,
+            y: -5,
+            text: '(0, 0)',
+            fontSize: 12,
+            fontFamily: 'Courier New',
+            fill: '#00ff00',
+            opacity: 0.7
+        });
+        this.backgroundLayer.add(originText);
+
+        this.backgroundLayer.draw();
+    }
+
+    setupPanAndZoom() {
+        if (!this.stage) return;
+
+        const container = this.stage.container();
+        let spacePressed = false;
+
+        // Track spacebar state
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !spacePressed) {
+                e.preventDefault();
+                spacePressed = true;
+                container.style.cursor = 'grab';
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                spacePressed = false;
+                container.style.cursor = 'default';
+                if (this.isPanning) {
+                    this.isPanning = false;
+                    container.style.cursor = 'default';
+                }
+            }
+        });
+
+        // Pan with middle mouse or spacebar + drag
+        this.stage.on('mousedown', (e) => {
+            const isMiddleButton = e.evt.button === 1;
+            const isSpacebarDrag = spacePressed && e.evt.button === 0;
+
+            if (isMiddleButton || isSpacebarDrag) {
+                e.evt.preventDefault();
+                this.isPanning = true;
+                this.lastPanPosition = {
+                    x: e.evt.clientX,
+                    y: e.evt.clientY
+                };
+                container.style.cursor = 'grabbing';
+            }
+        });
+
+        this.stage.on('mousemove', (e) => {
+            if (!this.isPanning) return;
+
+            const dx = e.evt.clientX - this.lastPanPosition.x;
+            const dy = e.evt.clientY - this.lastPanPosition.y;
+
+            const currentPos = this.layer.position();
+            const newPos = {
+                x: currentPos.x + dx,
+                y: currentPos.y + dy
+            };
+            this.layer.position(newPos);
+            this.backgroundLayer.position(newPos);
+
+            this.lastPanPosition = {
+                x: e.evt.clientX,
+                y: e.evt.clientY
+            };
+
+            this.stage.batchDraw();
+        });
+
+        this.stage.on('mouseup', () => {
+            if (this.isPanning) {
+                this.isPanning = false;
+                container.style.cursor = spacePressed ? 'grab' : 'default';
+            }
+        });
+
+        // Prevent context menu on middle mouse
+        container.addEventListener('contextmenu', (e) => {
+            if (e.button === 1) {
+                e.preventDefault();
+            }
+        });
+
+        // Zoom with mouse wheel
+        this.stage.on('wheel', (e) => {
+            e.evt.preventDefault();
+
+            const oldScale = this.scale;
+            const pointer = this.stage.getPointerPosition();
+
+            const mousePointTo = {
+                x: (pointer.x - this.layer.x()) / oldScale,
+                y: (pointer.y - this.layer.y()) / oldScale
+            };
+
+            // Zoom factor
+            const scaleBy = 1.1;
+            const direction = e.evt.deltaY > 0 ? -1 : 1;
+
+            this.scale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+            // Clamp scale
+            this.scale = Math.max(this.minScale, Math.min(this.maxScale, this.scale));
+
+            const newPos = {
+                x: pointer.x - mousePointTo.x * this.scale,
+                y: pointer.y - mousePointTo.y * this.scale
+            };
+
+            this.layer.scale({ x: this.scale, y: this.scale });
+            this.layer.position(newPos);
+            this.backgroundLayer.scale({ x: this.scale, y: this.scale });
+            this.backgroundLayer.position(newPos);
+            this.stage.batchDraw();
+
+            // Update zoom indicator
+            this.updateZoomIndicator();
+        });
+
+        log('Pan and zoom controls initialized');
+    }
+
+    updateZoomIndicator() {
+        const indicator = this.rootElement.querySelector('#zoom-indicator');
+        if (indicator) {
+            const zoomPercent = Math.round(this.scale * 100);
+            indicator.textContent = `Zoom: ${zoomPercent}%`;
         }
     }
 

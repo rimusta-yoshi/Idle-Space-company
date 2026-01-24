@@ -1,5 +1,8 @@
 /* Terminal Theme - Green on Black Retro Style */
 
+/* Import Boot Screen Styles */
+@import url('boot-screen.css');
+
 * {
     margin: 0;
     padding: 0;
@@ -58,7 +61,9 @@ header p {
     border: 2px solid #00ff00;
     padding: 15px;
     overflow-y: auto;
-    width: 250px;
+    flex: 0 0 clamp(200px, 22%, 280px); /* Responsive width: min 200px, ideal 22%, max 280px */
+    min-width: 200px;
+    max-width: 280px;
 }
 
 .left-sidebar {
@@ -84,6 +89,12 @@ header p {
     text-transform: uppercase;
     margin-top: 20px;
     margin-bottom: 10px;
+}
+
+.sidebar h2 + h2 {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #00aa00;
 }
 
 /* Resource Display */
@@ -162,6 +173,28 @@ header p {
 #canvas-container {
     flex: 1;
     position: relative;
+    background-color: #000000;
+    cursor: default;
+}
+
+#canvas-container.panning {
+    cursor: grabbing !important;
+}
+
+/* Zoom indicator */
+.zoom-indicator {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: #001a00;
+    border: 1px solid #00ff00;
+    padding: 5px 10px;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    border-radius: 3px;
+    pointer-events: none;
+    opacity: 0.8;
 }
 
 .canvas-info {
@@ -259,7 +292,27 @@ footer p {
 /* Responsive adjustments */
 @media (max-width: 1200px) {
     .sidebar {
-        width: 200px;
+        flex: 0 0 clamp(180px, 20%, 240px);
+        min-width: 180px;
+        max-width: 240px;
+        padding: 12px;
+    }
+
+    .sidebar h2 {
+        font-size: 14px;
+    }
+
+    .sidebar h3 {
+        font-size: 13px;
+    }
+
+    .building-name {
+        font-size: 13px;
+    }
+
+    .building-cost,
+    .building-description {
+        font-size: 11px;
     }
 }
 
@@ -272,12 +325,115 @@ footer p {
         width: 100%;
         height: auto;
         max-height: 30vh;
+        flex: 0 0 auto;
+        max-width: none;
     }
 
     .canvas-section {
         flex: 1;
         min-height: 400px;
     }
+}
+
+/* Window-specific responsive styles (for small windows within OS) */
+.factory-container.compact .sidebar {
+    flex: 0 0 clamp(160px, 18%, 200px);
+    min-width: 160px;
+    max-width: 200px;
+    padding: 10px;
+    font-size: 12px;
+}
+
+.factory-container.compact .sidebar h2 {
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.factory-container.compact .sidebar h3 {
+    font-size: 12px;
+    margin-top: 15px;
+}
+
+.factory-container.compact .building-item {
+    padding: 8px;
+    margin-bottom: 8px;
+}
+
+.factory-container.compact .building-name {
+    font-size: 12px;
+}
+
+.factory-container.compact .building-cost,
+.factory-container.compact .building-description {
+    font-size: 10px;
+}
+
+.factory-container.compact .resource-item,
+.factory-container.compact .production-item {
+    padding: 4px;
+    font-size: 11px;
+}
+
+/* Extra compact mode for very small windows (< 500px) */
+.factory-container.tiny header {
+    padding: 8px 10px;
+}
+
+.factory-container.tiny header h1 {
+    font-size: 18px;
+    letter-spacing: 1px;
+}
+
+.factory-container.tiny header p {
+    font-size: 10px;
+}
+
+.factory-container.tiny .sidebar {
+    flex: 0 0 clamp(140px, 15%, 180px);
+    min-width: 140px;
+    max-width: 180px;
+    padding: 8px;
+    font-size: 11px;
+}
+
+.factory-container.tiny .sidebar h2 {
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.factory-container.tiny .sidebar h3 {
+    font-size: 11px;
+    margin-top: 12px;
+    margin-bottom: 8px;
+}
+
+.factory-container.tiny .building-item {
+    padding: 6px;
+    margin-bottom: 6px;
+}
+
+.factory-container.tiny .building-name {
+    font-size: 11px;
+}
+
+.factory-container.tiny .building-cost,
+.factory-container.tiny .building-description {
+    font-size: 9px;
+}
+
+.factory-container.tiny .resource-item,
+.factory-container.tiny .production-item {
+    padding: 3px;
+    font-size: 10px;
+}
+
+.factory-container.tiny .btn {
+    padding: 6px 10px;
+    font-size: 10px;
+}
+
+.factory-container.tiny footer p {
+    font-size: 9px;
 }
 
 /* Modal Styles */
@@ -691,6 +847,7 @@ footer p {
     flex-direction: column;
     height: 100%;
     width: 100%;
+    position: relative;
 }
 
 .factory-container header {
@@ -704,4 +861,581 @@ footer p {
 
 .factory-container footer {
     flex-shrink: 0;
+}
+
+/* Sidebar toggle button for tiny mode */
+.sidebar-toggle {
+    display: none;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 100;
+    background-color: #001a00;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.sidebar-toggle:hover {
+    background-color: #003300;
+    box-shadow: 0 0 8px #00ff00;
+}
+
+.factory-container.tiny .sidebar-toggle {
+    display: block;
+}
+
+.factory-container.compact .sidebar-toggle {
+    display: block;
+}
+
+/* Hidden sidebar state in tiny and compact modes */
+.factory-container.tiny.sidebars-hidden .left-sidebar,
+.factory-container.compact.sidebars-hidden .left-sidebar {
+    display: none;
+}
+
+.factory-container.tiny.sidebars-hidden .canvas-section,
+.factory-container.compact.sidebars-hidden .canvas-section {
+    flex: 1;
+}
+
+/* ==================================
+   MARKET APP STYLES
+   ================================== */
+
+.market-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #000a00;
+    font-family: 'Courier New', monospace;
+}
+
+.market-nav {
+    background-color: #001a00;
+    border-bottom: 2px solid #00ff00;
+    padding: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.nav-btn {
+    background-color: #001a00;
+    color: #00ff00;
+    border: 1px solid #00aa00;
+    padding: 5px 15px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.nav-btn:hover {
+    background-color: #003300;
+}
+
+.nav-btn.active {
+    border-color: #00ff00;
+    background-color: #003300;
+    font-weight: bold;
+}
+
+.url-bar {
+    flex: 1;
+    background-color: #000000;
+    border: 1px solid #00aa00;
+    padding: 5px 10px;
+    color: #00aa00;
+    font-size: 11px;
+}
+
+.market-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.market-content h2 {
+    color: #00ff00;
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 5px;
+    text-shadow: 0 0 10px #00ff00;
+}
+
+.market-subtitle {
+    text-align: center;
+    color: #00aa00;
+    font-size: 12px;
+    margin-bottom: 30px;
+}
+
+.resource-listings {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.market-listing {
+    background-color: #001100;
+    border: 2px solid #00aa00;
+    padding: 15px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.market-listing:hover {
+    border-color: #00ff00;
+    background-color: #002200;
+}
+
+.listing-icon {
+    font-size: 48px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.listing-info {
+    flex: 1;
+}
+
+.listing-name {
+    color: #00ff00;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.listing-price {
+    color: #ffff00;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.listing-inventory {
+    color: #00aa00;
+    font-size: 12px;
+    margin-bottom: 3px;
+}
+
+.listing-value {
+    color: #00ff00;
+    font-size: 11px;
+}
+
+.listing-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.sell-btn {
+    background-color: #001a00;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    white-space: nowrap;
+    min-width: 100px;
+}
+
+.sell-btn:hover {
+    background-color: #003300;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.sell-btn.sell-all {
+    background-color: #004400;
+    border-color: #00ff00;
+    font-weight: bold;
+}
+
+.sell-btn.sell-all:hover {
+    background-color: #006600;
+}
+
+.market-footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #00aa00;
+    text-align: center;
+    font-size: 16px;
+    color: #ffff00;
+}
+
+/* About page */
+.about-content {
+    color: #00ff00;
+    line-height: 1.6;
+}
+
+.about-content h3 {
+    color: #00ff00;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.about-content ul {
+    list-style-type: none;
+    padding-left: 20px;
+}
+
+.about-content li {
+    color: #00aa00;
+    margin-bottom: 5px;
+}
+
+.about-content li:before {
+    content: "▸ ";
+    color: #00ff00;
+}
+
+.disclaimer {
+    color: #888800;
+    font-size: 11px;
+    font-style: italic;
+    margin-top: 20px;
+}
+
+.future-notice {
+    background-color: #001100;
+    border: 1px solid #00aa00;
+    padding: 10px;
+    margin-top: 20px;
+    color: #00ff00;
+    text-align: center;
+}
+
+
+/* ==================================
+   WAREHOUSE APP STYLES
+   ================================== */
+
+.warehouse-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #000a00;
+    padding: 20px;
+    font-family: 'Courier New', monospace;
+}
+
+.warehouse-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #00ff00;
+    padding-bottom: 10px;
+}
+
+.warehouse-header h2 {
+    color: #00ff00;
+    font-size: 20px;
+    margin: 0;
+    text-shadow: 0 0 10px #00ff00;
+}
+
+.status-lights {
+    display: flex;
+    gap: 10px;
+}
+
+.status-light {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #003300;
+    transition: opacity 0.3s;
+}
+
+.status-light.green {
+    background-color: #00ff00;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.status-light.yellow {
+    background-color: #ffff00;
+    box-shadow: 0 0 10px #ffff00;
+}
+
+.status-light.red {
+    background-color: #ff0000;
+    box-shadow: 0 0 10px #ff0000;
+}
+
+.warehouse-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.warehouse-table th {
+    background-color: #001a00;
+    color: #00ff00;
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #00aa00;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.warehouse-table td {
+    padding: 15px 10px;
+    border: 1px solid #004400;
+    background-color: #001100;
+    color: #00ff00;
+    font-size: 13px;
+}
+
+.resource-row:hover {
+    background-color: #002200;
+}
+
+.resource-row td {
+    transition: background-color 0.2s;
+}
+
+.status-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin: 0 auto;
+    transition: background-color 0.3s;
+}
+
+.status-indicator.green {
+    background-color: #00ff00;
+    box-shadow: 0 0 8px #00ff00;
+}
+
+.status-indicator.yellow {
+    background-color: #ffff00;
+    box-shadow: 0 0 8px #ffff00;
+}
+
+.status-indicator.red {
+    background-color: #ff0000;
+    box-shadow: 0 0 8px #ff0000;
+}
+
+.resource-name {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.resource-amount {
+    font-family: 'Courier New', monospace;
+}
+
+.output-rate {
+    color: #00ff00;
+}
+
+.demand-rate {
+    color: #ffaa00;
+}
+
+.net-rate {
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+}
+
+.upgrade-capacity-btn {
+    background-color: #001a00;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    transition: all 0.2s;
+}
+
+.upgrade-capacity-btn:hover {
+    background-color: #003300;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.upgrade-capacity-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.warehouse-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+    border-top: 1px solid #004400;
+}
+
+.pagination {
+    display: flex;
+    gap: 10px;
+}
+
+.page-btn {
+    background-color: #001a00;
+    color: #00ff00;
+    border: 1px solid #00aa00;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.page-btn:hover:not(:disabled) {
+    background-color: #003300;
+}
+
+.page-btn.active {
+    background-color: #003300;
+    border-color: #00ff00;
+    font-weight: bold;
+}
+
+.page-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* ==================================
+   MR. BUSINESS NOTIFICATION MODAL
+   ================================== */
+
+.notification-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', monospace;
+}
+
+.notification-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.notification-content {
+    position: relative;
+    background-color: #001a00;
+    border: 3px solid #00ff00;
+    box-shadow: 0 0 30px #00ff00;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 10001;
+}
+
+.notification-header {
+    background-color: #003300;
+    border-bottom: 2px solid #00ff00;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-icon {
+    font-size: 32px;
+}
+
+.notification-title {
+    color: #00ff00;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00ff00;
+}
+
+.notification-body {
+    padding: 20px;
+    color: #00ff00;
+    line-height: 1.6;
+}
+
+.notification-body p {
+    margin-bottom: 15px;
+}
+
+.notification-apps {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.notification-app-item {
+    background-color: #002200;
+    border: 1px solid #00aa00;
+    padding: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.notification-app-icon {
+    font-size: 36px;
+    min-width: 40px;
+}
+
+.notification-app-item strong {
+    color: #00ff00;
+    font-size: 14px;
+}
+
+.notification-app-desc {
+    color: #00aa00;
+    font-size: 12px;
+}
+
+.notification-signature {
+    text-align: right;
+    font-style: italic;
+    color: #00ff00;
+    margin-top: 20px;
+}
+
+.notification-footer {
+    border-top: 2px solid #00aa00;
+    padding: 15px 20px;
+    text-align: center;
+}
+
+.notification-footer .btn {
+    background-color: #003300;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    padding: 10px 30px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+.notification-footer .btn:hover {
+    background-color: #004400;
+    box-shadow: 0 0 15px #00ff00;
 }

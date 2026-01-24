@@ -31,44 +31,88 @@ class FactoryApp extends App {
 
         console.log('Template appended to contentElement');
 
-        // Use setTimeout to ensure DOM is fully rendered before initializing game
-        setTimeout(() => {
-            console.log('Initializing game...');
-            console.log('ContentElement:', contentElement);
-            console.log('Canvas container exists:', contentElement.querySelector('#canvas-container'));
+        // Initialize immediately - data is ready via SaveManager
+        console.log('Initializing game...');
+        console.log('ContentElement:', contentElement);
+        console.log('Canvas container exists:', contentElement.querySelector('#canvas-container'));
 
-            // Initialize game (pass contentElement as root for DOM queries)
-            this.game = new Game(contentElement);
-            const loaded = this.game.load();
-            if (!loaded) {
-                log('Starting new factory game');
-            } else {
+        // Initialize game (pass contentElement as root for DOM queries)
+        this.game = new Game(contentElement);
+
+        // Expose game instance globally for other apps to access
+        window.gameInstance = this.game;
+
+        // Load save data (synchronously available via SaveManager)
+        if (this.saveManager) {
+            const savedData = this.saveManager.getAppData('factory');
+            if (savedData) {
+                this.game.load(savedData);
                 log('Loaded existing factory save');
+            } else {
+                log('Starting new factory game');
             }
-            this.game.start();
+        } else if (this.pendingSaveData) {
+            // Fallback for backward compatibility
+            this.game.load(this.pendingSaveData);
+            log('Loaded existing factory save');
+        } else {
+            log('Starting new factory game');
+        }
+        this.pendingSaveData = null; // Clear pending data
 
-            // Setup resize observer for canvas
-            this.resizeObserver = new ResizeObserver(() => {
-                if (this.game && this.game.canvas) {
-                    this.game.canvas.handleResize();
+        this.game.start();
+
+        // Setup resize observer for canvas
+        this.resizeObserver = new ResizeObserver(() => {
+            if (this.game && this.game.canvas) {
+                this.game.canvas.handleResize();
+            }
+        });
+        this.resizeObserver.observe(contentElement);
+
+        // Setup sidebar toggle button
+        const toggleBtn = contentElement.querySelector('#sidebar-toggle-btn');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                const container = contentElement.querySelector('.factory-container');
+                if (container) {
+                    container.classList.toggle('sidebars-hidden');
+                    // Trigger resize to recalculate canvas
+                    if (this.game && this.game.canvas) {
+                        setTimeout(() => this.game.canvas.handleResize(), 100);
+                    }
                 }
             });
-            this.resizeObserver.observe(contentElement);
+        }
 
-            log('Factory app mounted');
-        }, 0);
+        log('Factory app mounted');
     }
 
-    onResize(width, height) {
+    onResize(width) {
         // Canvas auto-resizes via ResizeObserver
         if (this.game && this.game.canvas) {
             this.game.canvas.handleResize();
+        }
+
+        // Add responsive mode classes based on window size
+        if (this.game && this.game.rootElement) {
+            const factoryContainer = this.game.rootElement.querySelector('.factory-container');
+            if (factoryContainer) {
+                // Remove all mode classes first
+                factoryContainer.classList.remove('compact', 'tiny');
+
+                // Add appropriate class based on width
+                if (width < 500) {
+                    factoryContainer.classList.add('tiny');
+                } else if (width < 700) {
+                    factoryContainer.classList.add('compact');
+                }
+            }
         }
     }
 
     close() {
         if (this.game) {
-            this.game.save();
             this.game.stop();
         }
         if (this.resizeObserver) {
@@ -78,15 +122,25 @@ class FactoryApp extends App {
     }
 
     getSaveData() {
-        if (this.game) {
-            return this.game.getSaveData();
+        if (!this.game) {
+            return {};
         }
-        return {};
+
+        return {
+            version: 2,
+            timestamp: Date.now(),
+            resources: this.game.resources.getSaveData(),
+            canvas: this.game.canvas.getSaveData(),
+            buildingCounts: this.game.buildingCounts
+        };
     }
 
     loadSaveData(data) {
-        if (this.game) {
-            this.game.loadSaveData(data);
+        if (!data || Object.keys(data).length === 0) {
+            return;
         }
+
+        // Store the save data to be loaded after game is initialized
+        this.pendingSaveData = data;
     }
 }

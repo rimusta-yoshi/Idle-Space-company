@@ -8,8 +8,8 @@ class WindowManager {
         this.nextZ = 100; // Z-index counter
     }
 
-    createWindow(app, options = {}) {
-        const window = new OSWindow(this, app, options);
+    createWindow(app, options = {}, desktop = null) {
+        const window = new OSWindow(this, app, options, desktop);
         this.windows.push(window);
         this.container.appendChild(window.element);
         this.focusWindow(window);
@@ -20,6 +20,11 @@ class WindowManager {
         const index = this.windows.indexOf(window);
         if (index > -1) {
             this.windows.splice(index, 1);
+        }
+
+        // Trigger save after window closes (if desktop reference exists)
+        if (window.desktop) {
+            window.desktop.throttledSave();
         }
     }
 

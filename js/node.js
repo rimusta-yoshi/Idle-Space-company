@@ -110,6 +110,7 @@ class FactoryNode {
         const def = this.buildingDef;
         let text = '';
 
+        // Regular building display
         // Show production
         if (def.production && Object.keys(def.production).length > 0) {
             Object.entries(def.production).forEach(([resource, rate]) => {

@@ -2,17 +2,18 @@
 // Manages individual window instances with drag, resize, and controls
 
 class OSWindow {
-    constructor(windowManager, appInstance, options = {}) {
+    constructor(windowManager, appInstance, options = {}, desktop = null) {
         this.manager = windowManager;
         this.app = appInstance;
         this.id = generateId();
+        this.desktop = desktop; // Store desktop reference for save callbacks
 
         // Window state
         this.x = options.x || 100;
         this.y = options.y || 100;
         this.width = options.width || 800;
         this.height = options.height || 600;
-        this.maximized = false;
+        this.maximized = options.maximized || false; // Support initial maximized state
         this.focused = false;
 
         // Pre-maximize state (for restore)
@@ -81,6 +82,11 @@ class OSWindow {
         const onMouseUp = () => {
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
+
+            // Save state after drag completes
+            if (this.desktop) {
+                this.desktop.throttledSave();
+            }
         };
 
         document.addEventListener('mousemove', onMouseMove);
@@ -124,6 +130,11 @@ class OSWindow {
         const onMouseUp = () => {
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
+
+            // Save state after resize completes
+            if (this.desktop) {
+                this.desktop.throttledSave();
+            }
         };
 
         document.addEventListener('mousemove', onMouseMove);
@@ -156,6 +167,11 @@ class OSWindow {
             const fullWidth = window.innerWidth;
             const fullHeight = window.innerHeight - 40; // Minus taskbar
             this.app.onResize(fullWidth, fullHeight);
+        }
+
+        // Save state immediately after maximize/restore (not throttled)
+        if (this.desktop) {
+            this.desktop.save();
         }
     }
 

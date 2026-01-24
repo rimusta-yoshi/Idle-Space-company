@@ -112,17 +112,4 @@ class SidebarManager {
             }
         });
     }
-
-    // Setup save button
-    setupSaveButton(onSave) {
-        const saveButton = this.rootElement.querySelector('#save-button');
-        if (saveButton) {
-            saveButton.addEventListener('click', () => {
-                log('Save button clicked');
-                if (onSave) {
-                    onSave();
-                }
-            });
-        }
-    }
 }
