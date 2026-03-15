@@ -94,27 +94,64 @@ class Game {
         this.canvas.updateNodes();
     }
 
+    // Get the resource types flowing into a node from its connections
+    getNodeInputResourceTypes(node) {
+        const inputResources = {};
+
+        node.inputs.forEach(inputNodeId => {
+            const connection = this.canvas.connections.find(c =>
+                c.fromNode.id === inputNodeId && c.toNode.id === node.id
+            );
+            if (connection && connection.resourceType) {
+                inputResources[connection.resourceType] = true;
+            }
+        });
+
+        return inputResources;
+    }
+
+    // Resolve and set the active recipe for a recipe-based node
+    resolveActiveRecipe(node) {
+        const def = node.buildingDef;
+
+        if (!def.usesRecipes) {
+            node.activeRecipe = null;
+            return;
+        }
+
+        const inputResources = this.getNodeInputResourceTypes(node);
+        node.activeRecipe = detectRecipe(def.id, inputResources);
+    }
+
     // Check if a node has the required input connections
     checkNodeInputs(node) {
         const def = node.buildingDef;
 
-        // If no consumption, no inputs required
-        if (!def.consumption || Object.keys(def.consumption).length === 0) {
+        // Determine required inputs
+        let requiredInputs;
+        if (def.usesRecipes) {
+            if (!node.activeRecipe) {
+                return false; // No recipe matched - can't produce
+            }
+            requiredInputs = node.activeRecipe.inputs;
+        } else {
+            requiredInputs = def.consumption;
+        }
+
+        // If no consumption required, no inputs needed
+        if (!requiredInputs || Object.keys(requiredInputs).length === 0) {
             return true;
         }
 
-        // Check each required resource
-        for (const [resource, _rate] of Object.entries(def.consumption)) {
-            // Find if any input node produces this resource
+        // Check each required resource has an input connection
+        for (const [resource, _rate] of Object.entries(requiredInputs)) {
             const hasInputForResource = node.inputs.some(inputNodeId => {
-                const inputNode = this.canvas.getNode(inputNodeId);
-                if (!inputNode) return false;
-
-                const inputDef = inputNode.buildingDef;
-                return inputDef.production && inputDef.production[resource];
+                const connection = this.canvas.connections.find(c =>
+                    c.fromNode.id === inputNodeId && c.toNode.id === node.id
+                );
+                return connection && connection.resourceType === resource;
             });
 
-            // If any required resource lacks an input connection, return false
             if (!hasInputForResource) {
                 return false;
             }
@@ -130,49 +167,57 @@ class Game {
             this.resources.setProduction(type, 0);
         });
 
-        // Debug: Log node count
-        if (this.canvas.nodes.length > 0 && Math.random() < 0.01) {
-            log(`Calculating production for ${this.canvas.nodes.length} nodes`);
-        }
-
         // Add production from each node
         this.canvas.nodes.forEach(node => {
             const def = node.buildingDef;
 
-            // Debug: Check if buildingDef exists
             if (!def) {
-                console.error(`Node ${node.id} has no buildingDef!`);
-                return;
+                throw new Error(`Node ${node.id} has no buildingDef!`);
             }
 
-            // Regular building logic
-            // Check if node can produce (has inputs if required)
-            if (def.consumption && Object.keys(def.consumption).length > 0) {
-                // Phase 2: Check if node has required input connections
-                const hasRequiredInputs = this.checkNodeInputs(node);
+            // Resolve active recipe for recipe-based buildings
+            this.resolveActiveRecipe(node);
 
-                // Also check if resources are available in global storage
-                const hasResources = this.resources.canAfford(def.consumption);
+            // Determine effective production and consumption
+            let effectiveProduction;
+            let effectiveConsumption;
 
-                // Node can only produce if it has both inputs and resources
-                const canProduce = hasRequiredInputs && hasResources;
-                node.stalled = !canProduce;
+            if (def.usesRecipes) {
+                if (node.activeRecipe) {
+                    effectiveProduction = node.activeRecipe.outputs;
+                    effectiveConsumption = node.activeRecipe.inputs;
+                } else {
+                    effectiveProduction = {};
+                    effectiveConsumption = {};
+                }
             } else {
-                // No consumption requirements (like Ore Miner) - always works
+                effectiveProduction = def.production || {};
+                effectiveConsumption = def.consumption || {};
+            }
+
+            // Determine stalled state
+            if (Object.keys(effectiveConsumption).length > 0) {
+                const hasRequiredInputs = this.checkNodeInputs(node);
+                const hasResources = this.resources.canAfford(effectiveConsumption);
+                node.stalled = !(hasRequiredInputs && hasResources);
+            } else if (def.usesRecipes && !node.activeRecipe) {
+                // Recipe building with no matched recipe: stalled
+                node.stalled = true;
+            } else {
                 node.stalled = false;
             }
 
-            // Add production (if not stalled)
-            if (!node.stalled && def.production) {
-                Object.entries(def.production).forEach(([resource, rate]) => {
+            // Apply production (if not stalled)
+            if (!node.stalled) {
+                Object.entries(effectiveProduction).forEach(([resource, rate]) => {
                     const currentRate = this.resources.resources[resource].production;
                     this.resources.setProduction(resource, currentRate + rate * node.level);
                 });
             }
 
-            // Subtract consumption (if not stalled)
-            if (!node.stalled && def.consumption) {
-                Object.entries(def.consumption).forEach(([resource, rate]) => {
+            // Apply consumption (if not stalled)
+            if (!node.stalled) {
+                Object.entries(effectiveConsumption).forEach(([resource, rate]) => {
                     const currentRate = this.resources.resources[resource].production;
                     this.resources.setProduction(resource, currentRate - rate * node.level);
                 });
@@ -181,46 +226,55 @@ class Game {
     }
 
     // Handle building dropped on canvas
-    onBuildingDropped(buildingType, x, y) {
+    onBuildingDropped(buildingType, screenX, screenY) {
         const count = this.buildingCounts[buildingType] || 0;
         const cost = calculateBuildingCost(buildingType, count);
 
         // Check if can afford
         if (!this.resources.canAfford(cost)) {
+            const costText = Object.entries(cost)
+                .map(([resource, amount]) => `${formatNumber(amount)} ${resource}`)
+                .join(', ');
+            showUserNotification(`Insufficient resources! Need: ${costText}`, 'error');
             log(`Cannot afford ${buildingType} (need ${JSON.stringify(cost)})`);
-            // TODO: Show error message to user
             return;
         }
 
         // Spend resources
         this.resources.spend(cost);
 
-        // Create and place node
-        const node = new FactoryNode(buildingType, x, y);
+        // Convert screen coordinates to world coordinates (accounting for pan/zoom)
+        const worldPos = this.canvas.screenToWorld(screenX, screenY);
+
+        // Create and place node at world coordinates
+        const node = new FactoryNode(buildingType, worldPos.x, worldPos.y);
         this.canvas.addNode(node);
 
-        // Update count
-        this.buildingCounts[buildingType] = count + 1;
+        // Update count (immutable update)
+        this.buildingCounts = {
+            ...this.buildingCounts,
+            [buildingType]: count + 1
+        };
 
         // Update UI
         this.sidebar.updateResources();
         this.sidebar.updateBuildingPalette(this.buildingCounts);
 
-        log(`Placed ${buildingType} (total: ${this.buildingCounts[buildingType]})`);
+        log(`Placed ${buildingType} at world (${worldPos.x.toFixed(0)}, ${worldPos.y.toFixed(0)}) (total: ${this.buildingCounts[buildingType]})`);
     }
 
     // Save game
     save() {
         try {
             // Use desktop OS save system (integrated save)
-            if (window.desktop) {
-                window.desktop.save();
-                log('Game saved successfully');
-            } else {
-                console.warn('Desktop OS not available, cannot save');
+            if (!window.desktop) {
+                throw new Error('Desktop OS not available, cannot save');
             }
+
+            window.desktop.save();
+            log('Game saved successfully');
         } catch (e) {
-            console.error('Failed to save game:', e);
+            throw new Error(`Failed to save game: ${e.message}`);
         }
     }
 
@@ -256,9 +310,6 @@ class Game {
                     log(`Migration: Removed ${removed} market building(s) from save`);
 
                     // Also clean up connections involving removed market nodes
-                    const marketNodeIds = new Set();
-                    // Since we already filtered, we need to check the original before filtering
-                    // But we don't have it anymore. Instead, clean up broken connections
                     if (data.canvas.connections) {
                         const nodeIds = new Set(data.canvas.nodes.map(n => n.id));
                         const beforeConnCount = data.canvas.connections.length;
@@ -271,6 +322,108 @@ class Game {
                         }
                     }
                 }
+            }
+
+            // MIGRATION: Convert old building types to new generic types
+            if (data.canvas && data.canvas.nodes) {
+                let buildingsMigrated = 0;
+                data.canvas.nodes.forEach(node => {
+                    // Extractors: oreMiner → ironExtractor
+                    if (node.buildingType === 'oreMiner') {
+                        node.buildingType = 'ironExtractor';
+                        buildingsMigrated++;
+                    }
+                    // Smelters: specific → generic
+                    else if (node.buildingType === 'ironSmelter' || node.buildingType === 'smelter') {
+                        node.buildingType = 'smelter';
+                        buildingsMigrated++;
+                    }
+                    else if (node.buildingType === 'copperSmelter') {
+                        node.buildingType = 'smelter';
+                        buildingsMigrated++;
+                    }
+                    // Assemblers: specific → generic
+                    else if (node.buildingType === 'steelPlateMaker' || node.buildingType === 'wireMaker' || node.buildingType === 'circuitMaker') {
+                        node.buildingType = 'assembler';
+                        buildingsMigrated++;
+                    }
+                    // Manufacturers: specific → generic
+                    else if (node.buildingType === 'engineFactory' || node.buildingType === 'computerFactory') {
+                        node.buildingType = 'manufacturer';
+                        buildingsMigrated++;
+                    }
+                });
+                if (buildingsMigrated > 0) {
+                    log(`Migration: Converted ${buildingsMigrated} building(s) to new generic types`);
+                }
+            }
+
+            // MIGRATION: Convert old resource types to new types
+            if (data.resources) {
+                let resourcesMigrated = 0;
+                if (data.resources.ore) {
+                    data.resources.oreA = data.resources.ore;
+                    delete data.resources.ore;
+                    resourcesMigrated++;
+                }
+                if (data.resources.metal) {
+                    data.resources.barA = data.resources.metal;
+                    delete data.resources.metal;
+                    resourcesMigrated++;
+                }
+                if (resourcesMigrated > 0) {
+                    log(`Migration: Converted ${resourcesMigrated} resource type(s) to new types`);
+                }
+            }
+
+            // MIGRATION: Convert old building counts to new types
+            if (data.buildingCounts) {
+                // Extractors
+                if (data.buildingCounts.oreMiner) {
+                    data.buildingCounts.ironExtractor = (data.buildingCounts.ironExtractor || 0) + data.buildingCounts.oreMiner;
+                    delete data.buildingCounts.oreMiner;
+                }
+
+                // Smelters: combine all smelter types into generic smelter count
+                const smelterCount = (data.buildingCounts.smelter || 0) +
+                                    (data.buildingCounts.ironSmelter || 0) +
+                                    (data.buildingCounts.copperSmelter || 0);
+                if (smelterCount > 0) {
+                    data.buildingCounts.smelter = smelterCount;
+                    delete data.buildingCounts.ironSmelter;
+                    delete data.buildingCounts.copperSmelter;
+                }
+
+                // Assemblers: combine all assembler types into generic assembler count
+                const assemblerCount = (data.buildingCounts.steelPlateMaker || 0) +
+                                      (data.buildingCounts.wireMaker || 0) +
+                                      (data.buildingCounts.circuitMaker || 0);
+                if (assemblerCount > 0) {
+                    data.buildingCounts.assembler = assemblerCount;
+                    delete data.buildingCounts.steelPlateMaker;
+                    delete data.buildingCounts.wireMaker;
+                    delete data.buildingCounts.circuitMaker;
+                }
+
+                // Manufacturers: combine all manufacturer types into generic manufacturer count
+                const manufacturerCount = (data.buildingCounts.engineFactory || 0) +
+                                         (data.buildingCounts.computerFactory || 0);
+                if (manufacturerCount > 0) {
+                    data.buildingCounts.manufacturer = manufacturerCount;
+                    delete data.buildingCounts.engineFactory;
+                    delete data.buildingCounts.computerFactory;
+                }
+            }
+
+            // MIGRATION: Update connection resource types
+            if (data.canvas && data.canvas.connections) {
+                data.canvas.connections.forEach(conn => {
+                    if (conn.resourceType === 'ore') {
+                        conn.resourceType = 'oreA';
+                    } else if (conn.resourceType === 'metal') {
+                        conn.resourceType = 'barA';
+                    }
+                });
             }
 
             // Load resources
@@ -306,8 +459,7 @@ class Game {
             log('Game loaded successfully');
             return true;
         } catch (e) {
-            console.error('Failed to load game:', e);
-            return false;
+            throw new Error(`Failed to load game: ${e.message}`);
         }
     }
 }

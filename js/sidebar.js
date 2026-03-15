@@ -9,7 +9,59 @@ class SidebarManager {
     }
 
     initialize() {
+        this.populateBuildingPalette();
         log('SidebarManager initialized');
+    }
+
+    // Populate building palette with all available buildings organized by category
+    populateBuildingPalette() {
+        const buildingListContainer = this.rootElement.querySelector('#building-list');
+        if (!buildingListContainer) return;
+
+        // Clear existing content
+        buildingListContainer.innerHTML = '';
+
+        // Iterate through categories
+        Object.entries(BUILDING_CATEGORIES).forEach(([categoryId, category]) => {
+            // Add category header
+            const categoryHeader = document.createElement('h3');
+            categoryHeader.textContent = `${category.icon} ${category.name}`;
+            categoryHeader.style.marginTop = '15px';
+            categoryHeader.style.marginBottom = '10px';
+            buildingListContainer.appendChild(categoryHeader);
+
+            // Get buildings in this category
+            const buildings = getBuildingsByCategory(categoryId);
+
+            // Add building items
+            buildings.forEach(building => {
+                const buildingItem = document.createElement('div');
+                buildingItem.className = 'building-item';
+                buildingItem.draggable = true;
+                buildingItem.setAttribute('data-building', building.id);
+
+                const buildingName = document.createElement('div');
+                buildingName.className = 'building-name';
+                buildingName.textContent = `${building.icon} ${building.name}`;
+
+                const buildingCost = document.createElement('div');
+                buildingCost.className = 'building-cost';
+                const costText = Object.entries(building.baseCost)
+                    .map(([resource, amount]) => `${amount} ${resource}`)
+                    .join(', ');
+                buildingCost.textContent = `Cost: ${costText}`;
+
+                const buildingDesc = document.createElement('div');
+                buildingDesc.className = 'building-description';
+                buildingDesc.textContent = building.description;
+
+                buildingItem.appendChild(buildingName);
+                buildingItem.appendChild(buildingCost);
+                buildingItem.appendChild(buildingDesc);
+
+                buildingListContainer.appendChild(buildingItem);
+            });
+        });
     }
 
     // Update left sidebar with current resources
@@ -74,6 +126,7 @@ class SidebarManager {
 
     // Setup drag-and-drop for building palette
     setupDragAndDrop(onBuildingDropped) {
+        // Re-query building items (they may have been dynamically added)
         const buildingItems = this.rootElement.querySelectorAll('.building-item');
 
         buildingItems.forEach(item => {
@@ -99,16 +152,17 @@ class SidebarManager {
             const buildingType = e.dataTransfer.getData('buildingType');
             if (!buildingType) return;
 
-            // Get drop position relative to canvas
+            // Get drop position relative to canvas container
             const rect = canvasContainer.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const screenX = e.clientX - rect.left;
+            const screenY = e.clientY - rect.top;
 
-            log(`Building dropped: ${buildingType} at (${x}, ${y})`);
+            log(`Building dropped: ${buildingType} at screen (${screenX}, ${screenY})`);
 
-            // Call callback
+            // Call callback with screen coordinates
+            // Game will convert to world coordinates using canvas.screenToWorld()
             if (onBuildingDropped) {
-                onBuildingDropped(buildingType, x, y);
+                onBuildingDropped(buildingType, screenX, screenY);
             }
         });
     }

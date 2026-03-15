@@ -50,8 +50,7 @@ class DesktopOS {
     launchApp(appId, windowOptions = {}) {
         const AppClass = this.apps[appId];
         if (!AppClass) {
-            console.error(`App not found: ${appId}`);
-            return null;
+            throw new Error(`App not found: ${appId}`);
         }
 
         // Create app instance
@@ -104,7 +103,7 @@ class DesktopOS {
         if (success) {
             log('Desktop OS saved');
         } else {
-            console.error('Failed to save Desktop OS');
+            throw new Error('Failed to save Desktop OS');
         }
     }
 
@@ -168,7 +167,7 @@ class DesktopOS {
 
             return false;
         } catch (e) {
-            console.error('Failed to load Desktop OS:', e);
+            log(`Failed to load Desktop OS: ${e.message}`);
             // Don't fail completely - just start fresh
             return false;
         }

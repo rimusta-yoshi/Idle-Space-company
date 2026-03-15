@@ -30,18 +30,12 @@ class CanvasManager {
         const container = this.rootElement.querySelector(`#${this.containerId}`);
 
         if (!container) {
-            console.error(`Container ${this.containerId} not found in rootElement:`, this.rootElement);
-            console.error('Available elements:', this.rootElement.querySelectorAll('*'));
-            return;
+            throw new Error(`Container ${this.containerId} not found in rootElement`);
         }
-
-        console.log('Found canvas container:', container);
 
         // Get container size
         const width = container.clientWidth || 800;
         const height = container.clientHeight || 600;
-
-        console.log('Container size:', width, 'x', height);
 
         // Create Konva stage - pass the actual DOM element, not the ID string
         try {
@@ -71,9 +65,7 @@ class CanvasManager {
 
             log('Canvas initialized: ' + width + 'x' + height + ' (virtual: ' + this.canvasWidth + 'x' + this.canvasHeight + ')');
         } catch (error) {
-            console.error('Failed to initialize Konva stage:', error);
-            console.error('Container element:', container);
-            console.error('Container parent:', container.parentElement);
+            throw new Error(`Failed to initialize Konva stage: ${error.message}`);
         }
 
         // Handle window resize (only resize viewport, not scale)
@@ -366,6 +358,17 @@ class CanvasManager {
     }
 
     // Add factory node to canvas
+    // Convert screen coordinates to world coordinates (accounting for pan/zoom)
+    screenToWorld(screenX, screenY) {
+        const layerPos = this.layer.position();
+        const layerScale = this.layer.scaleX(); // Assuming uniform scale
+
+        const worldX = (screenX - layerPos.x) / layerScale;
+        const worldY = (screenY - layerPos.y) / layerScale;
+
+        return { x: worldX, y: worldY };
+    }
+
     addNode(node) {
         node.addToLayer(this.layer);
         this.nodes.push(node);
@@ -459,20 +462,41 @@ class CanvasManager {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
 
-        // From node must produce something
-        if (!fromDef.production || Object.keys(fromDef.production).length === 0) {
+        // Determine what the FROM node can produce
+        let producedResources;
+        if (fromDef.usesRecipes) {
+            producedResources = getAllRecipeOutputs(fromDef.id);
+        } else {
+            if (!fromDef.production || Object.keys(fromDef.production).length === 0) {
+                return false;
+            }
+            producedResources = Object.keys(fromDef.production);
+        }
+
+        if (producedResources.length === 0) {
             return false;
         }
 
-        // To node must consume something
+        // CASE 1: To node is recipe-based
+        if (toDef.usesRecipes) {
+            const recipes = getRecipesForBuilding(toDef.id);
+
+            if (!recipes || recipes.length === 0) {
+                return false;
+            }
+
+            return recipes.some(recipe => {
+                const recipeInputs = Object.keys(recipe.inputs);
+                return producedResources.some(type => recipeInputs.includes(type));
+            });
+        }
+
+        // CASE 2: To node is standard building
         if (!toDef.consumption || Object.keys(toDef.consumption).length === 0) {
             return false;
         }
 
-        // Check if any produced resource matches any consumed resource
-        const producedResources = Object.keys(fromDef.production);
         const consumedResources = Object.keys(toDef.consumption);
-
         return producedResources.some(r => consumedResources.includes(r));
     }
 
@@ -481,10 +505,32 @@ class CanvasManager {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
 
-        const producedResources = Object.keys(fromDef.production);
-        const consumedResources = Object.keys(toDef.consumption);
+        // Determine what the FROM node can produce
+        let producedResources;
+        if (fromDef.usesRecipes) {
+            producedResources = getAllRecipeOutputs(fromDef.id);
+        } else {
+            producedResources = Object.keys(fromDef.production || {});
+        }
 
-        // Return first matching resource
+        // CASE 1: To node is recipe-based
+        if (toDef.usesRecipes) {
+            const recipes = getRecipesForBuilding(toDef.id);
+
+            for (const recipe of recipes) {
+                const recipeInputs = Object.keys(recipe.inputs);
+                for (const producedType of producedResources) {
+                    if (recipeInputs.includes(producedType)) {
+                        return producedType;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        // CASE 2: To node is standard building
+        const consumedResources = Object.keys(toDef.consumption || {});
         return producedResources.find(r => consumedResources.includes(r)) || null;
     }
 

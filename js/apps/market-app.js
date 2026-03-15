@@ -11,8 +11,22 @@ class MarketApp extends App {
         this.resourceManager = null;
         this.updateInterval = null;
         this.sellPrices = {
-            ore: 0.5,
-            metal: 3.0  // 2:1 ratio means 2 ore (1.0 cr) → 1 metal (3.0 cr) = 2.0 cr profit
+            // Tier 1 - Raw Ores
+            oreA: 0.5,    // Iron Ore
+            oreB: 0.8,    // Copper Ore (slightly more valuable)
+
+            // Tier 2 - Bars
+            barA: 2.0,    // Iron Bar
+            barB: 3.0,    // Copper Bar
+
+            // Tier 3 - Components
+            componentA: 10.0,   // Steel Plate
+            componentB: 8.0,    // Wire (produced 2x, worth less per unit)
+            componentC: 20.0,   // Circuit (requires both bar types)
+
+            // Tier 4 - Advanced Products
+            productA: 80.0,     // Engine
+            productB: 100.0     // Computer
         };
     }
 
@@ -20,8 +34,7 @@ class MarketApp extends App {
         // Clone market template
         const template = document.getElementById('market-app-template');
         if (!template) {
-            console.error('Market app template not found!');
-            return;
+            throw new Error('Market app template not found');
         }
 
         const content = template.content.cloneNode(true);
@@ -31,7 +44,7 @@ class MarketApp extends App {
         this.resourceManager = window.gameInstance?.resources;
 
         if (!this.resourceManager) {
-            console.warn('ResourceManager not available yet. Market app may not function properly.');
+            log('ResourceManager not available yet. Market app may not function properly.');
         }
 
         // Setup navigation
@@ -122,14 +135,12 @@ class MarketApp extends App {
 
     sellResource(resourceType, amount) {
         if (!this.resourceManager) {
-            console.error('ResourceManager not available');
-            return;
+            throw new Error('ResourceManager not available');
         }
 
         const price = this.sellPrices[resourceType];
         if (!price) {
-            console.error(`No sell price defined for ${resourceType}`);
-            return;
+            throw new Error(`No sell price defined for ${resourceType}`);
         }
 
         // Check how much is available
@@ -153,8 +164,7 @@ class MarketApp extends App {
 
     sellAll(resourceType) {
         if (!this.resourceManager) {
-            console.error('ResourceManager not available');
-            return;
+            throw new Error('ResourceManager not available');
         }
 
         const available = this.resourceManager.get(resourceType);

@@ -1,0 +1,24 @@
+# Editor
+*.code-workspace
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# Logs
+*.log
+
+# Dependencies (if npm ever added)
+node_modules/
+
+# Environment
+.env
+.env.*
+
+# Build output (if added later)
+dist/
+build/

@@ -83,20 +83,42 @@ class OfflineProgressCalculator {
         const timeAwayText = this.formatTime(offlineData.timeAway);
         const effectiveTimeText = this.formatTime(offlineData.effectiveTime);
 
-        console.log('=== WELCOME BACK! ===');
-        console.log(`You were away for ${timeAwayText}`);
-        if (offlineData.capped) {
-            console.log(`(Production calculated for ${effectiveTimeText} max)`);
-        }
-        console.log('Offline gains:');
-        Object.entries(offlineData.gains).forEach(([type, amount]) => {
-            if (amount > 0) {
-                console.log(`  +${formatNumber(amount)} ${type}`);
+        // Build gains list HTML
+        const gainsList = Object.entries(offlineData.gains)
+            .filter(([_, amount]) => amount > 0)
+            .map(([type, amount]) => `<li>+${formatNumber(amount)} ${type}</li>`)
+            .join('');
+
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'offline-progress-modal';
+        modal.innerHTML = `
+            <div class="offline-progress-content">
+                <h2>WELCOME BACK!</h2>
+                <p>You were away for <span class="highlight">${timeAwayText}</span></p>
+                ${offlineData.capped ? `<p class="note">(Max ${effectiveTimeText} calculated)</p>` : ''}
+                <h3>Offline Gains:</h3>
+                <ul class="gains-list">
+                    ${gainsList}
+                </ul>
+                <button class="dismiss-btn">Continue</button>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Setup dismiss button
+        modal.querySelector('.dismiss-btn').addEventListener('click', () => {
+            modal.remove();
+        });
+
+        // Allow clicking overlay to dismiss
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
             }
         });
-        console.log('====================');
 
-        // TODO: Show a nice UI notification instead of just console
         log(`Offline progress: ${effectiveTimeText} simulated`);
     }
 }

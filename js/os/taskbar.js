@@ -6,6 +6,8 @@ class Taskbar {
         this.desktop = desktop;
         this.element = document.getElementById('taskbar');
         this.clockElement = document.getElementById('system-clock');
+        this.appMenuElement = null; // App launcher menu
+        this.runningApps = new Map(); // Map of window.id -> button element
         this.initialize();
     }
 
@@ -24,9 +26,56 @@ class Taskbar {
     }
 
     showAppLauncher() {
-        // For now, just launch factory app
-        // TODO: Show proper app menu
-        this.desktop.launchApp('factory');
+        // Toggle menu if already showing
+        if (this.appMenuElement?.style.display === 'block') {
+            this.appMenuElement.style.display = 'none';
+            return;
+        }
+
+        // Create menu if it doesn't exist
+        if (!this.appMenuElement) {
+            this.createAppMenu();
+        }
+
+        // Show menu
+        this.appMenuElement.style.display = 'block';
+    }
+
+    createAppMenu() {
+        this.appMenuElement = document.createElement('div');
+        this.appMenuElement.className = 'app-menu';
+
+        // List of available apps
+        const apps = [
+            { id: 'factory', name: 'Factory Manager', icon: '🏭' },
+            { id: 'warehouse', name: 'Warehouse', icon: '📦' },
+            { id: 'market', name: 'Space Market', icon: '🏪' },
+            { id: 'logout', name: 'Logout', icon: '🚪' }
+        ];
+
+        // Create menu items
+        apps.forEach(app => {
+            const item = document.createElement('div');
+            item.className = 'app-menu-item';
+            item.innerHTML = `<span class="app-menu-icon">${app.icon}</span> ${app.name}`;
+            item.addEventListener('click', () => {
+                this.desktop.launchApp(app.id);
+                this.appMenuElement.style.display = 'none';
+            });
+            this.appMenuElement.appendChild(item);
+        });
+
+        // Append to body (positioned above taskbar)
+        document.body.appendChild(this.appMenuElement);
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (this.appMenuElement &&
+                !this.appMenuElement.contains(e.target) &&
+                e.target.id !== 'start-button') {
+                this.appMenuElement.style.display = 'none';
+            }
+        });
     }
 
     updateClock() {
@@ -39,11 +88,36 @@ class Taskbar {
     }
 
     addRunningApp(window) {
-        // TODO: Add app icon to taskbar
-        // Shows minimized apps, click to restore
+        // Create taskbar button for this window
+        const appButton = document.createElement('div');
+        appButton.className = 'taskbar-app-button';
+        appButton.textContent = window.app.title;
+        appButton.dataset.windowId = window.id;
+
+        // Click to toggle minimize/restore
+        appButton.addEventListener('click', () => {
+            if (window.element.style.display === 'none') {
+                window.restore();
+            } else {
+                window.minimize();
+            }
+        });
+
+        // Insert before system tray
+        const systemTray = document.getElementById('system-tray');
+        if (systemTray && this.element) {
+            this.element.insertBefore(appButton, systemTray);
+        }
+
+        // Track button
+        this.runningApps.set(window.id, appButton);
     }
 
     removeRunningApp(window) {
-        // TODO: Remove app icon from taskbar
+        const button = this.runningApps.get(window.id);
+        if (button) {
+            button.remove();
+            this.runningApps.delete(window.id);
+        }
     }
 }

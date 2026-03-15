@@ -9,8 +9,19 @@ class WarehouseApp extends App {
         this.icon = '📦';
         this.resourceManager = null;
         this.capacityUpgrades = {
-            ore: 0,
-            metal: 0
+            // Tier 1
+            oreA: 0,
+            oreB: 0,
+            // Tier 2
+            barA: 0,
+            barB: 0,
+            // Tier 3
+            componentA: 0,
+            componentB: 0,
+            componentC: 0,
+            // Tier 4
+            productA: 0,
+            productB: 0
         };
         this.updateInterval = null;
     }
@@ -19,8 +30,7 @@ class WarehouseApp extends App {
         // Clone warehouse template
         const template = document.getElementById('warehouse-app-template');
         if (!template) {
-            console.error('Warehouse app template not found!');
-            return;
+            throw new Error('Warehouse app template not found');
         }
 
         const content = template.content.cloneNode(true);
@@ -33,8 +43,7 @@ class WarehouseApp extends App {
         this.resourceManager = window.gameInstance?.resources;
 
         if (!this.resourceManager) {
-            console.error('Warehouse: Game instance not available!');
-            return;
+            throw new Error('Warehouse: Game instance not available');
         }
 
         log('Warehouse: Game instance connected');
@@ -42,10 +51,10 @@ class WarehouseApp extends App {
         // Apply capacity upgrades from loaded save data
         if (this.capacityUpgrades && Object.keys(this.capacityUpgrades).length > 0) {
             Object.entries(this.capacityUpgrades).forEach(([type, level]) => {
+                if (!RESOURCES[type] || level === 0) return;
                 const increaseAmount = 1000 * level;
                 const initialCapacity = RESOURCES[type].initialCapacity;
-                this.resourceManager.resources[type].capacity = initialCapacity + increaseAmount;
-                log(`Warehouse: Applied ${level} capacity upgrades to ${type} (new capacity: ${initialCapacity + increaseAmount})`);
+                this.resourceManager.setCapacity(type, initialCapacity + increaseAmount);
             });
         }
 
@@ -173,7 +182,16 @@ class WarehouseApp extends App {
 
         gameInstance.canvas.nodes.forEach(node => {
             const def = node.buildingDef;
-            // Count ALL production, not just non-stalled nodes
+
+            // Recipe-based building: use active recipe outputs
+            if (def.usesRecipes) {
+                if (node.activeRecipe && node.activeRecipe.outputs[resourceType]) {
+                    production += node.activeRecipe.outputs[resourceType] * node.level;
+                }
+                return;
+            }
+
+            // Standard building: use static production
             if (def.production && def.production[resourceType]) {
                 production += def.production[resourceType] * node.level;
             }
@@ -192,7 +210,16 @@ class WarehouseApp extends App {
 
         gameInstance.canvas.nodes.forEach(node => {
             const def = node.buildingDef;
-            // Count ALL demand, not just non-stalled nodes
+
+            // Recipe-based building: use active recipe inputs
+            if (def.usesRecipes) {
+                if (node.activeRecipe && node.activeRecipe.inputs[resourceType]) {
+                    demand += node.activeRecipe.inputs[resourceType] * node.level;
+                }
+                return;
+            }
+
+            // Standard building: use static consumption
             if (def.consumption && def.consumption[resourceType]) {
                 demand += def.consumption[resourceType] * node.level;
             }
@@ -225,12 +252,15 @@ class WarehouseApp extends App {
         // Spend credits
         this.resourceManager.remove('credits', cost);
 
-        // Increase capacity
+        // Increase capacity (immutable update)
         const increaseAmount = 1000; // +1000 capacity per upgrade
-        this.resourceManager.resources[resourceType].capacity += increaseAmount;
+        this.resourceManager.increaseCapacity(resourceType, increaseAmount);
 
-        // Track upgrade level
-        this.capacityUpgrades[resourceType] = currentLevel + 1;
+        // Track upgrade level (immutable update)
+        this.capacityUpgrades = {
+            ...this.capacityUpgrades,
+            [resourceType]: currentLevel + 1
+        };
 
         log(`Upgraded ${resourceType} capacity to ${formatNumber(this.resourceManager.resources[resourceType].capacity)} (+${increaseAmount})`);
 
@@ -274,15 +304,30 @@ class WarehouseApp extends App {
 
     loadSaveData(data) {
         if (data.capacityUpgrades) {
-            this.capacityUpgrades = data.capacityUpgrades;
+            // Migration: convert old resource names to new names
+            const migrationMap = { ore: 'oreA', metal: 'barA' };
+            const migrated = {};
+
+            Object.entries(data.capacityUpgrades).forEach(([type, level]) => {
+                const newType = migrationMap[type] || type;
+                if (RESOURCES[newType]) {
+                    migrated[newType] = (migrated[newType] || 0) + level;
+                }
+            });
+
+            // Merge migrated data with defaults (preserves new resource keys)
+            this.capacityUpgrades = {
+                ...this.capacityUpgrades,
+                ...migrated
+            };
 
             // Apply capacity upgrades to resource manager
             if (this.resourceManager) {
                 Object.entries(this.capacityUpgrades).forEach(([type, level]) => {
+                    if (!RESOURCES[type] || level === 0) return;
                     const increaseAmount = 1000 * level;
-                    // Get initial capacity from resources data
                     const initialCapacity = RESOURCES[type].initialCapacity;
-                    this.resourceManager.resources[type].capacity = initialCapacity + increaseAmount;
+                    this.resourceManager.setCapacity(type, initialCapacity + increaseAmount);
                 });
             }
         }

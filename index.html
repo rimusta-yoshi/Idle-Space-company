@@ -6,12 +6,16 @@
     <title>Idle Space Company - Remote Worker Terminal</title>
 
     <!-- Base path for GitHub Pages - comment out for local development -->
-    <base href="/Idle-Space-company/">
+   <!-- <base href="/Idle-Space-company/"> -->
 
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/crt-filter.css">
     <script src="https://unpkg.com/konva@9.3.14/konva.min.js"></script>
 </head>
 <body>
+    <!-- CRT Screen wrapper - barrel distortion applied to this -->
+    <div id="crt-screen">
+
     <!-- Boot Screen (shown first) -->
     <div id="boot-screen" style="display: flex;">
         <div class="boot-content">
@@ -149,28 +153,54 @@
 
                     <h3>PRODUCTION RATES</h3>
                     <div id="production-rates">
+                        <!-- Tier 1 - Raw Ores -->
                         <div class="production-item">
-                            <span class="resource-name">Ore:</span>
-                            <span id="ore-rate" class="production-rate">+0.0/s</span>
+                            <span class="resource-name">⛏️ Iron Ore:</span>
+                            <span id="oreA-rate" class="production-rate">+0.0/s</span>
                         </div>
                         <div class="production-item">
-                            <span class="resource-name">Metal:</span>
-                            <span id="metal-rate" class="production-rate">+0.0/s</span>
+                            <span class="resource-name">🪨 Copper Ore:</span>
+                            <span id="oreB-rate" class="production-rate">+0.0/s</span>
+                        </div>
+
+                        <!-- Tier 2 - Bars -->
+                        <div class="production-item">
+                            <span class="resource-name">🔩 Iron Bar:</span>
+                            <span id="barA-rate" class="production-rate">+0.0/s</span>
+                        </div>
+                        <div class="production-item">
+                            <span class="resource-name">🟫 Copper Bar:</span>
+                            <span id="barB-rate" class="production-rate">+0.0/s</span>
+                        </div>
+
+                        <!-- Tier 3 - Components -->
+                        <div class="production-item">
+                            <span class="resource-name">⬜ Steel Plate:</span>
+                            <span id="componentA-rate" class="production-rate">+0.0/s</span>
+                        </div>
+                        <div class="production-item">
+                            <span class="resource-name">〰️ Wire:</span>
+                            <span id="componentB-rate" class="production-rate">+0.0/s</span>
+                        </div>
+                        <div class="production-item">
+                            <span class="resource-name">💾 Circuit:</span>
+                            <span id="componentC-rate" class="production-rate">+0.0/s</span>
+                        </div>
+
+                        <!-- Tier 4 - Advanced Products -->
+                        <div class="production-item">
+                            <span class="resource-name">⚙️ Engine:</span>
+                            <span id="productA-rate" class="production-rate">+0.0/s</span>
+                        </div>
+                        <div class="production-item">
+                            <span class="resource-name">💻 Computer:</span>
+                            <span id="productB-rate" class="production-rate">+0.0/s</span>
                         </div>
                     </div>
 
                     <h2 style="margin-top: 20px;">BUILD</h2>
                     <div id="building-list">
-                        <div class="building-item" draggable="true" data-building="oreMiner">
-                            <div class="building-name">Ore Miner</div>
-                            <div class="building-cost">Cost: 10 Credits</div>
-                            <div class="building-description">Extracts raw ore from planet</div>
-                        </div>
-                        <div class="building-item" draggable="true" data-building="smelter">
-                            <div class="building-name">Smelter</div>
-                            <div class="building-cost">Cost: 50 Credits</div>
-                            <div class="building-description">Converts ore into metal</div>
-                        </div>
+                        <!-- Will be dynamically populated by sidebar.js -->
                     </div>
                 </aside>
 
@@ -235,35 +265,142 @@
                 <p class="market-subtitle">Sell your resources for credits</p>
 
                 <div class="resource-listings">
-                    <!-- Ore listing -->
-                    <div class="market-listing" data-resource="ore">
+                    <!-- TIER 1 - Raw Ores -->
+                    <div class="market-listing" data-resource="oreA">
                         <div class="listing-icon">⛏️</div>
                         <div class="listing-info">
-                            <div class="listing-name">Ore</div>
+                            <div class="listing-name">Iron Ore</div>
                             <div class="listing-price">0.5 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-ore-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-ore-value">0</span> credits</div>
+                            <div class="listing-inventory">Available: <span id="market-oreA-amount">0</span></div>
+                            <div class="listing-value">Total Value: <span id="market-oreA-value">0</span> credits</div>
                         </div>
                         <div class="listing-actions">
-                            <button class="sell-btn" data-resource="ore" data-amount="100">Sell 100</button>
-                            <button class="sell-btn" data-resource="ore" data-amount="1000">Sell 1000</button>
-                            <button class="sell-btn sell-all" data-resource="ore" data-amount="all">Sell All</button>
+                            <button class="sell-btn" data-resource="oreA" data-amount="100">Sell 100</button>
+                            <button class="sell-btn" data-resource="oreA" data-amount="1000">Sell 1000</button>
+                            <button class="sell-btn sell-all" data-resource="oreA" data-amount="all">Sell All</button>
                         </div>
                     </div>
 
-                    <!-- Metal listing -->
-                    <div class="market-listing" data-resource="metal">
-                        <div class="listing-icon">🔧</div>
+                    <div class="market-listing" data-resource="oreB">
+                        <div class="listing-icon">🪨</div>
                         <div class="listing-info">
-                            <div class="listing-name">Metal</div>
-                            <div class="listing-price">3.0 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-metal-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-metal-value">0</span> credits</div>
+                            <div class="listing-name">Copper Ore</div>
+                            <div class="listing-price">0.8 credits/unit</div>
+                            <div class="listing-inventory">Available: <span id="market-oreB-amount">0</span></div>
+                            <div class="listing-value">Total Value: <span id="market-oreB-value">0</span> credits</div>
                         </div>
                         <div class="listing-actions">
-                            <button class="sell-btn" data-resource="metal" data-amount="50">Sell 50</button>
-                            <button class="sell-btn" data-resource="metal" data-amount="500">Sell 500</button>
-                            <button class="sell-btn sell-all" data-resource="metal" data-amount="all">Sell All</button>
+                            <button class="sell-btn" data-resource="oreB" data-amount="100">Sell 100</button>
+                            <button class="sell-btn" data-resource="oreB" data-amount="1000">Sell 1000</button>
+                            <button class="sell-btn sell-all" data-resource="oreB" data-amount="all">Sell All</button>
+                        </div>
+                    </div>
+
+                    <!-- TIER 2 - Bars -->
+                    <div class="market-listing" data-resource="barA">
+                        <div class="listing-icon">🔩</div>
+                        <div class="listing-info">
+                            <div class="listing-name">Iron Bar</div>
+                            <div class="listing-price">2.0 credits/unit</div>
+                            <div class="listing-inventory">Available: <span id="market-barA-amount">0</span></div>
+                            <div class="listing-value">Total Value: <span id="market-barA-value">0</span> credits</div>
+                        </div>
+                        <div class="listing-actions">
+                            <button class="sell-btn" data-resource="barA" data-amount="50">Sell 50</button>
+                            <button class="sell-btn" data-resource="barA" data-amount="500">Sell 500</button>
+                            <button class="sell-btn sell-all" data-resource="barA" data-amount="all">Sell All</button>
+                        </div>
+                    </div>
+
+                    <div class="market-listing" data-resource="barB">
+                        <div class="listing-icon">🟫</div>
+                        <div class="listing-info">
+                            <div class="listing-name">Copper Bar</div>
+                            <div class="listing-price">3.0 credits/unit</div>
+                            <div class="listing-inventory">Available: <span id="market-barB-amount">0</span></div>
+                            <div class="listing-value">Total Value: <span id="market-barB-value">0</span> credits</div>
+                        </div>
+                        <div class="listing-actions">
+                            <button class="sell-btn" data-resource="barB" data-amount="50">Sell 50</button>
+                            <button class="sell-btn" data-resource="barB" data-amount="500">Sell 500</button>
+                            <button class="sell-btn sell-all" data-resource="barB" data-amount="all">Sell All</button>
+                        </div>
+                    </div>
+
+                    <!-- TIER 3 - Components -->
+                    <div class="market-listing" data-resource="componentA">
+                        <div class="listing-icon">⬜</div>
+                        <div class="listing-info">
+                            <div class="listing-name">Steel Plate</div>
+                            <div class="listing-price">10.0 credits/unit</div>
+                            <div class="listing-inventory">Available: <span id="market-componentA-amount">0</span></div>
+                            <div class="listing-value">Total Value: <span id="market-componentA-value">0</span> credits</div>
+                        </div>
+                        <div class="listing-actions">
+                            <button class="sell-btn" data-resource="componentA" data-amount="10">Sell 10</button>
+                            <button class="sell-btn" data-resource="componentA" data-amount="100">Sell 100</button>
+                            <button class="sell-btn sell-all" data-resource="componentA" data-amount="all">Sell All</button>
+                        </div>
+                    </div>
+
+                    <div class="market-listing" data-resource="componentB">
+                        <div class="listing-icon">〰️</div>
+                        <div class="listing-info">
+                            <div class="listing-name">Wire</div>
+                            <div class="listing-price">8.0 credits/unit</div>
+                            <div class="listing-inventory">Available: <span id="market-componentB-amount">0</span></div>
+                            <div class="listing-value">Total Value: <span id="market-componentB-value">0</span> credits</div>
+                        </div>
+                        <div class="listing-actions">
+                            <button class="sell-btn" data-resource="componentB" data-amount="10">Sell 10</button>
+                            <button class="sell-btn" data-resource="componentB" data-amount="100">Sell 100</button>
+                            <button class="sell-btn sell-all" data-resource="componentB" data-amount="all">Sell All</button>
+                        </div>
+                    </div>
+
+                    <div class="market-listing" data-resource="componentC">
+                        <div class="listing-icon">💾</div>
+                        <div class="listing-info">
+                            <div class="listing-name">Circuit</div>
+                            <div class="listing-price">20.0 credits/unit</div>
+                            <div class="listing-inventory">Available: <span id="market-componentC-amount">0</span></div>
+                            <div class="listing-value">Total Value: <span id="market-componentC-value">0</span> credits</div>
+                        </div>
+                        <div class="listing-actions">
+                            <button class="sell-btn" data-resource="componentC" data-amount="10">Sell 10</button>
+                            <button class="sell-btn" data-resource="componentC" data-amount="100">Sell 100</button>
+                            <button class="sell-btn sell-all" data-resource="componentC" data-amount="all">Sell All</button>
+                        </div>
+                    </div>
+
+                    <!-- TIER 4 - Advanced Products -->
+                    <div class="market-listing" data-resource="productA">
+                        <div class="listing-icon">⚙️</div>
+                        <div class="listing-info">
+                            <div class="listing-name">Engine</div>
+                            <div class="listing-price">80.0 credits/unit</div>
+                            <div class="listing-inventory">Available: <span id="market-productA-amount">0</span></div>
+                            <div class="listing-value">Total Value: <span id="market-productA-value">0</span> credits</div>
+                        </div>
+                        <div class="listing-actions">
+                            <button class="sell-btn" data-resource="productA" data-amount="5">Sell 5</button>
+                            <button class="sell-btn" data-resource="productA" data-amount="50">Sell 50</button>
+                            <button class="sell-btn sell-all" data-resource="productA" data-amount="all">Sell All</button>
+                        </div>
+                    </div>
+
+                    <div class="market-listing" data-resource="productB">
+                        <div class="listing-icon">💻</div>
+                        <div class="listing-info">
+                            <div class="listing-name">Computer</div>
+                            <div class="listing-price">100.0 credits/unit</div>
+                            <div class="listing-inventory">Available: <span id="market-productB-amount">0</span></div>
+                            <div class="listing-value">Total Value: <span id="market-productB-value">0</span> credits</div>
+                        </div>
+                        <div class="listing-actions">
+                            <button class="sell-btn" data-resource="productB" data-amount="5">Sell 5</button>
+                            <button class="sell-btn" data-resource="productB" data-amount="50">Sell 50</button>
+                            <button class="sell-btn sell-all" data-resource="productB" data-amount="all">Sell All</button>
                         </div>
                     </div>
                 </div>
@@ -281,8 +418,10 @@
                     <p>We are the premier marketplace for selling raw materials and refined goods across the galaxy.</p>
                     <h3>Current Buy Prices:</h3>
                     <ul>
-                        <li>Ore: 0.5 credits per unit</li>
-                        <li>Metal: 3.0 credits per unit (refined goods command premium pricing!)</li>
+                        <li><strong>Tier 1 - Raw Ores:</strong> Iron Ore 0.5 cr | Copper Ore 0.8 cr</li>
+                        <li><strong>Tier 2 - Bars:</strong> Iron Bar 2.0 cr | Copper Bar 3.0 cr</li>
+                        <li><strong>Tier 3 - Components:</strong> Steel Plate 10 cr | Wire 8 cr | Circuit 20 cr</li>
+                        <li><strong>Tier 4 - Products:</strong> Engine 80 cr | Computer 100 cr</li>
                     </ul>
                     <p class="disclaimer">Prices subject to change based on galactic market conditions.</p>
                     <p class="future-notice">🚀 Coming Soon: Automatic selling with Space Hauler logistics!</p>
@@ -318,32 +457,132 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Ore row -->
-                    <tr class="resource-row" data-resource="ore">
-                        <td><div id="wh-ore-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name">⛏️ Ore</td>
-                        <td id="wh-ore-total" class="resource-amount">0 / 5000</td>
-                        <td id="wh-ore-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-ore-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-ore-net" class="net-rate">+0.0/s</td>
+                    <!-- TIER 1 - Raw Ores -->
+                    <tr class="resource-row" data-resource="oreA">
+                        <td><div id="wh-oreA-indicator" class="status-indicator green"></div></td>
+                        <td class="resource-name">⛏️ Iron Ore</td>
+                        <td id="wh-oreA-total" class="resource-amount">0 / 5000</td>
+                        <td id="wh-oreA-output" class="output-rate">+0.0/s</td>
+                        <td id="wh-oreA-demand" class="demand-rate">0.0/s</td>
+                        <td id="wh-oreA-net" class="net-rate">+0.0/s</td>
                         <td>
-                            <button class="upgrade-capacity-btn" data-resource="ore">
+                            <button class="upgrade-capacity-btn" data-resource="oreA">
                                 Upgrade (100 cr)
                             </button>
                         </td>
                     </tr>
 
-                    <!-- Metal row -->
-                    <tr class="resource-row" data-resource="metal">
-                        <td><div id="wh-metal-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name">🔧 Metal</td>
-                        <td id="wh-metal-total" class="resource-amount">0 / 2000</td>
-                        <td id="wh-metal-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-metal-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-metal-net" class="net-rate">+0.0/s</td>
+                    <tr class="resource-row" data-resource="oreB">
+                        <td><div id="wh-oreB-indicator" class="status-indicator green"></div></td>
+                        <td class="resource-name">🪨 Copper Ore</td>
+                        <td id="wh-oreB-total" class="resource-amount">0 / 5000</td>
+                        <td id="wh-oreB-output" class="output-rate">+0.0/s</td>
+                        <td id="wh-oreB-demand" class="demand-rate">0.0/s</td>
+                        <td id="wh-oreB-net" class="net-rate">+0.0/s</td>
                         <td>
-                            <button class="upgrade-capacity-btn" data-resource="metal">
-                                Upgrade (100 cr)
+                            <button class="upgrade-capacity-btn" data-resource="oreB">
+                                Upgrade (120 cr)
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- TIER 2 - Bars -->
+                    <tr class="resource-row" data-resource="barA">
+                        <td><div id="wh-barA-indicator" class="status-indicator green"></div></td>
+                        <td class="resource-name">🔩 Iron Bar</td>
+                        <td id="wh-barA-total" class="resource-amount">0 / 2000</td>
+                        <td id="wh-barA-output" class="output-rate">+0.0/s</td>
+                        <td id="wh-barA-demand" class="demand-rate">0.0/s</td>
+                        <td id="wh-barA-net" class="net-rate">+0.0/s</td>
+                        <td>
+                            <button class="upgrade-capacity-btn" data-resource="barA">
+                                Upgrade (200 cr)
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr class="resource-row" data-resource="barB">
+                        <td><div id="wh-barB-indicator" class="status-indicator green"></div></td>
+                        <td class="resource-name">🟫 Copper Bar</td>
+                        <td id="wh-barB-total" class="resource-amount">0 / 2000</td>
+                        <td id="wh-barB-output" class="output-rate">+0.0/s</td>
+                        <td id="wh-barB-demand" class="demand-rate">0.0/s</td>
+                        <td id="wh-barB-net" class="net-rate">+0.0/s</td>
+                        <td>
+                            <button class="upgrade-capacity-btn" data-resource="barB">
+                                Upgrade (250 cr)
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- TIER 3 - Components -->
+                    <tr class="resource-row" data-resource="componentA">
+                        <td><div id="wh-componentA-indicator" class="status-indicator green"></div></td>
+                        <td class="resource-name">⬜ Steel Plate</td>
+                        <td id="wh-componentA-total" class="resource-amount">0 / 1000</td>
+                        <td id="wh-componentA-output" class="output-rate">+0.0/s</td>
+                        <td id="wh-componentA-demand" class="demand-rate">0.0/s</td>
+                        <td id="wh-componentA-net" class="net-rate">+0.0/s</td>
+                        <td>
+                            <button class="upgrade-capacity-btn" data-resource="componentA">
+                                Upgrade (500 cr)
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr class="resource-row" data-resource="componentB">
+                        <td><div id="wh-componentB-indicator" class="status-indicator green"></div></td>
+                        <td class="resource-name">〰️ Wire</td>
+                        <td id="wh-componentB-total" class="resource-amount">0 / 1000</td>
+                        <td id="wh-componentB-output" class="output-rate">+0.0/s</td>
+                        <td id="wh-componentB-demand" class="demand-rate">0.0/s</td>
+                        <td id="wh-componentB-net" class="net-rate">+0.0/s</td>
+                        <td>
+                            <button class="upgrade-capacity-btn" data-resource="componentB">
+                                Upgrade (400 cr)
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr class="resource-row" data-resource="componentC">
+                        <td><div id="wh-componentC-indicator" class="status-indicator green"></div></td>
+                        <td class="resource-name">💾 Circuit</td>
+                        <td id="wh-componentC-total" class="resource-amount">0 / 500</td>
+                        <td id="wh-componentC-output" class="output-rate">+0.0/s</td>
+                        <td id="wh-componentC-demand" class="demand-rate">0.0/s</td>
+                        <td id="wh-componentC-net" class="net-rate">+0.0/s</td>
+                        <td>
+                            <button class="upgrade-capacity-btn" data-resource="componentC">
+                                Upgrade (800 cr)
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- TIER 4 - Advanced Products -->
+                    <tr class="resource-row" data-resource="productA">
+                        <td><div id="wh-productA-indicator" class="status-indicator green"></div></td>
+                        <td class="resource-name">⚙️ Engine</td>
+                        <td id="wh-productA-total" class="resource-amount">0 / 200</td>
+                        <td id="wh-productA-output" class="output-rate">+0.0/s</td>
+                        <td id="wh-productA-demand" class="demand-rate">0.0/s</td>
+                        <td id="wh-productA-net" class="net-rate">+0.0/s</td>
+                        <td>
+                            <button class="upgrade-capacity-btn" data-resource="productA">
+                                Upgrade (2000 cr)
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr class="resource-row" data-resource="productB">
+                        <td><div id="wh-productB-indicator" class="status-indicator green"></div></td>
+                        <td class="resource-name">💻 Computer</td>
+                        <td id="wh-productB-total" class="resource-amount">0 / 200</td>
+                        <td id="wh-productB-output" class="output-rate">+0.0/s</td>
+                        <td id="wh-productB-demand" class="demand-rate">0.0/s</td>
+                        <td id="wh-productB-net" class="net-rate">+0.0/s</td>
+                        <td>
+                            <button class="upgrade-capacity-btn" data-resource="productB">
+                                Upgrade (2500 cr)
                             </button>
                         </td>
                     </tr>
@@ -361,7 +600,20 @@
         </div>
     </template>
 
+    </div><!-- end #crt-screen -->
+
+    <!-- SVG filter definitions for CRT barrel distortion (hidden) -->
+    <svg id="crt-filters" xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden;">
+        <defs>
+            <filter id="crt-barrel" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+                <feImage id="crt-displacement-map" result="dispMap" x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" />
+                <feDisplacementMap in="SourceGraphic" in2="dispMap" scale="60" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
     <!-- Load JavaScript files -->
+    <script src="js/crt-filter.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/save-manager.js"></script>
     <script src="data/buildings-data.js"></script>

@@ -13,6 +13,12 @@ class WindowManager {
         this.windows.push(window);
         this.container.appendChild(window.element);
         this.focusWindow(window);
+
+        // Add to taskbar
+        if (desktop && desktop.taskbar) {
+            desktop.taskbar.addRunningApp(window);
+        }
+
         return window;
     }
 
@@ -20,6 +26,11 @@ class WindowManager {
         const index = this.windows.indexOf(window);
         if (index > -1) {
             this.windows.splice(index, 1);
+        }
+
+        // Remove from taskbar
+        if (window.desktop && window.desktop.taskbar) {
+            window.desktop.taskbar.removeRunningApp(window);
         }
 
         // Trigger save after window closes (if desktop reference exists)

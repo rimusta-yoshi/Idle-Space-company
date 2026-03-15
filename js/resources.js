@@ -25,23 +25,30 @@ class ResourceManager {
     // Add resource (respects capacity)
     add(resourceType, amount) {
         if (!this.resources[resourceType]) {
-            console.warn(`Resource type ${resourceType} does not exist`);
-            return false;
+            throw new Error(`Resource type ${resourceType} does not exist`);
         }
 
         const res = this.resources[resourceType];
         const oldAmount = res.current;
-        res.current = Math.min(res.current + amount, res.capacity);
+        const newAmount = Math.min(res.current + amount, res.capacity);
+
+        // Create new resource object (immutable update)
+        this.resources = {
+            ...this.resources,
+            [resourceType]: {
+                ...res,
+                current: newAmount
+            }
+        };
 
         // Return actual amount added (in case of capacity limit)
-        return res.current - oldAmount;
+        return newAmount - oldAmount;
     }
 
     // Remove resource
     remove(resourceType, amount) {
         if (!this.resources[resourceType]) {
-            console.warn(`Resource type ${resourceType} does not exist`);
-            return false;
+            throw new Error(`Resource type ${resourceType} does not exist`);
         }
 
         const res = this.resources[resourceType];
@@ -49,7 +56,14 @@ class ResourceManager {
             return false; // Not enough resources
         }
 
-        res.current -= amount;
+        // Create new resource object (immutable update)
+        this.resources = {
+            ...this.resources,
+            [resourceType]: {
+                ...res,
+                current: res.current - amount
+            }
+        };
         return true;
     }
 
@@ -83,11 +97,43 @@ class ResourceManager {
     // Set production rate
     setProduction(resourceType, rate) {
         if (!this.resources[resourceType]) {
-            console.warn(`Resource type ${resourceType} does not exist`);
-            return;
+            throw new Error(`Resource type ${resourceType} does not exist`);
         }
 
-        this.resources[resourceType].production = rate;
+        // Create new resource object (immutable update)
+        this.resources = {
+            ...this.resources,
+            [resourceType]: {
+                ...this.resources[resourceType],
+                production: rate
+            }
+        };
+    }
+
+    // Set capacity (immutable update)
+    setCapacity(resourceType, newCapacity) {
+        if (!this.resources[resourceType]) {
+            throw new Error(`Resource type ${resourceType} does not exist`);
+        }
+
+        // Create new resource object (immutable update)
+        this.resources = {
+            ...this.resources,
+            [resourceType]: {
+                ...this.resources[resourceType],
+                capacity: newCapacity
+            }
+        };
+    }
+
+    // Increase capacity (immutable update)
+    increaseCapacity(resourceType, amount) {
+        if (!this.resources[resourceType]) {
+            throw new Error(`Resource type ${resourceType} does not exist`);
+        }
+
+        const res = this.resources[resourceType];
+        this.setCapacity(resourceType, res.capacity + amount);
     }
 
     // Update resources based on production rates (called every tick)

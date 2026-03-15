@@ -1,0 +1,114 @@
+/* CRT Monitor Filter
+   Barrel distortion via SVG displacement + CSS scanlines/vignette/bezel */
+
+/* ============================================
+   SCREEN WRAPPER - barrel distortion + bezel
+   ============================================ */
+
+#crt-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* When CRT enabled: apply barrel distortion filter + rounded corners + bezel */
+body.crt-enabled #crt-screen {
+    filter: url(#crt-barrel);
+    border-radius: 18px;
+    border: 3px solid #111;
+    box-shadow:
+        inset 0 0 80px rgba(0, 0, 0, 0.6),
+        0 0 15px rgba(0, 255, 0, 0.05),
+        0 0 2px 1px rgba(0, 0, 0, 0.8);
+    /* Slightly smaller to show the rounded bezel edge */
+    top: 4px;
+    left: 4px;
+    width: calc(100vw - 8px);
+    height: calc(100vh - 8px);
+}
+
+/* ============================================
+   SCANLINE + VIGNETTE OVERLAY (on top of all)
+   ============================================ */
+
+#crt-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 99999;
+    animation: crt-flicker 4s infinite;
+}
+
+body.crt-enabled #crt-overlay {
+    display: block;
+}
+
+/* Scanlines - aggressive dark bands that dim lit content */
+#crt-overlay::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 1px,
+        rgba(0, 0, 0, 0.5) 1px,
+        rgba(0, 0, 0, 0.5) 3px
+    );
+    z-index: 2;
+}
+
+/* Vignette - heavy edge darkening + green phosphor glow */
+#crt-overlay::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 30%,
+        rgba(0, 0, 0, 0.35) 60%,
+        rgba(0, 0, 0, 0.85) 100%
+    );
+    box-shadow: inset 0 0 200px rgba(0, 255, 0, 0.06);
+    z-index: 1;
+}
+
+/* ============================================
+   FLICKER ANIMATION
+   ============================================ */
+
+@keyframes crt-flicker {
+    0%   { opacity: 1; }
+    2%   { opacity: 0.92; }
+    4%   { opacity: 1; }
+    18%  { opacity: 1; }
+    20%  { opacity: 0.88; }
+    21%  { opacity: 1; }
+    58%  { opacity: 1; }
+    60%  { opacity: 0.9; }
+    62%  { opacity: 1; }
+    100% { opacity: 1; }
+}
+
+/* ============================================
+   BODY BACKGROUND (black behind the bezel)
+   ============================================ */
+
+body.crt-enabled {
+    background: #050505;
+}

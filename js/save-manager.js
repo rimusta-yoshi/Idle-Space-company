@@ -45,7 +45,7 @@ class SaveManager {
             log('No save found, starting fresh');
             return new SaveManager();
         } catch (e) {
-            console.error('Failed to load save:', e);
+            log(`Failed to load save: ${e.message}`);
             log('Error loading save, starting fresh');
             return new SaveManager(); // Fresh start on error
         }
@@ -109,7 +109,7 @@ class SaveManager {
             localStorage.setItem(this.saveKey, JSON.stringify(this.data));
             return true;
         } catch (e) {
-            console.error('Failed to save:', e);
+            log(`Failed to save: ${e.message}`);
             return false;
         }
     }

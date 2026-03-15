@@ -94,8 +94,7 @@ class Connection {
         const toNode = nodes.find(n => n.id === data.toNodeId);
 
         if (!fromNode || !toNode) {
-            console.error(`Failed to load connection: nodes not found (${data.fromNodeId} -> ${data.toNodeId})`);
-            return null;
+            throw new Error(`Failed to load connection: nodes not found (${data.fromNodeId} -> ${data.toNodeId})`);
         }
 
         const connection = new Connection(fromNode, toNode, data.resourceType);

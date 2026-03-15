@@ -12,8 +12,7 @@ class BootScreen {
     initialize() {
         this.element = document.getElementById('boot-screen');
         if (!this.element) {
-            console.error('Boot screen element not found!');
-            return;
+            throw new Error('Boot screen element not found');
         }
 
         this.show();
@@ -83,7 +82,7 @@ class BootScreen {
             this.launchDesktop();
 
         } catch (e) {
-            console.error('Boot failed:', e);
+            log(`Boot failed: ${e.message}`);
             // Still launch desktop even if error
             this.launchDesktop();
         }

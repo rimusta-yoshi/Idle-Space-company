@@ -26,6 +26,9 @@ class LogoutApp extends App {
                     </div>
 
                     <div class="system-actions">
+                        <button id="crt-toggle-btn" class="btn btn-primary">
+                            CRT FILTER: ${window.CRTFilter && window.CRTFilter.isEnabled() ? 'ON' : 'OFF'}
+                        </button>
                         <button id="logout-btn" class="btn btn-primary">
                             🏠 RETURN TO MENU
                         </button>
@@ -47,10 +50,18 @@ class LogoutApp extends App {
 
     setupButtons(root) {
         const logoutBtn = root.querySelector('#logout-btn');
+        const crtToggleBtn = root.querySelector('#crt-toggle-btn');
 
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => {
                 this.logout(root);
+            });
+        }
+
+        if (crtToggleBtn) {
+            crtToggleBtn.addEventListener('click', () => {
+                const nowEnabled = window.CRTFilter.toggle();
+                crtToggleBtn.textContent = `CRT FILTER: ${nowEnabled ? 'ON' : 'OFF'}`;
             });
         }
     }

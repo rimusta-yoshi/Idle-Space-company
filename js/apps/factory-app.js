@@ -13,28 +13,18 @@ class FactoryApp extends App {
 
     mount(contentElement) {
         if (this.game) {
-            console.warn('Factory app already mounted, skipping');
+            log('Factory app already mounted, skipping');
             return;
         }
-
-        console.log('Mounting factory app...');
 
         // Clone factory template
         const template = document.getElementById('factory-app-template');
         if (!template) {
-            console.error('Factory app template not found!');
-            return;
+            throw new Error('Factory app template not found');
         }
 
         const content = template.content.cloneNode(true);
         contentElement.appendChild(content);
-
-        console.log('Template appended to contentElement');
-
-        // Initialize immediately - data is ready via SaveManager
-        console.log('Initializing game...');
-        console.log('ContentElement:', contentElement);
-        console.log('Canvas container exists:', contentElement.querySelector('#canvas-container'));
 
         // Initialize game (pass contentElement as root for DOM queries)
         this.game = new Game(contentElement);

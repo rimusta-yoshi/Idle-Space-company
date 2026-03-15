@@ -3,16 +3,15 @@
 
 // Check if all dependencies loaded
 window.addEventListener('error', (e) => {
-    console.error('Resource loading error:', e.filename || e.message);
+    log(`Resource loading error: ${e.filename || e.message}`);
 });
 
 // Initialize Boot Screen when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Check critical dependencies
     if (typeof Konva === 'undefined') {
-        console.error('CRITICAL: Konva library not loaded!');
         alert('Failed to load Konva library. Please check your internet connection and refresh.');
-        return;
+        throw new Error('CRITICAL: Konva library not loaded');
     }
 
     log('DOM loaded, starting Boot Screen...');
@@ -29,30 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000);
 
-    // Debug helper functions
-    window.debugDesktop = () => {
-        if (!window.desktop) {
-            console.log('Desktop not initialized yet');
-            return;
-        }
-        console.log('=== DESKTOP DEBUG INFO ===');
-        console.log('Windows open:', window.desktop.windowManager.windows.length);
-        window.desktop.windowManager.windows.forEach(w => {
-            console.log(`  - ${w.app.title} at (${w.x}, ${w.y}) size ${w.width}x${w.height}`);
-        });
-        console.log('Registered apps:', Object.keys(window.desktop.apps));
-    };
-
-    // Helper to reset notification for testing
-    window.resetNotification = () => {
-        localStorage.removeItem('market_migration_v2');
-        console.log('Notification flag reset - refresh page to see it again');
-    };
-
-    console.log('Debug helpers loaded!');
-    console.log('  - debugDesktop() - Show desktop state');
-    console.log('  - resetNotification() - Reset Mr. Business notification');
-    console.log('Boot Screen ready! Click START to begin.');
+    log('Boot Screen ready! Click START to begin.');
 });
 
 // Handle page unload (save before closing)
@@ -79,8 +55,7 @@ function checkFirstLaunch() {
 function showNotification() {
     const notification = document.getElementById('mr-business-notification');
     if (!notification) {
-        console.error('Notification element not found!');
-        return;
+        throw new Error('Notification element not found');
     }
 
     notification.style.display = 'flex';

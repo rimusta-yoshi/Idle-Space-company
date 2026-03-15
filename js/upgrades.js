@@ -14,8 +14,7 @@ class UpgradeManager {
         this.panel = this.rootElement.querySelector('#upgrade-panel');
 
         if (!this.panel) {
-            console.error('Upgrade panel not found');
-            return;
+            throw new Error('Upgrade panel not found');
         }
 
         // Setup close button
@@ -117,9 +116,31 @@ class UpgradeManager {
     getProductionText(node, level = null) {
         const def = node.buildingDef;
         const lvl = level || node.level;
-        let text = '';
 
-        // Show production
+        // Recipe-based building: use activeRecipe if available
+        if (def.usesRecipes) {
+            if (!node.activeRecipe) {
+                return 'No Recipe';
+            }
+            let text = '';
+            const outputParts = Object.entries(node.activeRecipe.outputs).map(([resource, rate]) => {
+                const totalRate = rate * lvl;
+                return `+${formatRate(totalRate)} ${resource}`;
+            });
+            text += outputParts.join(', ');
+
+            const inputParts = Object.entries(node.activeRecipe.inputs).map(([resource, rate]) => {
+                const totalRate = rate * lvl;
+                return `-${formatRate(totalRate)} ${resource}`;
+            });
+            if (text && inputParts.length > 0) text += ' | ';
+            text += inputParts.join(', ');
+
+            return text || 'No Recipe';
+        }
+
+        // Standard building display
+        let text = '';
         if (def.production && Object.keys(def.production).length > 0) {
             const parts = Object.entries(def.production).map(([resource, rate]) => {
                 const totalRate = rate * lvl;
@@ -127,8 +148,6 @@ class UpgradeManager {
             });
             text += parts.join(', ');
         }
-
-        // Show consumption
         if (def.consumption && Object.keys(def.consumption).length > 0) {
             const parts = Object.entries(def.consumption).map(([resource, rate]) => {
                 const totalRate = rate * lvl;
@@ -137,7 +156,6 @@ class UpgradeManager {
             if (text) text += ' | ';
             text += parts.join(', ');
         }
-
         return text || 'Idle';
     }
 
@@ -182,13 +200,12 @@ class UpgradeManager {
         // Spend resources
         this.game.resources.spend(cost);
 
-        // Increase level
-        this.currentNode.level++;
+        // Increase level (using encapsulated method)
+        this.currentNode.upgradeLevel();
 
         // Update UI
         this.game.sidebar.updateResources();
         this.updatePanelDisplay();
-        this.game.canvas.updateNodes();
 
         log(`Upgraded ${this.currentNode.buildingDef.name} to level ${this.currentNode.level}`);
     }
@@ -211,9 +228,12 @@ class UpgradeManager {
             this.game.canvas.deleteConnection(conn.id);
         });
 
-        // Update building count
+        // Update building count (immutable update)
         if (this.game.buildingCounts[buildingType] > 0) {
-            this.game.buildingCounts[buildingType]--;
+            this.game.buildingCounts = {
+                ...this.game.buildingCounts,
+                [buildingType]: this.game.buildingCounts[buildingType] - 1
+            };
         }
 
         // Update UI

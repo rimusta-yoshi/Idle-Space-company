@@ -8,8 +8,7 @@ class FactoryNode {
         this.buildingDef = getBuildingDef(buildingType);
 
         if (!this.buildingDef) {
-            console.error(`Building type ${buildingType} not found`);
-            return null;
+            throw new Error(`Building type ${buildingType} not found`);
         }
 
         this.x = x;
@@ -19,6 +18,7 @@ class FactoryNode {
         this.outputs = []; // Connected output node IDs
         this.stalled = false; // True if can't produce due to lack of inputs
         this.selected = false; // True if selected for connection mode
+        this.activeRecipe = null; // Active recipe for recipe-based buildings (resolved by game loop)
 
         // Konva shapes
         this.group = null; // Konva Group containing all shapes
@@ -108,25 +108,38 @@ class FactoryNode {
 
     getProductionText() {
         const def = this.buildingDef;
-        let text = '';
 
-        // Regular building display
-        // Show production
+        // Recipe-based building: use activeRecipe if available
+        if (def.usesRecipes) {
+            if (!this.activeRecipe) {
+                return 'No Recipe';
+            }
+            let text = '';
+            Object.entries(this.activeRecipe.outputs).forEach(([resource, rate]) => {
+                const totalRate = rate * this.level;
+                text += `+${formatRate(totalRate)} ${resource}\n`;
+            });
+            Object.entries(this.activeRecipe.inputs).forEach(([resource, rate]) => {
+                const totalRate = rate * this.level;
+                text += `-${formatRate(totalRate)} ${resource}\n`;
+            });
+            return text.trim() || 'No Recipe';
+        }
+
+        // Standard building display
+        let text = '';
         if (def.production && Object.keys(def.production).length > 0) {
             Object.entries(def.production).forEach(([resource, rate]) => {
                 const totalRate = rate * this.level;
                 text += `+${formatRate(totalRate)} ${resource}\n`;
             });
         }
-
-        // Show consumption
         if (def.consumption && Object.keys(def.consumption).length > 0) {
             Object.entries(def.consumption).forEach(([resource, rate]) => {
                 const totalRate = rate * this.level;
                 text += `-${formatRate(totalRate)} ${resource}\n`;
             });
         }
-
         return text.trim() || 'Idle';
     }
 
@@ -157,6 +170,12 @@ class FactoryNode {
     // Set selection state
     setSelected(selected) {
         this.selected = selected;
+        this.updateDisplay();
+    }
+
+    // Upgrade level (encapsulated mutation)
+    upgradeLevel() {
+        this.level++;
         this.updateDisplay();
     }
 
@@ -202,12 +221,12 @@ class FactoryNode {
         node.inputs = data.inputs || [];
         node.outputs = data.outputs || [];
 
-        // Debug: Verify node was created correctly
+        // Verify node was created correctly
         if (!node.buildingDef) {
-            console.error(`Failed to load buildingDef for ${data.buildingType}`);
-        } else {
-            log(`Loaded node: ${node.buildingDef.name} (${node.id}) at (${node.x}, ${node.y})`);
+            throw new Error(`Failed to load buildingDef for ${data.buildingType}`);
         }
+
+        log(`Loaded node: ${node.buildingDef.name} (${node.id}) at (${node.x}, ${node.y})`);
 
         return node;
     }

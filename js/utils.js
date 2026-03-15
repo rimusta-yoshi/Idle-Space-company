@@ -82,3 +82,21 @@ function validateWindowPosition(x, y, width, height) {
         height: validHeight
     };
 }
+
+// Show user notification (toast message)
+// type: 'error', 'success', 'info'
+function showUserNotification(message, type = 'error') {
+    const notification = document.createElement('div');
+    notification.className = `user-notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // Trigger animation after a small delay
+    setTimeout(() => notification.classList.add('visible'), 10);
+
+    // Auto-dismiss after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('visible');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
