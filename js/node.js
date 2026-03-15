@@ -47,7 +47,7 @@ class FactoryNode {
             width: def.width,
             height: def.height,
             fill: def.color,
-            stroke: '#00ff00',
+            stroke: '#d4a832',
             strokeWidth: 2,
             cornerRadius: 5
         });
@@ -59,7 +59,7 @@ class FactoryNode {
             text: def.name,
             fontSize: 14,
             fontFamily: 'Courier New',
-            fill: '#00ff00',
+            fill: '#d4a832',
             width: def.width - 20,
             align: 'center'
         });
@@ -71,7 +71,7 @@ class FactoryNode {
             text: this.getProductionText(),
             fontSize: 12,
             fontFamily: 'Courier New',
-            fill: '#ffff00',
+            fill: '#a07818',
             width: def.width - 20,
             align: 'center'
         });
@@ -84,14 +84,14 @@ class FactoryNode {
         // Add hover effects
         this.group.on('mouseenter', () => {
             if (!this.selected) {
-                this.rect.stroke('#ffff00');
+                this.rect.stroke('#e8c840');
                 this.rect.strokeWidth(3);
             }
         });
 
         this.group.on('mouseleave', () => {
             if (!this.selected) {
-                this.rect.stroke('#00ff00');
+                this.rect.stroke('#d4a832');
                 this.rect.strokeWidth(2);
             }
         });
@@ -150,19 +150,19 @@ class FactoryNode {
 
         // Update visual state based on stalled status
         if (this.stalled) {
-            this.rect.fill('#440000'); // Red tint when stalled
-            this.text.fill('#ff0000');
+            this.rect.fill('#1a0808'); // Dark red tint when stalled
+            this.text.fill('#cc3333');
         } else {
             this.rect.fill(this.buildingDef.color);
-            this.text.fill('#00ff00');
+            this.text.fill('#d4a832');
         }
 
         // Update stroke for selection state
         if (this.selected) {
-            this.rect.stroke('#00ffff'); // Cyan when selected
+            this.rect.stroke('#40c8a8'); // Teal when selected
             this.rect.strokeWidth(4);
         } else {
-            this.rect.stroke('#00ff00');
+            this.rect.stroke('#d4a832');
             this.rect.strokeWidth(2);
         }
     }

@@ -47,10 +47,10 @@ class Taskbar {
 
         // List of available apps
         const apps = [
-            { id: 'factory', name: 'Factory Manager', icon: '🏭' },
-            { id: 'warehouse', name: 'Warehouse', icon: '📦' },
-            { id: 'market', name: 'Space Market', icon: '🏪' },
-            { id: 'logout', name: 'Logout', icon: '🚪' }
+            { id: 'factory', name: 'OPERATIONS', icon: '🏭' },
+            { id: 'warehouse', name: 'INVENTORY', icon: '📦' },
+            { id: 'market', name: 'EXCHANGE', icon: '🏪' },
+            { id: 'logout', name: 'SYSTEM', icon: '⚙️' }
         ];
 
         // Create menu items
@@ -80,10 +80,12 @@ class Taskbar {
 
     updateClock() {
         const now = new Date();
+        const startOfYear = new Date(now.getFullYear(), 0, 0);
+        const dayOfYear = Math.floor((now - startOfYear) / 86400000);
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         if (this.clockElement) {
-            this.clockElement.textContent = `${hours}:${minutes}`;
+            this.clockElement.textContent = `CYCLE 8026.${String(dayOfYear).padStart(3, '0')} ${hours}:${minutes}`;
         }
     }
 

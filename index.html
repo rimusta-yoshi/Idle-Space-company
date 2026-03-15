@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Idle Space Company - Remote Worker Terminal</title>
+    <title>STRATUM GROUP // FRANCHISE OPERATIONS PORTAL</title>
 
     <!-- Base path for GitHub Pages - comment out for local development -->
    <!-- <base href="/Idle-Space-company/"> -->
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/crt-filter.css">
     <script src="https://unpkg.com/konva@9.3.14/konva.min.js"></script>
@@ -29,19 +32,19 @@
         <div id="desktop-background">
             <div class="desktop-icon" data-app="factory">
                 <div class="icon">🏭</div>
-                <div class="icon-label">Factory Manager</div>
+                <div class="icon-label">OPERATIONS</div>
             </div>
             <div class="desktop-icon" data-app="market">
                 <div class="icon">🏪</div>
-                <div class="icon-label">Space Market</div>
+                <div class="icon-label">EXCHANGE</div>
             </div>
             <div class="desktop-icon" data-app="warehouse">
                 <div class="icon">📦</div>
-                <div class="icon-label">Warehouse</div>
+                <div class="icon-label">INVENTORY</div>
             </div>
             <div class="desktop-icon" data-app="logout">
                 <div class="icon">⚙️</div>
-                <div class="icon-label">System</div>
+                <div class="icon-label">SYSTEM</div>
             </div>
         </div>
 
@@ -53,7 +56,7 @@
         <!-- Taskbar -->
         <div id="taskbar">
             <div class="taskbar-start">
-                <button id="start-button">⚙ START</button>
+                <button id="start-button">STRATUM</button>
             </div>
             <div class="taskbar-apps">
                 <!-- Running app icons -->
@@ -70,32 +73,32 @@
         <div class="notification-content">
             <div class="notification-header">
                 <span class="notification-icon">📨</span>
-                <span class="notification-title">Message from Mr. Business</span>
+                <span class="notification-title">STRATUM GROUP // AUTOMATED ONBOARDING SYSTEM</span>
             </div>
             <div class="notification-body">
-                <p>Hey there, space entrepreneur!</p>
-                <p>I've set up two new systems for you:</p>
+                <p>WELCOME, FRANCHISEE #[REDACTED].</p>
+                <p>Your Starter Operations Package has been provisioned. Two additional modules are now active on your workstation. Please review at your earliest convenience. Productivity metrics are being recorded.</p>
                 <div class="notification-apps">
                     <div class="notification-app-item">
                         <span class="notification-app-icon">🏪</span>
                         <div>
-                            <strong>SPACE MARKET</strong> - Your gateway to the galactic economy!<br>
-                            <span class="notification-app-desc">Open it to sell your resources for cold, hard credits.</span>
+                            <strong>STRATUM.EXCHANGE</strong> — APPROVED COMMODITY LIQUIDATION PORTAL<br>
+                            <span class="notification-app-desc">Offload surplus inventory to Stratum-approved buyers. All transactions subject to standard franchise royalty deduction. See Section 12.4 of your agreement.</span>
                         </div>
                     </div>
                     <div class="notification-app-item">
                         <span class="notification-app-icon">📦</span>
                         <div>
-                            <strong>WAREHOUSE</strong> - Your new storage management hub!<br>
-                            <span class="notification-app-desc">Track your inventory, production, and upgrade capacity.</span>
+                            <strong>INVENTORY CONTROL SYSTEM</strong> — STORAGE MANAGEMENT MODULE<br>
+                            <span class="notification-app-desc">Monitor resource levels, production throughput, and storage utilisation. Stratum is not liable for losses due to capacity overflow.</span>
                         </div>
                     </div>
                 </div>
-                <p>These tools will help you scale your operation!</p>
-                <p class="notification-signature">- Mr. Business</p>
+                <p>Failure to maintain minimum output targets may result in franchise review. Have a productive cycle.</p>
+                <p class="notification-signature">— STRATUM GROUP AUTOMATED ONBOARDING // DO NOT REPLY</p>
             </div>
             <div class="notification-footer">
-                <button id="notification-close-btn" class="btn">Got it!</button>
+                <button id="notification-close-btn" class="btn">ACKNOWLEDGE</button>
             </div>
         </div>
     </div>
@@ -135,8 +138,8 @@
 
             <!-- Header -->
             <header>
-                <h1>IDLE SPACE COMPANY</h1>
-                <p>Remote Worker Terminal - Facility Alpha-1</p>
+                <h1>STRATUM GROUP</h1>
+                <p>FRANCHISE OPERATIONS TERMINAL // SECTOR ALPHA-1</p>
             </header>
 
             <!-- Main 2-Panel Layout -->
@@ -210,7 +213,7 @@
                         <div class="zoom-indicator" id="zoom-indicator">Zoom: 100%</div>
                     </div>
                     <div class="canvas-info">
-                        <p>🖱️ Middle Mouse/Space+Drag: Pan | 🔍 Scroll: Zoom | Drag buildings to place | Click nodes: Connect | Double-click: Upgrade</p>
+                        <p>[ PAN: SPACE+DRAG | ZOOM: SCROLL | PLACE: DRAG FROM SIDEBAR | CONNECT: CLICK NODES | UPGRADE: DOUBLE-CLICK ]</p>
                     </div>
                 </main>
             </div>
@@ -244,7 +247,7 @@
 
             <!-- Footer -->
             <footer>
-                <p>System Status: ONLINE | Version 0.4.0 | Virtual OS Mode</p>
+                <p>STRATUM OS v8.3 // FRANCHISE EDITION // ALL ACTIVITIES MONITORED AND LOGGED</p>
             </footer>
         </div>
     </template>
@@ -254,15 +257,15 @@
         <div class="market-container">
             <!-- Browser-like navigation -->
             <div class="market-nav">
-                <button data-page="store" class="nav-btn active">🏪 Store</button>
-                <button data-page="about" class="nav-btn">ℹ️ About</button>
-                <div class="url-bar">galactic://market.space/store</div>
+                <button data-page="store" class="nav-btn active">LISTINGS</button>
+                <button data-page="about" class="nav-btn">INFO</button>
+                <div class="url-bar">stratum://exchange.corp/commodities</div>
             </div>
 
             <!-- Store page content -->
             <div class="market-content store-page">
-                <h2>GALACTIC RESOURCE EXCHANGE</h2>
-                <p class="market-subtitle">Sell your resources for credits</p>
+                <h2>STRATUM.EXCHANGE</h2>
+                <p class="market-subtitle">OFFLOAD SURPLUS INVENTORY // RATES SUBJECT TO ROYALTY DEDUCTION</p>
 
                 <div class="resource-listings">
                     <!-- TIER 1 - Raw Ores -->
@@ -414,17 +417,17 @@
             <div class="market-content about-page" style="display: none;">
                 <h2>ABOUT THE GALACTIC MARKET</h2>
                 <div class="about-content">
-                    <p>Welcome to the Galactic Resource Exchange!</p>
-                    <p>We are the premier marketplace for selling raw materials and refined goods across the galaxy.</p>
-                    <h3>Current Buy Prices:</h3>
+                    <p>STRATUM.EXCHANGE is the sole approved channel for franchisee commodity liquidation. Transactions outside this portal are in breach of your franchise agreement.</p>
+                    <p>All proceeds are subject to a standard royalty deduction per Section 12.4. Stratum Group reserves the right to adjust buy rates without notice.</p>
+                    <h3>CURRENT APPROVED BUY RATES:</h3>
                     <ul>
-                        <li><strong>Tier 1 - Raw Ores:</strong> Iron Ore 0.5 cr | Copper Ore 0.8 cr</li>
-                        <li><strong>Tier 2 - Bars:</strong> Iron Bar 2.0 cr | Copper Bar 3.0 cr</li>
-                        <li><strong>Tier 3 - Components:</strong> Steel Plate 10 cr | Wire 8 cr | Circuit 20 cr</li>
-                        <li><strong>Tier 4 - Products:</strong> Engine 80 cr | Computer 100 cr</li>
+                        <li><strong>TIER 1 — RAW EXTRACTION:</strong> Iron Ore 0.5 cr | Copper Ore 0.8 cr</li>
+                        <li><strong>TIER 2 — PROCESSED BARS:</strong> Iron Bar 2.0 cr | Copper Bar 3.0 cr</li>
+                        <li><strong>TIER 3 — COMPONENTS:</strong> Steel Plate 10 cr | Wire 8 cr | Circuit 20 cr</li>
+                        <li><strong>TIER 4 — ADVANCED GOODS:</strong> Engine 80 cr | Computer 100 cr</li>
                     </ul>
-                    <p class="disclaimer">Prices subject to change based on galactic market conditions.</p>
-                    <p class="future-notice">🚀 Coming Soon: Automatic selling with Space Hauler logistics!</p>
+                    <p class="disclaimer">Stratum Group is not responsible for market fluctuations, planetary instability, or existential dread.</p>
+                    <p class="future-notice">// LOGISTICS MODULE: PENDING ACTIVATION — SEE FRANCHISE TIER REQUIREMENTS</p>
                 </div>
             </div>
         </div>
@@ -435,7 +438,7 @@
         <div class="warehouse-container">
             <!-- Header with traffic lights -->
             <div class="warehouse-header">
-                <h2>STORAGE MANAGEMENT</h2>
+                <h2>INVENTORY CONTROL SYSTEM</h2>
                 <div class="status-lights">
                     <div class="status-light green"></div>
                     <div class="status-light yellow"></div>

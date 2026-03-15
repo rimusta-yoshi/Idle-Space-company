@@ -5,7 +5,7 @@ class MarketApp extends App {
     constructor() {
         super();
         this.id = 'market';
-        this.title = 'Space Market';
+        this.title = 'STRATUM.EXCHANGE';
         this.icon = '🏪';
         this.currentPage = 'store';
         this.resourceManager = null;

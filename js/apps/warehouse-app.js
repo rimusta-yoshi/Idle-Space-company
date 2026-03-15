@@ -5,7 +5,7 @@ class WarehouseApp extends App {
     constructor() {
         super();
         this.id = 'warehouse';
-        this.title = 'Warehouse';
+        this.title = 'INVENTORY MGMT';
         this.icon = '📦';
         this.resourceManager = null;
         this.capacityUpgrades = {

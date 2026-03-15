@@ -5,7 +5,7 @@ class FactoryApp extends App {
     constructor() {
         super();
         this.id = 'factory';
-        this.title = 'Factory Manager';
+        this.title = 'OPERATIONS CONSOLE';
         this.icon = '🏭';
         this.game = null; // Game instance
         this.resizeObserver = null;
