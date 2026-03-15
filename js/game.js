@@ -37,6 +37,12 @@ class Game {
             this.upgrades.openPanel(e.detail.node);
         });
 
+        // Listen for delete requests from node action bar
+        document.addEventListener('deleteNodeRequest', (e) => {
+            this.upgrades.currentNode = e.detail.node;
+            this.upgrades.deleteNode();
+        });
+
         // Initial UI update
         this.sidebar.updateResources();
         this.sidebar.updateBuildingPalette(this.buildingCounts);

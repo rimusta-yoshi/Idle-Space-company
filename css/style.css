@@ -197,6 +197,44 @@ header p {
     opacity: 0.8;
 }
 
+/* Node Action Bar */
+.node-action-bar {
+    position: absolute;
+    display: flex;
+    gap: 4px;
+    z-index: 100;
+    pointer-events: all;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.8));
+}
+
+.node-action-btn {
+    background-color: #131008;
+    border: 1px solid #d4a832;
+    color: #d4a832;
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 14px;
+    padding: 3px 8px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    transition: background-color 0.1s, color 0.1s;
+}
+
+.node-action-btn:hover {
+    background-color: #d4a832;
+    color: #07060a;
+}
+
+.node-action-btn--danger {
+    border-color: #cc3333;
+    color: #cc3333;
+}
+
+.node-action-btn--danger:hover {
+    background-color: #cc3333;
+    color: #07060a;
+}
+
 .canvas-info {
     background-color: #131008;
     border-top: 1px solid #a07818;

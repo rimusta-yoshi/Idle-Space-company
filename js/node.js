@@ -17,14 +17,16 @@ class FactoryNode {
         this.inputs = []; // Connected input node IDs
         this.outputs = []; // Connected output node IDs
         this.stalled = false; // True if can't produce due to lack of inputs
-        this.selected = false; // True if selected for connection mode
         this.activeRecipe = null; // Active recipe for recipe-based buildings (resolved by game loop)
+        this.isDraggingConnection = false; // True while a connection drag originates from this node
 
         // Konva shapes
         this.group = null; // Konva Group containing all shapes
         this.rect = null; // Background rectangle
         this.text = null; // Label text
         this.rateText = null; // Production rate text
+        this.outputPort = null; // Right-edge connection port
+        this.inputPort = null; // Left-edge connection port
 
         this.createKonvaShapes();
     }
@@ -39,6 +41,9 @@ class FactoryNode {
             draggable: true,
             id: this.id
         });
+
+        // Store reference back to this node on the Konva group
+        this.group.nodeRef = this;
 
         // Background rectangle
         this.rect = new Konva.Rect({
@@ -76,34 +81,67 @@ class FactoryNode {
             align: 'center'
         });
 
+        // Output port (right edge, centre height) — drag-from to create connections
+        this.outputPort = new Konva.Circle({
+            x: def.width,
+            y: def.height / 2,
+            radius: 7,
+            fill: '#07060a',
+            stroke: '#d4a832',
+            strokeWidth: 2,
+            visible: false,
+            listening: true
+        });
+
+        // Input port (left edge, centre height) — drop target
+        this.inputPort = new Konva.Circle({
+            x: 0,
+            y: def.height / 2,
+            radius: 7,
+            fill: '#07060a',
+            stroke: '#d4a832',
+            strokeWidth: 2,
+            visible: false,
+            listening: true
+        });
+
         // Add shapes to group
         this.group.add(this.rect);
         this.group.add(this.text);
         this.group.add(this.rateText);
+        this.group.add(this.outputPort);
+        this.group.add(this.inputPort);
 
-        // Add hover effects
+        // Show/hide ports on hover
         this.group.on('mouseenter', () => {
-            if (!this.selected) {
-                this.rect.stroke('#e8c840');
-                this.rect.strokeWidth(3);
-            }
+            this.showPorts();
         });
 
         this.group.on('mouseleave', () => {
-            if (!this.selected) {
-                this.rect.stroke('#d4a832');
-                this.rect.strokeWidth(2);
-            }
+            this.hidePorts();
         });
 
-        // Add drag event to update position
+        // Update position on drag
         this.group.on('dragmove', () => {
             this.x = this.group.x();
             this.y = this.group.y();
-            // Notify canvas to update connections
             const event = new CustomEvent('nodeDragged', { detail: { nodeId: this.id } });
             document.dispatchEvent(event);
         });
+    }
+
+    showPorts() {
+        this.outputPort.visible(true);
+        this.inputPort.visible(true);
+        this.group.getLayer()?.batchDraw();
+    }
+
+    hidePorts() {
+        // Don't hide if a connection drag is in progress from this node
+        if (this.isDraggingConnection) return;
+        this.outputPort.visible(false);
+        this.inputPort.visible(false);
+        this.group.getLayer()?.batchDraw();
     }
 
     getProductionText() {
@@ -157,20 +195,9 @@ class FactoryNode {
             this.text.fill('#d4a832');
         }
 
-        // Update stroke for selection state
-        if (this.selected) {
-            this.rect.stroke('#40c8a8'); // Teal when selected
-            this.rect.strokeWidth(4);
-        } else {
-            this.rect.stroke('#d4a832');
-            this.rect.strokeWidth(2);
-        }
-    }
-
-    // Set selection state
-    setSelected(selected) {
-        this.selected = selected;
-        this.updateDisplay();
+        // Default stroke
+        this.rect.stroke('#d4a832');
+        this.rect.strokeWidth(2);
     }
 
     // Upgrade level (encapsulated mutation)

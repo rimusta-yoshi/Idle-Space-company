@@ -9,7 +9,13 @@ class CanvasManager {
         this.layer = null;
         this.nodes = []; // Array of FactoryNode objects
         this.connections = []; // Array of Connection objects
-        this.selectedNode = null; // For connection mode
+
+        // Connection drag state
+        this.connectDrag = null; // { fromNode, line } while dragging
+
+        // Node action bar state
+        this.actionBarNode = null; // node whose action bar is currently shown
+        this._actionBar = null;    // HTML element
 
         // Canvas size (large virtual canvas)
         this.canvasWidth = 2000;
@@ -22,42 +28,42 @@ class CanvasManager {
         this.minScale = 0.3;
         this.maxScale = 2;
 
+        // Stored handler refs for cleanup (HIGH-1)
+        this._onResize = () => this.handleResize();
+        this._onKeyDown = null;
+        this._onKeyUp = null;
+        this._onWindowMouseUp = null;
+
         this.initialize();
     }
 
     initialize() {
-        // Use querySelector which works on both document and DOM elements
         const container = this.rootElement.querySelector(`#${this.containerId}`);
 
         if (!container) {
             throw new Error(`Container ${this.containerId} not found in rootElement`);
         }
 
-        // Get container size
         const width = container.clientWidth || 800;
         const height = container.clientHeight || 600;
 
-        // Create Konva stage - pass the actual DOM element, not the ID string
         try {
             this.stage = new Konva.Stage({
-                container: container,  // Pass the DOM element directly
+                container: container,
                 width: width,
                 height: height,
-                draggable: false // We'll handle dragging manually
+                draggable: false
             });
 
-            // Create background layer for grid
+            // Background layer for grid
             this.backgroundLayer = new Konva.Layer();
             this.stage.add(this.backgroundLayer);
-
-            // Draw grid
             this.drawGrid();
 
-            // Create main layer for nodes and connections
+            // Main layer for nodes and connections
             this.layer = new Konva.Layer();
             this.stage.add(this.layer);
 
-            // Center the view initially
             this.layer.position({ x: 0, y: 0 });
             this.layer.scale({ x: this.scale, y: this.scale });
             this.backgroundLayer.position({ x: 0, y: 0 });
@@ -68,74 +74,59 @@ class CanvasManager {
             throw new Error(`Failed to initialize Konva stage: ${error.message}`);
         }
 
-        // Handle window resize (only resize viewport, not scale)
-        window.addEventListener('resize', () => this.handleResize());
-
-        // Setup pan and zoom controls
+        window.addEventListener('resize', this._onResize);
+        this._createActionBar();
+        this._setupStageClickToDismiss();
         this.setupPanAndZoom();
-
-        // Setup event listeners for node interactions
         this.setupEventListeners();
     }
 
     handleResize() {
         const container = this.rootElement.querySelector(`#${this.containerId}`);
         if (container && this.stage) {
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-            this.stage.width(width);
-            this.stage.height(height);
+            this.stage.width(container.clientWidth);
+            this.stage.height(container.clientHeight);
             this.stage.batchDraw();
         }
     }
 
     drawGrid() {
-        const gridSize = 50; // Grid cell size
-        const gridColor = '#003300';
+        const gridSize = 50;
+        const gridColor = '#3c2c0c';
         const gridOpacity = 0.3;
 
-        // Draw vertical lines
         for (let x = 0; x <= this.canvasWidth; x += gridSize) {
-            const line = new Konva.Line({
+            this.backgroundLayer.add(new Konva.Line({
                 points: [x, 0, x, this.canvasHeight],
                 stroke: gridColor,
                 strokeWidth: 1,
                 opacity: gridOpacity
-            });
-            this.backgroundLayer.add(line);
+            }));
         }
 
-        // Draw horizontal lines
         for (let y = 0; y <= this.canvasHeight; y += gridSize) {
-            const line = new Konva.Line({
+            this.backgroundLayer.add(new Konva.Line({
                 points: [0, y, this.canvasWidth, y],
                 stroke: gridColor,
                 strokeWidth: 1,
                 opacity: gridOpacity
-            });
-            this.backgroundLayer.add(line);
+            }));
         }
 
-        // Draw origin marker
-        const originMarker = new Konva.Circle({
-            x: 0,
-            y: 0,
-            radius: 10,
-            fill: '#00ff00',
+        this.backgroundLayer.add(new Konva.Circle({
+            x: 0, y: 0, radius: 10,
+            fill: '#d4a832',
             opacity: 0.5
-        });
-        this.backgroundLayer.add(originMarker);
+        }));
 
-        const originText = new Konva.Text({
-            x: 15,
-            y: -5,
+        this.backgroundLayer.add(new Konva.Text({
+            x: 15, y: -5,
             text: '(0, 0)',
             fontSize: 12,
             fontFamily: 'Courier New',
-            fill: '#00ff00',
+            fill: '#d4a832',
             opacity: 0.7
-        });
-        this.backgroundLayer.add(originText);
+        }));
 
         this.backgroundLayer.draw();
     }
@@ -146,16 +137,19 @@ class CanvasManager {
         const container = this.stage.container();
         let spacePressed = false;
 
-        // Track spacebar state
-        window.addEventListener('keydown', (e) => {
+        this._onKeyDown = (e) => {
             if (e.code === 'Space' && !spacePressed) {
                 e.preventDefault();
                 spacePressed = true;
                 container.style.cursor = 'grab';
             }
-        });
+            if (e.code === 'Escape') {
+                this.cancelConnectionDrag();
+                this.hideActionBar();
+            }
+        };
 
-        window.addEventListener('keyup', (e) => {
+        this._onKeyUp = (e) => {
             if (e.code === 'Space') {
                 spacePressed = false;
                 container.style.cursor = 'default';
@@ -164,9 +158,11 @@ class CanvasManager {
                     container.style.cursor = 'default';
                 }
             }
-        });
+        };
 
-        // Pan with middle mouse or spacebar + drag
+        window.addEventListener('keydown', this._onKeyDown);
+        window.addEventListener('keyup', this._onKeyUp);
+
         this.stage.on('mousedown', (e) => {
             const isMiddleButton = e.evt.button === 1;
             const isSpacebarDrag = spacePressed && e.evt.button === 0;
@@ -174,69 +170,68 @@ class CanvasManager {
             if (isMiddleButton || isSpacebarDrag) {
                 e.evt.preventDefault();
                 this.isPanning = true;
-                this.lastPanPosition = {
-                    x: e.evt.clientX,
-                    y: e.evt.clientY
-                };
+                this.lastPanPosition = { x: e.evt.clientX, y: e.evt.clientY };
                 container.style.cursor = 'grabbing';
             }
         });
 
         this.stage.on('mousemove', (e) => {
+            // Update connection drag line if active
+            if (this.connectDrag) {
+                this.updateConnectionDrag(e);
+            }
+
             if (!this.isPanning) return;
+
+            // Keep action bar in sync while panning
+            if (this.actionBarNode) this._positionActionBar(this.actionBarNode);
 
             const dx = e.evt.clientX - this.lastPanPosition.x;
             const dy = e.evt.clientY - this.lastPanPosition.y;
-
             const currentPos = this.layer.position();
-            const newPos = {
-                x: currentPos.x + dx,
-                y: currentPos.y + dy
-            };
+            const newPos = { x: currentPos.x + dx, y: currentPos.y + dy };
+
             this.layer.position(newPos);
             this.backgroundLayer.position(newPos);
-
-            this.lastPanPosition = {
-                x: e.evt.clientX,
-                y: e.evt.clientY
-            };
-
+            this.lastPanPosition = { x: e.evt.clientX, y: e.evt.clientY };
             this.stage.batchDraw();
         });
 
-        this.stage.on('mouseup', () => {
+        this.stage.on('mouseup', (e) => {
             if (this.isPanning) {
                 this.isPanning = false;
                 container.style.cursor = spacePressed ? 'grab' : 'default';
             }
-        });
-
-        // Prevent context menu on middle mouse
-        container.addEventListener('contextmenu', (e) => {
-            if (e.button === 1) {
-                e.preventDefault();
+            if (this.connectDrag && e.evt.button === 0) {
+                this.finishConnectionDrag(e);
             }
         });
 
-        // Zoom with mouse wheel
+        // Safety net: cancel drag if mouse released outside the stage container
+        this._onWindowMouseUp = (e) => {
+            if (this.connectDrag && e.button === 0 && !container.contains(e.target)) {
+                this.cancelConnectionDrag();
+            }
+        };
+        window.addEventListener('mouseup', this._onWindowMouseUp);
+
+        container.addEventListener('contextmenu', (e) => {
+            if (e.button === 1) e.preventDefault();
+        });
+
         this.stage.on('wheel', (e) => {
             e.evt.preventDefault();
 
             const oldScale = this.scale;
             const pointer = this.stage.getPointerPosition();
-
             const mousePointTo = {
                 x: (pointer.x - this.layer.x()) / oldScale,
                 y: (pointer.y - this.layer.y()) / oldScale
             };
 
-            // Zoom factor
             const scaleBy = 1.1;
             const direction = e.evt.deltaY > 0 ? -1 : 1;
-
             this.scale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
-
-            // Clamp scale
             this.scale = Math.max(this.minScale, Math.min(this.maxScale, this.scale));
 
             const newPos = {
@@ -250,8 +245,8 @@ class CanvasManager {
             this.backgroundLayer.position(newPos);
             this.stage.batchDraw();
 
-            // Update zoom indicator
             this.updateZoomIndicator();
+            if (this.actionBarNode) this._positionActionBar(this.actionBarNode);
         });
 
         log('Pan and zoom controls initialized');
@@ -260,168 +255,234 @@ class CanvasManager {
     updateZoomIndicator() {
         const indicator = this.rootElement.querySelector('#zoom-indicator');
         if (indicator) {
-            const zoomPercent = Math.round(this.scale * 100);
-            indicator.textContent = `Zoom: ${zoomPercent}%`;
+            indicator.textContent = `Zoom: ${Math.round(this.scale * 100)}%`;
         }
     }
 
     setupEventListeners() {
-        // Listen for node drag events to update connections
-        document.addEventListener('nodeDragged', (e) => {
+        document.addEventListener('nodeDragged', () => {
             this.updateConnections();
+            if (this.actionBarNode) this._positionActionBar(this.actionBarNode);
             this.layer.draw();
         });
 
-        // Listen for connection deletion requests
         document.addEventListener('deleteConnection', (e) => {
             this.deleteConnection(e.detail.connectionId);
         });
     }
 
-    // Draw test shapes (for Phase 1 testing)
-    drawTestShapes() {
-        // Test rectangle
-        const rect = new Konva.Rect({
-            x: 100,
-            y: 100,
-            width: 150,
-            height: 80,
-            fill: '#004400',
-            stroke: '#00ff00',
-            strokeWidth: 2,
-            draggable: true
-        });
-
-        // Test text
-        const text = new Konva.Text({
-            x: 100,
-            y: 120,
-            text: 'Test Node',
-            fontSize: 16,
-            fontFamily: 'Courier New',
-            fill: '#00ff00',
-            width: 150,
-            align: 'center'
-        });
-
-        // Test line
-        const line = new Konva.Line({
-            points: [275, 140, 450, 200],
-            stroke: '#00ff00',
-            strokeWidth: 2,
-            lineCap: 'round',
-            lineJoin: 'round'
-        });
-
-        // Add arrow to line
-        const arrow = new Konva.Arrow({
-            points: [275, 140, 450, 200],
-            stroke: '#00ff00',
-            strokeWidth: 2,
-            fill: '#00ff00',
-            pointerLength: 10,
-            pointerWidth: 10
-        });
-
-        // Another test rectangle
-        const rect2 = new Konva.Rect({
-            x: 450,
-            y: 160,
-            width: 150,
-            height: 80,
-            fill: '#440000',
-            stroke: '#00ff00',
-            strokeWidth: 2,
-            draggable: true
-        });
-
-        const text2 = new Konva.Text({
-            x: 450,
-            y: 180,
-            text: 'Test Node 2',
-            fontSize: 16,
-            fontFamily: 'Courier New',
-            fill: '#00ff00',
-            width: 150,
-            align: 'center'
-        });
-
-        // Add to layer
-        this.layer.add(arrow);
-        this.layer.add(rect);
-        this.layer.add(text);
-        this.layer.add(rect2);
-        this.layer.add(text2);
-        this.layer.draw();
-
-        log('Test shapes drawn');
-    }
-
-    // Add factory node to canvas
-    // Convert screen coordinates to world coordinates (accounting for pan/zoom)
     screenToWorld(screenX, screenY) {
         const layerPos = this.layer.position();
-        const layerScale = this.layer.scaleX(); // Assuming uniform scale
+        const layerScale = this.layer.scaleX();
+        return {
+            x: (screenX - layerPos.x) / layerScale,
+            y: (screenY - layerPos.y) / layerScale
+        };
+    }
 
-        const worldX = (screenX - layerPos.x) / layerScale;
-        const worldY = (screenY - layerPos.y) / layerScale;
+    worldToScreen(worldX, worldY) {
+        const layerPos = this.layer.position();
+        const layerScale = this.layer.scaleX();
+        return {
+            x: worldX * layerScale + layerPos.x,
+            y: worldY * layerScale + layerPos.y
+        };
+    }
 
-        return { x: worldX, y: worldY };
+    // ── Node Action Bar ─────────────────────────────────────────────────────
+
+    _createActionBar() {
+        const bar = document.createElement('div');
+        bar.className = 'node-action-bar';
+        bar.style.display = 'none';
+        bar.innerHTML = `
+            <button class="node-action-btn" data-action="upgrade">UPGRADE</button>
+            <button class="node-action-btn" data-action="info">INFO</button>
+            <button class="node-action-btn node-action-btn--danger" data-action="delete">DELETE</button>
+        `;
+
+        bar.addEventListener('click', (e) => {
+            const action = e.target.dataset.action;
+            if (!action || !this.actionBarNode) return;
+            e.stopPropagation();
+
+            if (action === 'upgrade' || action === 'info') {
+                document.dispatchEvent(new CustomEvent('openUpgradePanel', {
+                    detail: { node: this.actionBarNode }
+                }));
+            } else if (action === 'delete') {
+                document.dispatchEvent(new CustomEvent('deleteNodeRequest', {
+                    detail: { node: this.actionBarNode }
+                }));
+                this.hideActionBar();
+            }
+        });
+
+        // Prevent bar clicks from bubbling to stage (which would re-hide it)
+        bar.addEventListener('mousedown', (e) => e.stopPropagation());
+
+        this.stage.container().appendChild(bar);
+        this._actionBar = bar;
+    }
+
+    showActionBar(node) {
+        this.actionBarNode = node;
+        this._positionActionBar(node);
+        this._actionBar.style.display = 'flex';
+    }
+
+    hideActionBar() {
+        this.actionBarNode = null;
+        if (this._actionBar) this._actionBar.style.display = 'none';
+    }
+
+    _positionActionBar(node) {
+        if (!this._actionBar || !node) return;
+        const def = node.buildingDef;
+        const screenPos = this.worldToScreen(node.x, node.y);
+        const nodeWidthScreen = def.width * this.scale;
+
+        this._actionBar.style.left = `${screenPos.x + nodeWidthScreen / 2}px`;
+        this._actionBar.style.top = `${screenPos.y - 6}px`;
+        this._actionBar.style.transform = 'translateX(-50%) translateY(-100%)';
+    }
+
+    destroy() {
+        window.removeEventListener('resize', this._onResize);
+        window.removeEventListener('keydown', this._onKeyDown);
+        window.removeEventListener('keyup', this._onKeyUp);
+        window.removeEventListener('mouseup', this._onWindowMouseUp);
+        if (this.stage) this.stage.destroy();
     }
 
     addNode(node) {
         node.addToLayer(this.layer);
-        this.nodes.push(node);
+        this.nodes = [...this.nodes, node];
 
-        // Setup click handler for connection mode
-        node.group.on('click', () => {
-            this.onNodeClick(node);
+        // Port mousedown — start a connection drag from output port
+        node.outputPort.on('mousedown', (e) => {
+            e.cancelBubble = true;
+            node.group.draggable(false);
+            this.startConnectionDrag(node);
         });
 
-        // Setup double-click handler for upgrade panel
-        node.group.on('dblclick', () => {
-            this.onNodeDoubleClick(node);
+        // Single click — show/toggle action bar
+        node.group.on('click', (e) => {
+            // Ignore clicks that ended a connection drag
+            if (this.connectDrag) return;
+            e.cancelBubble = true; // Don't bubble to stage (which hides bar)
+            if (this.actionBarNode === node) {
+                this.hideActionBar();
+            } else {
+                this.showActionBar(node);
+            }
         });
 
         this.layer.draw();
         log(`Node added: ${node.buildingDef.name} at (${node.x}, ${node.y})`);
     }
 
-    // Remove factory node
-    removeNode(nodeId) {
-        const index = this.nodes.findIndex(n => n.id === nodeId);
-        if (index !== -1) {
-            this.nodes[index].removeFromLayer();
-            this.nodes.splice(index, 1);
-            this.layer.draw();
-            log(`Node removed: ${nodeId}`);
-        }
-    }
-
-    // Get node by ID
-    getNode(nodeId) {
-        return this.nodes.find(n => n.id === nodeId);
-    }
-
-    // Update all nodes display
-    updateNodes() {
-        this.nodes.forEach(node => {
-            node.updateDisplay();
+    // Stage click on empty canvas → hide action bar
+    _setupStageClickToDismiss() {
+        this.stage.on('click', () => {
+            this.hideActionBar();
         });
+    }
+
+    // ── Connection drag system ──────────────────────────────────────────────
+
+    startConnectionDrag(fromNode) {
+        fromNode.isDraggingConnection = true;
+        fromNode.showPorts();
+
+        // Create a temporary guide line
+        const portWorldX = fromNode.x + fromNode.buildingDef.width;
+        const portWorldY = fromNode.y + fromNode.buildingDef.height / 2;
+
+        const line = new Konva.Line({
+            points: [portWorldX, portWorldY, portWorldX, portWorldY],
+            stroke: '#d4a832',
+            strokeWidth: 2,
+            dash: [8, 4],
+            listening: false
+        });
+
+        this.layer.add(line);
+        this.layer.draw();
+
+        this.connectDrag = { fromNode, line };
+        log(`Connection drag started from ${fromNode.buildingDef.name}`);
+    }
+
+    updateConnectionDrag(e) {
+        if (!this.connectDrag) return;
+
+        const { fromNode, line } = this.connectDrag;
+        const portWorldX = fromNode.x + fromNode.buildingDef.width;
+        const portWorldY = fromNode.y + fromNode.buildingDef.height / 2;
+
+        const pointer = this.stage.getPointerPosition();
+        const worldPos = this.screenToWorld(pointer.x, pointer.y);
+
+        line.points([portWorldX, portWorldY, worldPos.x, worldPos.y]);
+        this.layer.batchDraw();
+    }
+
+    finishConnectionDrag(e) {
+        if (!this.connectDrag) return;
+
+        const { fromNode } = this.connectDrag;
+
+        // Find what Konva shape is under the pointer
+        const pointer = this.stage.getPointerPosition();
+        const shape = this.layer.getIntersection(pointer);
+
+        if (shape) {
+            // Walk up to find the group with a nodeRef
+            let target = shape;
+            let toNode = null;
+
+            while (target) {
+                if (target.nodeRef) {
+                    toNode = target.nodeRef;
+                    break;
+                }
+                target = target.getParent ? target.getParent() : null;
+            }
+
+            if (toNode && toNode !== fromNode) {
+                this.tryCreateConnection(fromNode, toNode);
+            }
+        }
+
+        this.cleanupConnectionDrag();
+    }
+
+    cancelConnectionDrag() {
+        if (!this.connectDrag) return;
+        this.cleanupConnectionDrag();
+    }
+
+    cleanupConnectionDrag() {
+        if (!this.connectDrag) return;
+
+        const { fromNode, line } = this.connectDrag;
+        line.destroy();
+        fromNode.isDraggingConnection = false;
+        fromNode.group.draggable(true);
+        fromNode.hidePorts();
+        this.connectDrag = null;
         this.layer.draw();
     }
 
-    // Connection Management
+    // ── Connection management ───────────────────────────────────────────────
 
-    // Try to create connection from selected node to target node
     tryCreateConnection(fromNode, toNode) {
-        // Validation
         if (fromNode === toNode) {
             log('Cannot connect node to itself');
             return false;
         }
 
-        // Check if connection already exists
         const existing = this.connections.find(c =>
             c.fromNode === fromNode && c.toNode === toNode
         );
@@ -430,39 +491,33 @@ class CanvasManager {
             return false;
         }
 
-        // Check if nodes are compatible (validation logic)
         if (!this.areNodesCompatible(fromNode, toNode)) {
             log(`Cannot connect ${fromNode.buildingDef.name} to ${toNode.buildingDef.name}`);
             return false;
         }
 
-        // Determine resource type flowing through connection
         const resourceType = this.getConnectionResourceType(fromNode, toNode);
         if (!resourceType) {
             log('No compatible resource found between nodes');
             return false;
         }
 
-        // Create connection
         const connection = new Connection(fromNode, toNode, resourceType);
-        this.connections.push(connection);
+        this.connections = [...this.connections, connection];
         connection.addToLayer(this.layer);
 
-        // Update node connections
-        fromNode.outputs.push(toNode.id);
-        toNode.inputs.push(fromNode.id);
+        fromNode.outputs = [...fromNode.outputs, toNode.id];
+        toNode.inputs = [...toNode.inputs, fromNode.id];
 
         this.layer.draw();
         log(`Connected ${fromNode.buildingDef.name} -> ${toNode.buildingDef.name} (${resourceType})`);
         return true;
     }
 
-    // Check if two nodes can be connected
     areNodesCompatible(fromNode, toNode) {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
 
-        // Determine what the FROM node can produce
         let producedResources;
         if (fromDef.usesRecipes) {
             producedResources = getAllRecipeOutputs(fromDef.id);
@@ -473,39 +528,26 @@ class CanvasManager {
             producedResources = Object.keys(fromDef.production);
         }
 
-        if (producedResources.length === 0) {
-            return false;
-        }
+        if (producedResources.length === 0) return false;
 
-        // CASE 1: To node is recipe-based
         if (toDef.usesRecipes) {
             const recipes = getRecipesForBuilding(toDef.id);
-
-            if (!recipes || recipes.length === 0) {
-                return false;
-            }
-
-            return recipes.some(recipe => {
-                const recipeInputs = Object.keys(recipe.inputs);
-                return producedResources.some(type => recipeInputs.includes(type));
-            });
+            if (!recipes || recipes.length === 0) return false;
+            return recipes.some(recipe =>
+                producedResources.some(type => Object.keys(recipe.inputs).includes(type))
+            );
         }
 
-        // CASE 2: To node is standard building
-        if (!toDef.consumption || Object.keys(toDef.consumption).length === 0) {
-            return false;
-        }
+        if (!toDef.consumption || Object.keys(toDef.consumption).length === 0) return false;
 
         const consumedResources = Object.keys(toDef.consumption);
         return producedResources.some(r => consumedResources.includes(r));
     }
 
-    // Get the resource type that flows through this connection
     getConnectionResourceType(fromNode, toNode) {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
 
-        // Determine what the FROM node can produce
         let producedResources;
         if (fromDef.usesRecipes) {
             producedResources = getAllRecipeOutputs(fromDef.id);
@@ -513,88 +555,68 @@ class CanvasManager {
             producedResources = Object.keys(fromDef.production || {});
         }
 
-        // CASE 1: To node is recipe-based
         if (toDef.usesRecipes) {
             const recipes = getRecipesForBuilding(toDef.id);
-
             for (const recipe of recipes) {
-                const recipeInputs = Object.keys(recipe.inputs);
                 for (const producedType of producedResources) {
-                    if (recipeInputs.includes(producedType)) {
+                    if (Object.keys(recipe.inputs).includes(producedType)) {
                         return producedType;
                     }
                 }
             }
-
             return null;
         }
 
-        // CASE 2: To node is standard building
         const consumedResources = Object.keys(toDef.consumption || {});
         return producedResources.find(r => consumedResources.includes(r)) || null;
     }
 
-    // Delete connection by ID
     deleteConnection(connectionId) {
-        const index = this.connections.findIndex(c => c.id === connectionId);
-        if (index !== -1) {
-            const connection = this.connections[index];
+        const connection = this.connections.find(c => c.id === connectionId);
+        if (connection) {
+            const { fromNode, toNode } = connection;
 
-            // Update nodes
-            const fromNode = connection.fromNode;
-            const toNode = connection.toNode;
             fromNode.outputs = fromNode.outputs.filter(id => id !== toNode.id);
             toNode.inputs = toNode.inputs.filter(id => id !== fromNode.id);
 
-            // Remove from layer
             connection.removeFromLayer();
-            this.connections.splice(index, 1);
+            this.connections = this.connections.filter(c => c.id !== connectionId);
             this.layer.draw();
             log(`Connection deleted: ${connectionId}`);
         }
     }
 
-    // Update all connection positions (call when nodes are dragged)
     updateConnections() {
-        this.connections.forEach(connection => {
-            connection.updatePosition();
-        });
+        this.connections.forEach(connection => connection.updatePosition());
     }
 
-    // Handle node click for connection mode
-    onNodeClick(node) {
-        if (this.selectedNode === null) {
-            // First click - select source node
-            this.selectedNode = node;
-            node.setSelected(true);
-            this.layer.draw();
-            log(`Selected ${node.buildingDef.name} as connection source`);
-        } else {
-            // Second click - try to create connection
-            this.tryCreateConnection(this.selectedNode, node);
+    // ── Node management ─────────────────────────────────────────────────────
 
-            // Deselect source node
-            this.selectedNode.setSelected(false);
-            this.selectedNode = null;
+    removeNode(nodeId) {
+        // Clean up all connections involving this node first (HIGH-3)
+        const orphaned = this.connections.filter(
+            c => c.fromNode.id === nodeId || c.toNode.id === nodeId
+        );
+        orphaned.forEach(c => this.deleteConnection(c.id));
+
+        const node = this.nodes.find(n => n.id === nodeId);
+        if (node) {
+            node.removeFromLayer();
+            this.nodes = this.nodes.filter(n => n.id !== nodeId);
             this.layer.draw();
+            log(`Node removed: ${nodeId}`);
         }
     }
 
-    // Handle node double-click for upgrade panel
-    onNodeDoubleClick(node) {
-        // Deselect any selected node first
-        if (this.selectedNode) {
-            this.selectedNode.setSelected(false);
-            this.selectedNode = null;
-            this.layer.draw();
-        }
-
-        // Dispatch event for upgrade panel
-        const event = new CustomEvent('openUpgradePanel', { detail: { node: node } });
-        document.dispatchEvent(event);
+    getNode(nodeId) {
+        return this.nodes.find(n => n.id === nodeId);
     }
 
-    // Clear canvas
+    updateNodes() {
+        this.nodes.forEach(node => node.updateDisplay());
+        this.layer.draw();
+    }
+
     clear() {
         this.nodes.forEach(node => node.removeFromLayer());
         this.nodes = [];
@@ -604,7 +626,8 @@ class CanvasManager {
         log('Canvas cleared');
     }
 
-    // Get save data
+    // ── Persistence ──────────────────────────────────────────────────────────
+
     getSaveData() {
         return {
             nodes: this.nodes.map(node => node.getSaveData()),
@@ -612,11 +635,9 @@ class CanvasManager {
         };
     }
 
-    // Load save data
     loadSaveData(data) {
         this.clear();
 
-        // Load nodes first
         if (data.nodes) {
             data.nodes.forEach(nodeData => {
                 const node = FactoryNode.loadFromSaveData(nodeData);
@@ -624,12 +645,11 @@ class CanvasManager {
             });
         }
 
-        // Load connections after nodes are loaded
         if (data.connections) {
             data.connections.forEach(connData => {
                 const connection = Connection.loadFromSaveData(connData, this.nodes);
                 if (connection) {
-                    this.connections.push(connection);
+                    this.connections = [...this.connections, connection];
                     connection.addToLayer(this.layer);
                 }
             });
