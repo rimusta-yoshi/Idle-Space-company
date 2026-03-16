@@ -73,6 +73,27 @@ class SidebarManager {
         return card;
     }
 
+    // Build a single generic card for buildings like Export Terminal
+    // that accept any connected resource (no per-recipe split needed in palette)
+    _makeSingleCard(building) {
+        const card = document.createElement('div');
+        card.className = 'palette-card';
+        card.draggable = true;
+        card.setAttribute('data-building', building.id);
+        card.setAttribute('data-search-name', building.name.toUpperCase());
+
+        card.innerHTML = `
+            <div class="palette-card-header">
+                <span class="palette-card-name">→ ${building.icon} ${building.name.toUpperCase()}</span>
+                <span class="palette-card-rate">AUTO</span>
+            </div>
+            <div class="palette-card-inputs">
+                <div class="palette-input-row">connects any resource</div>
+            </div>`;
+
+        return card;
+    }
+
     populateBuildingPalette() {
         const container = this.rootElement.querySelector('#building-list');
         if (!container) return;
@@ -82,7 +103,9 @@ class SidebarManager {
         Object.values(BUILDINGS).forEach(building => {
             if (!building.unlocked) return;
 
-            if (building.usesRecipes) {
+            if (building.singlePaletteCard) {
+                container.appendChild(this._makeSingleCard(building));
+            } else if (building.usesRecipes) {
                 const recipes = getRecipesForBuilding(building.id);
                 recipes.forEach(recipe => {
                     container.appendChild(this._makeRecipeCard(building, recipe));
@@ -150,7 +173,9 @@ class SidebarManager {
             const card = e.target.closest('.palette-card');
             if (!card) return;
             const buildingType = card.getAttribute('data-building');
+            const recipeId = card.getAttribute('data-recipe') || '';
             e.dataTransfer.setData('buildingType', buildingType);
+            e.dataTransfer.setData('recipeId', recipeId);
             e.dataTransfer.effectAllowed = 'copy';
         });
 
@@ -164,12 +189,13 @@ class SidebarManager {
             const buildingType = e.dataTransfer.getData('buildingType');
             if (!buildingType) return;
 
+            const recipeId = e.dataTransfer.getData('recipeId') || null;
             const rect = canvasContainer.getBoundingClientRect();
             const screenX = e.clientX - rect.left;
             const screenY = e.clientY - rect.top;
 
             if (onBuildingDropped) {
-                onBuildingDropped(buildingType, screenX, screenY);
+                onBuildingDropped(buildingType, screenX, screenY, recipeId);
             }
         });
     }

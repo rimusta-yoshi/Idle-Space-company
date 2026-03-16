@@ -518,9 +518,12 @@ class CanvasManager {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
 
+        // Use actual active recipe outputs if known, otherwise all possible outputs
         let producedResources;
         if (fromDef.usesRecipes) {
-            producedResources = getAllRecipeOutputs(fromDef.id);
+            producedResources = fromNode.activeRecipe
+                ? Object.keys(fromNode.activeRecipe.outputs)
+                : getAllRecipeOutputs(fromDef.id);
         } else {
             if (!fromDef.production || Object.keys(fromDef.production).length === 0) {
                 return false;
@@ -548,9 +551,12 @@ class CanvasManager {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
 
+        // Use actual active recipe outputs if known, otherwise all possible outputs
         let producedResources;
         if (fromDef.usesRecipes) {
-            producedResources = getAllRecipeOutputs(fromDef.id);
+            producedResources = fromNode.activeRecipe
+                ? Object.keys(fromNode.activeRecipe.outputs)
+                : getAllRecipeOutputs(fromDef.id);
         } else {
             producedResources = Object.keys(fromDef.production || {});
         }

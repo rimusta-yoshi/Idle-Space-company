@@ -232,7 +232,7 @@ class Game {
     }
 
     // Handle building dropped on canvas
-    onBuildingDropped(buildingType, screenX, screenY) {
+    onBuildingDropped(buildingType, screenX, screenY, recipeId) {
         const count = this.buildingCounts[buildingType] || 0;
         const cost = calculateBuildingCost(buildingType, count);
 
@@ -254,6 +254,17 @@ class Game {
 
         // Create and place node at world coordinates
         const node = new FactoryNode(buildingType, worldPos.x, worldPos.y);
+
+        // Pre-set hint recipe for immediate display (game loop will override from connections)
+        if (recipeId) {
+            const recipes = getRecipesForBuilding(buildingType);
+            const hint = recipes.find(r => r.id === recipeId);
+            if (hint) {
+                node.hintRecipe = hint;
+                node.updateDisplay();
+            }
+        }
+
         this.canvas.addNode(node);
 
         // Update count (immutable update)

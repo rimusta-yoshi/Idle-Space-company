@@ -27,7 +27,8 @@ class FactoryNode {
         this.inputs = [];
         this.outputs = [];
         this.stalled = false;
-        this.activeRecipe = null;
+        this.activeRecipe = null;   // Set by game loop from connections
+        this.hintRecipe = null;     // Set at placement time for display-only preview
         this.isDraggingConnection = false;
 
         // Konva shapes
@@ -49,8 +50,9 @@ class FactoryNode {
         const def = this.buildingDef;
 
         if (def.usesRecipes) {
-            if (this.activeRecipe) {
-                const [resKey, rate] = Object.entries(this.activeRecipe.outputs)[0];
+            const recipe = this.activeRecipe || this.hintRecipe;
+            if (recipe) {
+                const [resKey, rate] = Object.entries(recipe.outputs)[0];
                 const resDef = RESOURCES[resKey];
                 return {
                     icon: resDef?.icon || '',
@@ -80,7 +82,8 @@ class FactoryNode {
         let inputRows;
 
         if (def.usesRecipes) {
-            inputRows = this.activeRecipe ? Object.keys(this.activeRecipe.inputs).length : 1;
+            const recipe = this.activeRecipe || this.hintRecipe;
+            inputRows = recipe ? Object.keys(recipe.inputs).length : 1;
         } else {
             inputRows = Object.keys(def.consumption || {}).length;
         }
@@ -223,8 +226,9 @@ class FactoryNode {
         };
 
         if (def.usesRecipes) {
-            if (this.activeRecipe) {
-                Object.entries(this.activeRecipe.inputs).forEach(([res, rate]) => addInputRow(res, rate));
+            const recipe = this.activeRecipe || this.hintRecipe;
+            if (recipe) {
+                Object.entries(recipe.inputs).forEach(([res, rate]) => addInputRow(res, rate));
             } else {
                 hasInputRows = true;
                 const placeholder = new Konva.Text({

@@ -120,7 +120,8 @@ const BUILDINGS = {
         color: '#141008',
         icon: '📦',
         unlocked: true,
-        usesRecipes: true
+        usesRecipes: true,
+        singlePaletteCard: true  // Shows one card in palette, not one per recipe
     }
 };
 
