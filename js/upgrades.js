@@ -169,13 +169,11 @@ class UpgradeManager {
             return null;
         }
 
-        // Upgrade cost scales with level
-        // Base cost * (level ^ 1.5)
         const baseCost = def.baseCost;
         const upgradeCost = {};
 
         Object.entries(baseCost).forEach(([resource, amount]) => {
-            upgradeCost[resource] = Math.floor(amount * Math.pow(currentLevel, 1.5));
+            upgradeCost[resource] = Math.floor(amount * Math.pow(currentLevel, UPGRADE_COST_EXPONENT));
         });
 
         return upgradeCost;

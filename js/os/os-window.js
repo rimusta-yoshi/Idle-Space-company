@@ -179,6 +179,15 @@ class OSWindow {
         this.manager.focusWindow(this);
     }
 
+    minimize() {
+        this.element.style.display = 'none';
+    }
+
+    restore() {
+        this.element.style.display = '';
+        this.focus();
+    }
+
     close() {
         this.app.close();
         this.manager.closeWindow(this);

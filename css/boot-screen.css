@@ -1,5 +1,15 @@
 /* Boot Screen Styling */
-/* Terminal aesthetic with dark background and green text */
+/* STRATUM GROUP // FRANCHISE WORKSTATION OS // BUILD 8006 */
+
+/* ─── Palette ──────────────────────────────────────────────────────────────
+   Background:   #0e0c09  warm near-black
+   Amber:        #c49a2a  tired phosphor — primary accent
+   Amber dim:    #8a6b1a  darker amber for secondary elements
+   Cream:        #e8d5b0  yellowed corporate standard — main text
+   Cream dim:    #9a8b72  muted cream for secondary text
+   Teal:         #4a8b8b  desaturated corporate teal — stratum brand secondary
+   Teal dim:     #2e5a5a  dark teal
+   ───────────────────────────────────────────────────────────────────────── */
 
 #boot-screen {
     position: fixed;
@@ -7,180 +17,334 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #000000 0%, #001a00 100%);
+    background: #0e0c09;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 10000;
+    overflow: hidden;
+}
+
+/* Scanline overlay */
+#boot-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.18) 2px,
+        rgba(0, 0, 0, 0.18) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Subtle vignette */
+#boot-screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+    pointer-events: none;
+    z-index: 1;
 }
 
 .boot-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 640px;
+    max-width: 90vw;
+    font-family: 'VT323', 'Courier New', monospace;
+    color: #e8d5b0;
+}
+
+/* ─── Header / Logo ──────────────────────────────────────────────────────── */
+
+.boot-header {
     text-align: center;
-    color: #00ff00;
-    font-family: 'Courier New', monospace;
-    max-width: 600px;
-    padding: 40px;
+    width: 100%;
+    margin-bottom: 24px;
 }
 
-.boot-logo {
-    font-size: 120px;
+.boot-wordmark {
+    font-size: 72px;
+    line-height: 0.9;
+    letter-spacing: 18px;
+    color: #c49a2a;
+    text-shadow:
+        0 0 20px rgba(196, 154, 42, 0.6),
+        0 0 40px rgba(196, 154, 42, 0.2);
+    margin-bottom: 2px;
+}
+
+.boot-wordmark-sub {
+    font-size: 22px;
+    letter-spacing: 14px;
+    color: #8a6b1a;
+    margin-bottom: 14px;
+}
+
+.boot-divider-line {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #c49a2a 20%, #c49a2a 80%, transparent);
+    margin-bottom: 10px;
+    opacity: 0.6;
+}
+
+.boot-os-info {
+    font-size: 13px;
+    color: #4a8b8b;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.boot-cycle-info {
+    font-size: 12px;
+    color: #2e5a5a;
+    letter-spacing: 1px;
+}
+
+/* ─── Boot Log ───────────────────────────────────────────────────────────── */
+
+.boot-log-container {
+    width: 100%;
+    height: 168px;
+    overflow: hidden;
     margin-bottom: 20px;
-    animation: pulse 2s infinite ease-in-out;
+    border-left: 1px solid #2a2218;
+    padding-left: 10px;
 }
 
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.1);
-        opacity: 0.8;
-    }
+.boot-log {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
 }
 
-.boot-content h1 {
-    font-size: 48px;
-    margin: 0;
-    text-shadow: 0 0 10px #00ff00;
-    letter-spacing: 4px;
+.boot-log::-webkit-scrollbar {
+    display: none;
 }
 
-.boot-subtitle {
-    font-size: 18px;
-    color: #00aa00;
-    margin-top: 10px;
-    margin-bottom: 40px;
+.boot-log-line {
+    display: flex;
+    align-items: baseline;
+    font-size: 15px;
+    line-height: 1.3;
+    animation: logFadeIn 0.15s ease-out both;
 }
 
-.boot-loading {
-    margin-top: 40px;
-    margin-bottom: 40px;
+@keyframes logFadeIn {
+    from { opacity: 0; transform: translateX(-4px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.log-status {
+    color: #c49a2a;
+    flex-shrink: 0;
+    letter-spacing: 1px;
+}
+
+.boot-log-wait .log-status {
+    color: #4a8b8b;
+    animation: logBlink 0.6s step-end infinite;
+}
+
+@keyframes logBlink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+}
+
+.boot-log-warn .log-status {
+    color: #c47a2a;
+}
+
+.boot-log-info .log-status {
+    color: #2e5a5a;
+}
+
+.log-msg {
+    color: #9a8b72;
+    letter-spacing: 0.5px;
+}
+
+/* ─── Progress ───────────────────────────────────────────────────────────── */
+
+.boot-progress-section {
+    width: 100%;
+    margin-bottom: 16px;
 }
 
 .loading-bar {
-    width: 400px;
-    height: 30px;
-    border: 2px solid #00ff00;
-    background: #000000;
-    margin: 0 auto;
+    width: 100%;
+    height: 6px;
+    background: #1a1610;
+    border: 1px solid #3a2e18;
     position: relative;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    overflow: hidden;
 }
 
 .loading-progress {
     height: 100%;
-    background: #00ff00;
+    background: linear-gradient(to right, #8a6b1a, #c49a2a);
     width: 0%;
-    transition: width 0.3s ease;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    transition: width 0.25s ease-out;
+    box-shadow: 0 0 8px rgba(196, 154, 42, 0.6);
+    position: relative;
 }
 
-.loading-text {
-    margin-top: 15px;
+/* Shimmer on progress bar */
+.loading-progress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px;
+    height: 100%;
+    background: rgba(255, 220, 120, 0.4);
+    filter: blur(4px);
+}
+
+.loading-bar-label {
+    display: none; /* reserved for future use */
+}
+
+.boot-status {
     font-size: 14px;
-    color: #00aa00;
+    color: #4a8b8b;
+    letter-spacing: 1px;
+    margin-top: 10px;
+    text-align: center;
     min-height: 20px;
+    transition: color 0.3s;
 }
 
-/* Boot button styles removed - auto-load now */
+.boot-status-complete {
+    color: #c49a2a !important;
+    text-shadow: 0 0 10px rgba(196, 154, 42, 0.4);
+}
 
-/* Logout App Styling */
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+
+.boot-footer {
+    font-size: 11px;
+    color: #2e2820;
+    letter-spacing: 0.5px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOGOUT / SYSTEM APP STYLING
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .logout-container {
     padding: 20px;
-    color: #00ff00;
-    font-family: 'Courier New', monospace;
-    background: #000000;
+    color: #e8d5b0;
+    font-family: 'VT323', 'Courier New', monospace;
+    background: #0e0c09;
     min-height: 100%;
 }
 
 .logout-header {
-    border-bottom: 2px solid #00ff00;
+    border-bottom: 1px solid #3a2e18;
     padding-bottom: 10px;
     margin-bottom: 20px;
 }
 
 .logout-header h2 {
     margin: 0;
-    color: #00ff00;
+    color: #c49a2a;
     font-size: 24px;
-    text-shadow: 0 0 5px #00ff00;
+    letter-spacing: 3px;
+    text-shadow: 0 0 8px rgba(196, 154, 42, 0.3);
 }
 
 .logout-content {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 20px;
 }
 
 .system-info {
-    background: rgba(0, 255, 0, 0.1);
-    padding: 20px;
-    border: 1px solid #00ff00;
-    border-radius: 4px;
+    background: rgba(196, 154, 42, 0.05);
+    padding: 16px;
+    border: 1px solid #3a2e18;
 }
 
 .system-info p {
-    margin: 10px 0;
+    margin: 8px 0;
     font-size: 16px;
+    color: #9a8b72;
 }
 
 .system-info strong {
-    color: #00ff00;
+    color: #c49a2a;
 }
 
 .status-online {
-    color: #00ff00;
+    color: #4a8b8b;
     font-weight: bold;
 }
 
 .system-actions {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 .system-actions .btn {
-    padding: 15px 30px;
-    font-size: 18px;
-    font-family: 'Courier New', monospace;
-    border: 2px solid;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-family: 'VT323', 'Courier New', monospace;
+    letter-spacing: 2px;
+    border: 1px solid;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
+    background: transparent;
 }
 
 .system-actions .btn-primary {
-    background: #00ff00;
-    color: #000000;
-    border-color: #00ff00;
+    color: #c49a2a;
+    border-color: #8a6b1a;
 }
 
 .system-actions .btn-primary:hover {
-    background: #00cc00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+    background: rgba(196, 154, 42, 0.12);
+    border-color: #c49a2a;
+    box-shadow: 0 0 8px rgba(196, 154, 42, 0.2);
 }
 
 .system-actions .btn-warning {
-    background: #ff6600;
-    color: #000000;
-    border-color: #ff6600;
+    color: #c47a2a;
+    border-color: #7a4a18;
 }
 
 .system-actions .btn-warning:hover {
-    background: #ff4400;
-    box-shadow: 0 0 10px rgba(255, 102, 0, 0.6);
+    background: rgba(196, 122, 42, 0.12);
+    border-color: #c47a2a;
+    box-shadow: 0 0 8px rgba(196, 122, 42, 0.2);
 }
 
 .system-info-text {
-    background: rgba(0, 255, 0, 0.05);
-    padding: 15px;
-    border: 1px solid #00ff00;
-    border-radius: 4px;
+    background: rgba(196, 154, 42, 0.03);
+    padding: 12px;
+    border: 1px solid #2a2218;
 }
 
 .system-info-text p {
     margin: 0;
-    color: #00ff00;
-    font-size: 14px;
+    color: #4a4030;
+    font-size: 13px;
     text-align: center;
+    letter-spacing: 0.5px;
 }

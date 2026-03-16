@@ -43,11 +43,13 @@ class WindowManager {
         // Unfocus all
         this.windows.forEach(w => {
             w.element.style.zIndex = w.focused ? this.nextZ - 1 : 100;
+            w.element.classList.remove('focused');
             w.focused = false;
         });
 
         // Focus target
         window.element.style.zIndex = this.nextZ++;
+        window.element.classList.add('focused');
         window.focused = true;
     }
 

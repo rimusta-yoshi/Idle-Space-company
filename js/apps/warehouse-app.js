@@ -5,8 +5,8 @@ class WarehouseApp extends App {
     constructor() {
         super();
         this.id = 'warehouse';
-        this.title = 'INVENTORY MGMT';
-        this.icon = '📦';
+        this.title = 'INVENTORY CONTROL SYSTEM';
+        this.icon = 'WH';
         this.resourceManager = null;
         this.capacityUpgrades = {
             // Tier 1
@@ -46,15 +46,12 @@ class WarehouseApp extends App {
             throw new Error('Warehouse: Game instance not available');
         }
 
-        log('Warehouse: Game instance connected');
-
         // Apply capacity upgrades from loaded save data
         if (this.capacityUpgrades && Object.keys(this.capacityUpgrades).length > 0) {
             Object.entries(this.capacityUpgrades).forEach(([type, level]) => {
                 if (!RESOURCES[type] || level === 0) return;
-                const increaseAmount = 1000 * level;
                 const initialCapacity = RESOURCES[type].initialCapacity;
-                this.resourceManager.setCapacity(type, initialCapacity + increaseAmount);
+                this.resourceManager.setCapacity(type, initialCapacity + CAPACITY_UPGRADE_AMOUNT * level);
             });
         }
 
@@ -71,11 +68,22 @@ class WarehouseApp extends App {
         }, 500); // Update twice per second for smooth display
     }
 
+    _netColor(net) {
+        if (net < -0.01) return '#cc3333';
+        if (net > 0.01) return '#4a8a4a';
+        return '#e8c840';
+    }
+
+    _capacityColor(percentage) {
+        if (percentage > 90) return '#cc3333';
+        if (percentage > 70) return '#e8c840';
+        return '#4a8a4a';
+    }
+
     updateDisplay(root) {
         if (!this.resourceManager) return;
 
         const resources = this.resourceManager.resources;
-        const gameInstance = window.gameInstance;
 
         // Track overall system status
         let hasDeficit = false;
@@ -84,68 +92,46 @@ class WarehouseApp extends App {
         Object.entries(resources).forEach(([type, data]) => {
             if (type === 'credits') return; // Skip credits
 
-            // Update TOTAL column (current / capacity)
+            const percentage = (data.current / data.capacity) * 100;
+            const net = data.production;
+
+            // TOTAL column
             const totalEl = root.querySelector(`#wh-${type}-total`);
             if (totalEl) {
-                const percentage = (data.current / data.capacity) * 100;
                 totalEl.textContent = `${formatNumber(data.current)} / ${formatNumber(data.capacity)}`;
-
-                // Color coding based on capacity
-                if (percentage > 90) {
-                    totalEl.style.color = '#ff0000'; // Red: nearly full
-                    hasNearFull = true;
-                } else if (percentage > 70) {
-                    totalEl.style.color = '#ffff00'; // Yellow: getting full
-                } else {
-                    totalEl.style.color = '#00ff00'; // Green: plenty of space
-                }
+                totalEl.style.color = this._capacityColor(percentage);
+                if (percentage > 90) hasNearFull = true;
             }
 
-            // Update OUTPUT column (total production from all buildings)
+            // OUTPUT column
             const outputEl = root.querySelector(`#wh-${type}-output`);
             if (outputEl) {
                 const production = this.calculateTotalProduction(type);
                 outputEl.textContent = production > 0 ? `+${formatRate(production)}` : '0/s';
-                outputEl.style.color = production > 0 ? '#00ff00' : '#888888';
+                outputEl.style.color = production > 0 ? '#4a8a4a' : '#555555';
             }
 
-            // Update DEMAND column (total consumption from all buildings)
+            // DEMAND column
             const demandEl = root.querySelector(`#wh-${type}-demand`);
             if (demandEl) {
                 const demand = this.calculateTotalDemand(type);
                 demandEl.textContent = demand > 0 ? formatRate(demand) : '0/s';
-                demandEl.style.color = demand > 0 ? '#ffaa00' : '#888888';
+                demandEl.style.color = demand > 0 ? '#a07818' : '#555555';
             }
 
-            // Update +/- column (net rate)
+            // NET column
             const netEl = root.querySelector(`#wh-${type}-net`);
             if (netEl) {
-                const net = data.production;
-                const sign = net >= 0 ? '+' : '';
-                netEl.textContent = sign + formatRate(net);
-
-                // Color coding
-                if (net < -0.01) {
-                    netEl.style.color = '#ff0000'; // Red: deficit
-                    hasDeficit = true;
-                } else if (net > 0.01) {
-                    netEl.style.color = '#00ff00'; // Green: surplus
-                } else {
-                    netEl.style.color = '#ffff00'; // Yellow: balanced
-                }
+                netEl.textContent = (net >= 0 ? '+' : '') + formatRate(net);
+                netEl.style.color = this._netColor(net);
+                if (net < -0.01) hasDeficit = true;
             }
 
-            // Update STATUS indicator
+            // STATUS indicator
             const indicatorEl = root.querySelector(`#wh-${type}-indicator`);
             if (indicatorEl) {
-                const net = data.production;
-                if (net < -0.01) {
-                    indicatorEl.className = 'status-indicator red';
-                } else if (net > 0.01) {
-                    indicatorEl.className = 'status-indicator green';
-                } else {
-                    indicatorEl.className = 'status-indicator yellow';
-                }
+                const state = net < -0.01 ? 'red' : net > 0.01 ? 'green' : 'yellow';
+                indicatorEl.className = `status-indicator ${state}`;
             }
         });
 
@@ -238,55 +224,40 @@ class WarehouseApp extends App {
         });
     }
 
+    _upgradeCost(level) {
+        return Math.floor(BASE_UPGRADE_COST * Math.pow(UPGRADE_COST_EXPONENT, level));
+    }
+
     upgradeCapacity(resourceType, root) {
         const currentLevel = this.capacityUpgrades[resourceType] || 0;
-        const baseCost = 100;
-        const cost = Math.floor(baseCost * Math.pow(1.5, currentLevel));
+        const cost = this._upgradeCost(currentLevel);
 
-        // Check if can afford
         if (!this.resourceManager || this.resourceManager.get('credits') < cost) {
-            log(`Cannot afford capacity upgrade (need ${formatNumber(cost)} credits)`);
             return;
         }
 
-        // Spend credits
         this.resourceManager.remove('credits', cost);
+        this.resourceManager.increaseCapacity(resourceType, CAPACITY_UPGRADE_AMOUNT);
 
-        // Increase capacity (immutable update)
-        const increaseAmount = 1000; // +1000 capacity per upgrade
-        this.resourceManager.increaseCapacity(resourceType, increaseAmount);
-
-        // Track upgrade level (immutable update)
         this.capacityUpgrades = {
             ...this.capacityUpgrades,
             [resourceType]: currentLevel + 1
         };
 
-        log(`Upgraded ${resourceType} capacity to ${formatNumber(this.resourceManager.resources[resourceType].capacity)} (+${increaseAmount})`);
-
-        // Update display
         this.updateDisplay(root);
     }
 
     updateUpgradeButtons(root) {
         Object.entries(this.capacityUpgrades).forEach(([type, level]) => {
             const btn = root.querySelector(`[data-resource="${type}"].upgrade-capacity-btn`);
-            if (btn && this.resourceManager) {
-                const baseCost = 100;
-                const cost = Math.floor(baseCost * Math.pow(1.5, level));
-                const canAfford = this.resourceManager.get('credits') >= cost;
+            if (!btn || !this.resourceManager) return;
 
-                btn.textContent = `Upgrade (${formatNumber(cost)} cr)`;
+            const cost = this._upgradeCost(level);
+            const canAfford = this.resourceManager.get('credits') >= cost;
 
-                // Visual feedback for affordability
-                if (canAfford) {
-                    btn.style.color = '#00ff00';
-                    btn.style.borderColor = '#00ff00';
-                } else {
-                    btn.style.color = '#888888';
-                    btn.style.borderColor = '#444444';
-                }
-            }
+            btn.textContent = `Upgrade (${formatNumber(cost)} cr)`;
+            btn.style.color = canAfford ? '#d4a832' : '#555555';
+            btn.style.borderColor = canAfford ? '#a07818' : '#333333';
         });
     }
 
@@ -325,9 +296,8 @@ class WarehouseApp extends App {
             if (this.resourceManager) {
                 Object.entries(this.capacityUpgrades).forEach(([type, level]) => {
                     if (!RESOURCES[type] || level === 0) return;
-                    const increaseAmount = 1000 * level;
                     const initialCapacity = RESOURCES[type].initialCapacity;
-                    this.resourceManager.setCapacity(type, initialCapacity + increaseAmount);
+                    this.resourceManager.setCapacity(type, initialCapacity + CAPACITY_UPGRADE_AMOUNT * level);
                 });
             }
         }

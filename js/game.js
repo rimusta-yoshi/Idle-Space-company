@@ -295,181 +295,93 @@ class Game {
         }
     }
 
+    // ── Save/load migrations (applied in load() before parsing) ────────────
+
+    _migrateMarketBuildings(data) {
+        if (!data.canvas?.nodes) return;
+        const before = data.canvas.nodes.length;
+        data.canvas.nodes = data.canvas.nodes.filter(n => n.buildingType !== 'market');
+        const removed = before - data.canvas.nodes.length;
+        if (removed > 0 && data.canvas.connections) {
+            const ids = new Set(data.canvas.nodes.map(n => n.id));
+            data.canvas.connections = data.canvas.connections.filter(
+                c => ids.has(c.fromNodeId) && ids.has(c.toNodeId)
+            );
+        }
+    }
+
+    _migrateBuildingTypes(data) {
+        if (!data.canvas?.nodes) return;
+        const typeMap = {
+            oreMiner: 'ironExtractor',
+            ironSmelter: 'smelter', copperSmelter: 'smelter',
+            steelPlateMaker: 'assembler', wireMaker: 'assembler', circuitMaker: 'assembler',
+            engineFactory: 'manufacturer', computerFactory: 'manufacturer'
+        };
+        data.canvas.nodes.forEach(node => {
+            if (typeMap[node.buildingType]) node.buildingType = typeMap[node.buildingType];
+        });
+    }
+
+    _migrateResourceTypes(data) {
+        if (!data.resources) return;
+        if (data.resources.ore)   { data.resources.oreA = data.resources.ore;  delete data.resources.ore; }
+        if (data.resources.metal) { data.resources.barA = data.resources.metal; delete data.resources.metal; }
+    }
+
+    _migrateBuildingCounts(data) {
+        if (!data.buildingCounts) return;
+        const counts = data.buildingCounts;
+        if (counts.oreMiner) { counts.ironExtractor = (counts.ironExtractor || 0) + counts.oreMiner; delete counts.oreMiner; }
+        const merge = (target, ...sources) => {
+            counts[target] = sources.reduce((sum, k) => sum + (counts[k] || 0), counts[target] || 0);
+            sources.forEach(k => delete counts[k]);
+        };
+        merge('smelter', 'ironSmelter', 'copperSmelter');
+        merge('assembler', 'steelPlateMaker', 'wireMaker', 'circuitMaker');
+        merge('manufacturer', 'engineFactory', 'computerFactory');
+    }
+
+    _migrateConnectionResources(data) {
+        if (!data.canvas?.connections) return;
+        data.canvas.connections.forEach(conn => {
+            if (conn.resourceType === 'ore')   conn.resourceType = 'oreA';
+            if (conn.resourceType === 'metal') conn.resourceType = 'barA';
+        });
+    }
+
     // Load game
     load(providedData = null) {
         try {
             let data = providedData;
 
-            // If no data provided, try to load from old localStorage key (migration)
             if (!data) {
-                const saveData = localStorage.getItem('idleSpaceCompany_save');
-                if (!saveData) {
-                    log('No save data found');
-                    return false;
-                }
-                data = JSON.parse(saveData);
-                log('Migrating save data from old format');
+                const raw = localStorage.getItem('idleSpaceCompany_save');
+                if (!raw) return false;
+                data = JSON.parse(raw);
             }
 
-            if (!data) {
-                log('No save data found');
-                return false;
-            }
+            if (!data) return false;
 
-            // MIGRATION: Remove market buildings from old saves
-            if (data.canvas && data.canvas.nodes) {
-                const beforeCount = data.canvas.nodes.length;
-                data.canvas.nodes = data.canvas.nodes.filter(node =>
-                    node.buildingType !== 'market'
-                );
-                const removed = beforeCount - data.canvas.nodes.length;
-                if (removed > 0) {
-                    log(`Migration: Removed ${removed} market building(s) from save`);
+            // Apply all migrations in sequence
+            this._migrateMarketBuildings(data);
+            this._migrateBuildingTypes(data);
+            this._migrateResourceTypes(data);
+            this._migrateBuildingCounts(data);
+            this._migrateConnectionResources(data);
 
-                    // Also clean up connections involving removed market nodes
-                    if (data.canvas.connections) {
-                        const nodeIds = new Set(data.canvas.nodes.map(n => n.id));
-                        const beforeConnCount = data.canvas.connections.length;
-                        data.canvas.connections = data.canvas.connections.filter(conn =>
-                            nodeIds.has(conn.fromNodeId) && nodeIds.has(conn.toNodeId)
-                        );
-                        const removedConns = beforeConnCount - data.canvas.connections.length;
-                        if (removedConns > 0) {
-                            log(`Migration: Removed ${removedConns} connection(s) to market buildings`);
-                        }
-                    }
-                }
-            }
+            // Load state
+            if (data.resources)      this.resources.loadSaveData(data.resources);
+            if (data.canvas)         this.canvas.loadSaveData(data.canvas);
+            if (data.buildingCounts) this.buildingCounts = data.buildingCounts;
 
-            // MIGRATION: Convert old building types to new generic types
-            if (data.canvas && data.canvas.nodes) {
-                let buildingsMigrated = 0;
-                data.canvas.nodes.forEach(node => {
-                    // Extractors: oreMiner → ironExtractor
-                    if (node.buildingType === 'oreMiner') {
-                        node.buildingType = 'ironExtractor';
-                        buildingsMigrated++;
-                    }
-                    // Smelters: specific → generic
-                    else if (node.buildingType === 'ironSmelter' || node.buildingType === 'smelter') {
-                        node.buildingType = 'smelter';
-                        buildingsMigrated++;
-                    }
-                    else if (node.buildingType === 'copperSmelter') {
-                        node.buildingType = 'smelter';
-                        buildingsMigrated++;
-                    }
-                    // Assemblers: specific → generic
-                    else if (node.buildingType === 'steelPlateMaker' || node.buildingType === 'wireMaker' || node.buildingType === 'circuitMaker') {
-                        node.buildingType = 'assembler';
-                        buildingsMigrated++;
-                    }
-                    // Manufacturers: specific → generic
-                    else if (node.buildingType === 'engineFactory' || node.buildingType === 'computerFactory') {
-                        node.buildingType = 'manufacturer';
-                        buildingsMigrated++;
-                    }
-                });
-                if (buildingsMigrated > 0) {
-                    log(`Migration: Converted ${buildingsMigrated} building(s) to new generic types`);
-                }
-            }
-
-            // MIGRATION: Convert old resource types to new types
-            if (data.resources) {
-                let resourcesMigrated = 0;
-                if (data.resources.ore) {
-                    data.resources.oreA = data.resources.ore;
-                    delete data.resources.ore;
-                    resourcesMigrated++;
-                }
-                if (data.resources.metal) {
-                    data.resources.barA = data.resources.metal;
-                    delete data.resources.metal;
-                    resourcesMigrated++;
-                }
-                if (resourcesMigrated > 0) {
-                    log(`Migration: Converted ${resourcesMigrated} resource type(s) to new types`);
-                }
-            }
-
-            // MIGRATION: Convert old building counts to new types
-            if (data.buildingCounts) {
-                // Extractors
-                if (data.buildingCounts.oreMiner) {
-                    data.buildingCounts.ironExtractor = (data.buildingCounts.ironExtractor || 0) + data.buildingCounts.oreMiner;
-                    delete data.buildingCounts.oreMiner;
-                }
-
-                // Smelters: combine all smelter types into generic smelter count
-                const smelterCount = (data.buildingCounts.smelter || 0) +
-                                    (data.buildingCounts.ironSmelter || 0) +
-                                    (data.buildingCounts.copperSmelter || 0);
-                if (smelterCount > 0) {
-                    data.buildingCounts.smelter = smelterCount;
-                    delete data.buildingCounts.ironSmelter;
-                    delete data.buildingCounts.copperSmelter;
-                }
-
-                // Assemblers: combine all assembler types into generic assembler count
-                const assemblerCount = (data.buildingCounts.steelPlateMaker || 0) +
-                                      (data.buildingCounts.wireMaker || 0) +
-                                      (data.buildingCounts.circuitMaker || 0);
-                if (assemblerCount > 0) {
-                    data.buildingCounts.assembler = assemblerCount;
-                    delete data.buildingCounts.steelPlateMaker;
-                    delete data.buildingCounts.wireMaker;
-                    delete data.buildingCounts.circuitMaker;
-                }
-
-                // Manufacturers: combine all manufacturer types into generic manufacturer count
-                const manufacturerCount = (data.buildingCounts.engineFactory || 0) +
-                                         (data.buildingCounts.computerFactory || 0);
-                if (manufacturerCount > 0) {
-                    data.buildingCounts.manufacturer = manufacturerCount;
-                    delete data.buildingCounts.engineFactory;
-                    delete data.buildingCounts.computerFactory;
-                }
-            }
-
-            // MIGRATION: Update connection resource types
-            if (data.canvas && data.canvas.connections) {
-                data.canvas.connections.forEach(conn => {
-                    if (conn.resourceType === 'ore') {
-                        conn.resourceType = 'oreA';
-                    } else if (conn.resourceType === 'metal') {
-                        conn.resourceType = 'barA';
-                    }
-                });
-            }
-
-            // Load resources
-            if (data.resources) {
-                this.resources.loadSaveData(data.resources);
-            }
-
-            // Load canvas (nodes)
-            if (data.canvas) {
-                this.canvas.loadSaveData(data.canvas);
-            }
-
-            // Load building counts
-            if (data.buildingCounts) {
-                this.buildingCounts = data.buildingCounts;
-            }
-
-            // Calculate production rates from loaded buildings
             this.calculateProduction();
 
-            // Calculate offline progress (if any)
             if (data.timestamp) {
                 const offlineData = this.offlineCalc.calculateOfflineProgress(data.timestamp);
-                if (offlineData) {
-                    this.offlineCalc.showOfflineNotification(offlineData);
-                }
+                if (offlineData) this.offlineCalc.showOfflineNotification(offlineData);
             }
 
-            // Update UI
             this.sidebar.updateResources();
             this.sidebar.updateBuildingPalette(this.buildingCounts);
 

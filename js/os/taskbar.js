@@ -47,10 +47,10 @@ class Taskbar {
 
         // List of available apps
         const apps = [
-            { id: 'factory', name: 'OPERATIONS', icon: '🏭' },
-            { id: 'warehouse', name: 'INVENTORY', icon: '📦' },
-            { id: 'market', name: 'EXCHANGE', icon: '🏪' },
-            { id: 'logout', name: 'SYSTEM', icon: '⚙️' }
+            { id: 'factory', name: 'FRANCHISE OPERATIONS TERMINAL', icon: 'OP' },
+            { id: 'warehouse', name: 'INVENTORY CONTROL SYSTEM', icon: 'WH' },
+            { id: 'market', name: 'STRATUM.EXCHANGE', icon: 'EX' },
+            { id: 'logout', name: 'SESSION MANAGEMENT', icon: 'SYS' }
         ];
 
         // Create menu items

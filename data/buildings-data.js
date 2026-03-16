@@ -50,8 +50,6 @@ const BUILDINGS = {
         tier: 2,
         baseCost: { credits: 50 },
         costMultiplier: 1.15,
-        production: {}, // Determined by recipe
-        consumption: {}, // Determined by recipe
         width: 160,
         height: 80,
         color: '#1a0c08',
@@ -71,8 +69,6 @@ const BUILDINGS = {
         tier: 3,
         baseCost: { credits: 100 },
         costMultiplier: 1.15,
-        production: {}, // Determined by recipe
-        consumption: {}, // Determined by recipe
         width: 160,
         height: 80,
         color: '#0a1019',
@@ -92,8 +88,6 @@ const BUILDINGS = {
         tier: 4,
         baseCost: { credits: 300 },
         costMultiplier: 1.15,
-        production: {}, // Determined by recipe
-        consumption: {}, // Determined by recipe
         width: 160,
         height: 80,
         color: '#12081a',
@@ -113,8 +107,6 @@ const BUILDINGS = {
         tier: 2,
         baseCost: { credits: 200 },
         costMultiplier: 1.15,
-        production: {}, // Determined by recipe
-        consumption: {}, // Determined by recipe
         width: 160,
         height: 80,
         color: '#141008',

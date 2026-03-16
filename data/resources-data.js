@@ -8,10 +8,11 @@ const RESOURCES = {
         name: 'Credits',
         description: 'Currency for purchasing buildings and upgrades',
         icon: '💰',
-        color: '#ffff00',
+        color: '#e8c840',
         tier: 0,
         initialAmount: 100,
-        initialCapacity: Infinity
+        initialCapacity: Infinity,
+        sellPrice: null  // Not directly sellable
     },
 
     // Tier 1 - Raw Ores (from Extractors)
@@ -23,7 +24,8 @@ const RESOURCES = {
         color: '#888888',
         tier: 1,
         initialAmount: 0,
-        initialCapacity: 5000
+        initialCapacity: 5000,
+        sellPrice: 0.5
     },
     oreB: {
         id: 'oreB',
@@ -33,7 +35,8 @@ const RESOURCES = {
         color: '#cd7f32',
         tier: 1,
         initialAmount: 0,
-        initialCapacity: 5000
+        initialCapacity: 5000,
+        sellPrice: 0.8
     },
 
     // Tier 2 - Bars (from Smelters)
@@ -45,7 +48,8 @@ const RESOURCES = {
         color: '#aaaaaa',
         tier: 2,
         initialAmount: 0,
-        initialCapacity: 2000
+        initialCapacity: 2000,
+        sellPrice: 2.0
     },
     barB: {
         id: 'barB',
@@ -55,7 +59,8 @@ const RESOURCES = {
         color: '#b87333',
         tier: 2,
         initialAmount: 0,
-        initialCapacity: 2000
+        initialCapacity: 2000,
+        sellPrice: 3.0
     },
 
     // Tier 3 - Components (from Assemblers)
@@ -67,7 +72,8 @@ const RESOURCES = {
         color: '#cccccc',
         tier: 3,
         initialAmount: 0,
-        initialCapacity: 1000
+        initialCapacity: 1000,
+        sellPrice: 10.0
     },
     componentB: {
         id: 'componentB',
@@ -77,17 +83,19 @@ const RESOURCES = {
         color: '#ffa500',
         tier: 3,
         initialAmount: 0,
-        initialCapacity: 1000
+        initialCapacity: 1000,
+        sellPrice: 8.0
     },
     componentC: {
         id: 'componentC',
         name: 'Circuit',
         description: 'Basic circuit board made from multiple materials',
         icon: '💾',
-        color: '#00ff00',
+        color: '#a07818',
         tier: 3,
         initialAmount: 0,
-        initialCapacity: 500
+        initialCapacity: 500,
+        sellPrice: 20.0
     },
 
     // Tier 4 - Advanced Products (from Manufacturers)
@@ -99,17 +107,19 @@ const RESOURCES = {
         color: '#4169e1',
         tier: 4,
         initialAmount: 0,
-        initialCapacity: 200
+        initialCapacity: 200,
+        sellPrice: 80.0
     },
     productB: {
         id: 'productB',
         name: 'Computer',
         description: 'Advanced computer system',
         icon: '💻',
-        color: '#00ffff',
+        color: '#40c8a8',
         tier: 4,
         initialAmount: 0,
-        initialCapacity: 200
+        initialCapacity: 200,
+        sellPrice: 100.0
     }
 };
 

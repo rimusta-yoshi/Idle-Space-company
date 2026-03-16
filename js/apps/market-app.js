@@ -5,29 +5,20 @@ class MarketApp extends App {
     constructor() {
         super();
         this.id = 'market';
-        this.title = 'STRATUM.EXCHANGE';
-        this.icon = '🏪';
+        this.title = 'STRATUM.EXCHANGE // COMMODITY PORTAL';
+        this.icon = 'EX';
         this.currentPage = 'store';
         this.resourceManager = null;
         this.updateInterval = null;
-        this.sellPrices = {
-            // Tier 1 - Raw Ores
-            oreA: 0.5,    // Iron Ore
-            oreB: 0.8,    // Copper Ore (slightly more valuable)
+    }
 
-            // Tier 2 - Bars
-            barA: 2.0,    // Iron Bar
-            barB: 3.0,    // Copper Bar
-
-            // Tier 3 - Components
-            componentA: 10.0,   // Steel Plate
-            componentB: 8.0,    // Wire (produced 2x, worth less per unit)
-            componentC: 20.0,   // Circuit (requires both bar types)
-
-            // Tier 4 - Advanced Products
-            productA: 80.0,     // Engine
-            productB: 100.0     // Computer
-        };
+    get sellPrices() {
+        // Derived from RESOURCES data — single source of truth
+        const prices = {};
+        Object.entries(RESOURCES).forEach(([id, def]) => {
+            if (def.sellPrice != null) prices[id] = def.sellPrice;
+        });
+        return prices;
     }
 
     mount(contentElement) {

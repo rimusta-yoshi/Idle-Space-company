@@ -5,8 +5,8 @@ class LogoutApp extends App {
     constructor() {
         super();
         this.id = 'logout';
-        this.title = 'SESSION CONTROLS';
-        this.icon = '⚙️';
+        this.title = 'SESSION MANAGEMENT';
+        this.icon = 'SYS';
         this.sessionStartTime = Date.now();
         this.sessionInterval = null;
     }

@@ -11,7 +11,7 @@
 
 body {
     background-color: #07060a;
-    color: #d4a832;
+    color: #e8d5b0;
     font-family: 'VT323', 'Courier New', monospace;
     font-size: 18px;
     line-height: 1.5;
@@ -22,20 +22,20 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    border: 2px solid #d4a832;
+    border: 1px solid #2a2010;
     margin: 10px;
 }
 
 /* Header */
 header {
     background-color: #131008;
-    border-bottom: 2px solid #d4a832;
+    border-bottom: 1px solid #2a2010;
     padding: 15px 20px;
     text-align: center;
 }
 
 header h1 {
-    color: #d4a832;
+    color: #c49a2a;
     font-size: 24px;
     letter-spacing: 3px;
     text-transform: uppercase;
@@ -43,7 +43,7 @@ header h1 {
 }
 
 header p {
-    color: #a07818;
+    color: #8a6b1a;
     font-size: 12px;
     text-transform: uppercase;
 }
@@ -58,7 +58,7 @@ header p {
 /* Sidebars */
 .sidebar {
     background-color: #0a0806;
-    border: 2px solid #d4a832;
+    border: 1px solid #2a2010;
     padding: 15px;
     overflow-y: auto;
     flex: 0 0 clamp(200px, 22%, 280px); /* Responsive width: min 200px, ideal 22%, max 280px */
@@ -75,26 +75,30 @@ header p {
 }
 
 .sidebar h2 {
-    color: #d4a832;
+    color: #c49a2a;
     font-size: 16px;
     text-transform: uppercase;
     margin-bottom: 15px;
-    border-bottom: 1px solid #a07818;
+    border-bottom: 1px solid #8a6b1a;
     padding-bottom: 5px;
 }
 
 .sidebar h3 {
-    color: #a07818;
+    color: #8a6b1a;
     font-size: 14px;
     text-transform: uppercase;
     margin-top: 20px;
     margin-bottom: 10px;
 }
 
+.section-header {
+    margin-top: 20px;
+}
+
 .sidebar h2 + h2 {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 1px solid #a07818;
+    border-top: 1px solid #8a6b1a;
 }
 
 /* Resource Display */
@@ -104,16 +108,16 @@ header p {
     padding: 5px;
     margin-bottom: 5px;
     background-color: #0f0d06;
-    border: 1px solid #3c2c0c;
+    border: 1px solid #2a2010;
 }
 
 .resource-name {
-    color: #a07818;
+    color: #9a8b72;
     flex-shrink: 0;
 }
 
 .resource-amount, .production-rate {
-    color: #d4a832;
+    color: #c49a2a;
     font-weight: bold;
 }
 
@@ -127,9 +131,9 @@ header p {
     width: 100%;
     box-sizing: border-box;
     background: #0a0806;
-    border: 1px solid #3c2c0c;
-    border-bottom-color: #a07818;
-    color: #d4a832;
+    border: 1px solid #2a2010;
+    border-bottom-color: #8a6b1a;
+    color: #c49a2a;
     font-family: 'VT323', 'Courier New', monospace;
     font-size: 14px;
     padding: 5px 8px;
@@ -139,19 +143,19 @@ header p {
 }
 
 .palette-search:focus {
-    border-color: #d4a832;
-    box-shadow: 0 0 6px #d4a83222;
+    border-color: #c49a2a;
+    box-shadow: 0 0 6px #c49a2a22;
 }
 
 .palette-search::placeholder {
-    color: #3c2c0c;
+    color: #2a2010;
 }
 
 /* Building Palette Cards */
 .palette-card {
     background-color: #0f0d06;
-    border: 1px solid #3c2c0c;
-    border-left: 2px solid #a07818;
+    border: 1px solid #2a2010;
+    border-left: 2px solid #8a6b1a;
     padding: 6px 8px;
     margin-bottom: 6px;
     cursor: grab;
@@ -160,9 +164,9 @@ header p {
 
 .palette-card:hover {
     background-color: #141108;
-    border-color: #d4a832;
-    border-left-color: #d4a832;
-    box-shadow: 0 0 8px #d4a83222;
+    border-color: #c49a2a;
+    border-left-color: #c49a2a;
+    box-shadow: 0 0 8px #c49a2a22;
 }
 
 .palette-card:active {
@@ -177,7 +181,7 @@ header p {
 }
 
 .palette-card-name {
-    color: #d4a832;
+    color: #e8d5b0;
     font-size: 13px;
     font-weight: bold;
     white-space: nowrap;
@@ -186,7 +190,7 @@ header p {
 }
 
 .palette-card-rate {
-    color: #a07818;
+    color: #9a8b72;
     font-size: 11px;
     white-space: nowrap;
     flex-shrink: 0;
@@ -208,7 +212,7 @@ header p {
 .canvas-section {
     flex: 1;
     background-color: #0a0806;
-    border: 2px solid #d4a832;
+    border: 1px solid #2a2010;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -231,9 +235,9 @@ header p {
     bottom: 10px;
     right: 10px;
     background-color: #131008;
-    border: 1px solid #d4a832;
+    border: 1px solid #c49a2a;
     padding: 5px 10px;
-    color: #d4a832;
+    color: #c49a2a;
     font-family: 'VT323', 'Courier New', monospace;
     font-size: 11px;
     border-radius: 3px;
@@ -253,8 +257,8 @@ header p {
 
 .node-action-btn {
     background-color: #131008;
-    border: 1px solid #d4a832;
-    color: #d4a832;
+    border: 1px solid #c49a2a;
+    color: #c49a2a;
     font-family: 'VT323', 'Courier New', monospace;
     font-size: 14px;
     padding: 3px 8px;
@@ -265,7 +269,7 @@ header p {
 }
 
 .node-action-btn:hover {
-    background-color: #d4a832;
+    background-color: #c49a2a;
     color: #07060a;
 }
 
@@ -281,21 +285,21 @@ header p {
 
 .canvas-info {
     background-color: #131008;
-    border-top: 1px solid #a07818;
+    border-top: 1px solid #8a6b1a;
     padding: 10px;
     text-align: center;
 }
 
 .canvas-info p {
-    color: #a07818;
+    color: #8a6b1a;
     font-size: 12px;
 }
 
 /* Buttons */
 .btn {
     background-color: #131008;
-    color: #d4a832;
-    border: 2px solid #d4a832;
+    color: #c49a2a;
+    border: 2px solid #c49a2a;
     padding: 10px 15px;
     font-family: 'VT323', 'Courier New', monospace;
     font-size: 12px;
@@ -308,11 +312,11 @@ header p {
 
 .btn:hover {
     background-color: #1e1a0a;
-    box-shadow: 0 0 10px #d4a83222;
+    box-shadow: 0 0 10px #c49a2a22;
 }
 
 .btn:active {
-    background-color: #005500;
+    background-color: #2a2010;
 }
 
 .btn:disabled {
@@ -327,15 +331,16 @@ header p {
 /* Footer */
 footer {
     background-color: #131008;
-    border-top: 2px solid #d4a832;
+    border-top: 1px solid #2a2010;
     padding: 10px 20px;
     text-align: center;
 }
 
 footer p {
-    color: #a07818;
+    color: #4a4030;
     font-size: 11px;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Scrollbar Styling */
@@ -348,12 +353,12 @@ footer p {
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-    background: #a07818;
-    border: 1px solid #d4a832;
+    background: #8a6b1a;
+    border: 1px solid #c49a2a;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-    background: #d4a832;
+    background: #c49a2a;
 }
 
 /* Canvas Konva Container */
@@ -531,24 +536,25 @@ footer p {
 
 .modal-content {
     background-color: #0f0d06;
-    border: 3px solid #d4a832;
+    border: 1px solid #3a2e18;
+    border-top: 2px solid #c49a2a;
     padding: 0;
     width: 90%;
     max-width: 500px;
-    box-shadow: 0 0 30px #d4a83244;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
 }
 
 .modal-header {
-    background-color: #16120a;
-    border-bottom: 2px solid #d4a832;
-    padding: 15px 20px;
+    background-color: #110e07;
+    border-bottom: 1px solid #2a2010;
+    padding: 12px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .modal-header h2 {
-    color: #d4a832;
+    color: #c49a2a;
     margin: 0;
     font-size: 18px;
     text-transform: uppercase;
@@ -557,7 +563,7 @@ footer p {
 .close-btn {
     background: none;
     border: none;
-    color: #d4a832;
+    color: #c49a2a;
     font-size: 28px;
     cursor: pointer;
     padding: 0;
@@ -568,7 +574,7 @@ footer p {
 }
 
 .close-btn:hover {
-    color: #e8c840;
+    color: #c49a2a;
 }
 
 .modal-body {
@@ -577,12 +583,12 @@ footer p {
 
 .modal-body hr {
     border: none;
-    border-top: 1px solid #a07818;
+    border-top: 1px solid #8a6b1a;
     margin: 15px 0;
 }
 
 .upgrade-info {
-    color: #d4a832;
+    color: #c49a2a;
 }
 
 .upgrade-info p {
@@ -591,11 +597,11 @@ footer p {
 }
 
 .upgrade-info strong {
-    color: #a07818;
+    color: #8a6b1a;
 }
 
 .upgrade-info span {
-    color: #d4a832;
+    color: #c49a2a;
 }
 
 .upgrade-actions {
@@ -603,24 +609,24 @@ footer p {
 }
 
 .upgrade-next-level {
-    color: #a07818;
+    color: #8a6b1a;
     font-size: 12px;
     margin-top: 10px;
     text-align: center;
 }
 
 .upgrade-next-level span {
-    color: #e8c840;
+    color: #c49a2a;
 }
 
 .btn-primary {
     background-color: #16120a;
-    border-color: #d4a832;
+    border-color: #c49a2a;
 }
 
 .btn-primary:hover {
-    background-color: #3c2c0c;
-    box-shadow: 0 0 15px #d4a83244;
+    background-color: #2a2010;
+    box-shadow: 0 0 15px #c49a2a44;
 }
 
 .btn-danger {
@@ -684,28 +690,51 @@ footer p {
 
 /* Desktop Icons */
 .desktop-icon {
-    width: 80px;
+    width: 72px;
     text-align: center;
     cursor: pointer;
-    padding: 10px;
-    border: 2px solid transparent;
-    transition: all 0.2s;
+    padding: 8px 6px;
+    border: 1px solid transparent;
+    transition: all 0.15s;
 }
 
 .desktop-icon:hover {
-    background-color: #0f0d0633;
-    border-color: #d4a83222;
+    background-color: rgba(196, 154, 42, 0.04);
+    border-color: rgba(196, 154, 42, 0.15);
 }
 
 .desktop-icon .icon {
-    font-size: 48px;
-    margin-bottom: 5px;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 6px;
+    border: 1px solid #2a2010;
+    background: #0e0c09;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 17px;
+    letter-spacing: 1px;
+    color: #4a4030;
+    transition: all 0.15s;
+}
+
+.desktop-icon:hover .icon {
+    border-color: #8a6b1a;
+    color: #c49a2a;
+    background: #141008;
 }
 
 .desktop-icon .icon-label {
-    color: #d4a832;
-    font-size: 12px;
+    color: #4a4030;
+    font-size: 11px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
+    transition: color 0.15s;
+}
+
+.desktop-icon:hover .icon-label {
+    color: #9a8b72;
 }
 
 /* Windows Container */
@@ -723,12 +752,19 @@ footer p {
     pointer-events: all; /* Windows catch clicks */
     position: absolute;
     background: #0a0806;
-    border: 2px solid #d4a832;
-    box-shadow: 0 0 20px #d4a83244;
+    border: 1px solid #2a2010;
+    border-left: 2px solid #3a2e18;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
     min-width: 400px;
     min-height: 300px;
+    transition: border-left-color 0.15s;
+}
+
+.os-window.focused {
+    border-left-color: #c49a2a;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(196, 154, 42, 0.08);
 }
 
 .os-window.maximized {
@@ -746,59 +782,82 @@ footer p {
 .window-titlebar {
     display: flex;
     align-items: center;
-    background: #131008;
-    border-bottom: 2px solid #a07818;
-    padding: 5px 10px;
-    cursor: move; /* Drag handle */
+    background: #0e0c09;
+    border-bottom: 1px solid #2a2010;
+    padding: 0 10px 0 0;
+    cursor: move;
     user-select: none;
-    height: 32px;
+    height: 30px;
     flex-shrink: 0;
+    gap: 0;
 }
 
 .window-icon {
-    margin-right: 8px;
-    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 100%;
+    background: #3a2e18;
+    color: #0e0c09;
+    font-size: 11px;
+    font-family: 'VT323', 'Courier New', monospace;
+    letter-spacing: 0;
+    flex-shrink: 0;
+    margin-right: 10px;
+    transition: background 0.15s;
+}
+
+.os-window.focused .window-icon {
+    background: #c49a2a;
 }
 
 .window-title {
     flex: 1;
-    color: #d4a832;
-    font-weight: bold;
-    font-size: 14px;
+    color: #9a8b72;
+    font-size: 13px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.os-window.focused .window-title {
+    color: #e8d5b0;
 }
 
 .window-controls {
     display: flex;
-    gap: 5px;
+    gap: 4px;
+    margin-left: 8px;
 }
 
 .window-btn {
-    width: 24px;
-    height: 24px;
-    background: #0a0806;
-    border: 1px solid #d4a832;
-    color: #d4a832;
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    border: 1px solid #2a2010;
+    color: #4a4030;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1;
     font-family: 'VT323', 'Courier New', monospace;
-    transition: all 0.2s;
+    transition: all 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .window-btn:hover {
-    background: #16120a;
-    box-shadow: 0 0 8px #d4a83233;
+    border-color: #8a6b1a;
+    color: #c49a2a;
 }
 
 .window-btn.close:hover {
-    background: #440000;
-    border-color: #ff0000;
-    color: #ff0000;
-    box-shadow: 0 0 8px #ff000044;
+    background: rgba(120, 20, 20, 0.4);
+    border-color: #993333;
+    color: #cc4444;
 }
 
 /* Window Content */
@@ -896,8 +955,8 @@ footer p {
     left: 0;
     right: 0;
     height: 40px;
-    background: #131008;
-    border-top: 2px solid #d4a832;
+    background: #0e0c09;
+    border-top: 1px solid #2a2010;
     display: flex;
     align-items: center;
     z-index: 10000; /* Always on top */
@@ -909,21 +968,22 @@ footer p {
 }
 
 #start-button {
-    background: #16120a;
-    border: 2px solid #d4a832;
-    color: #d4a832;
-    padding: 5px 15px;
+    background: transparent;
+    border: 1px solid #3a2e18;
+    color: #8a6b1a;
+    padding: 4px 14px;
     font-family: 'VT323', 'Courier New', monospace;
-    font-size: 12px;
-    font-weight: bold;
+    font-size: 13px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
 }
 
 #start-button:hover {
-    background: #1e1a0a;
-    box-shadow: 0 0 10px #d4a83233;
+    border-color: #c49a2a;
+    color: #c49a2a;
+    background: rgba(196, 154, 42, 0.05);
 }
 
 .taskbar-apps {
@@ -934,9 +994,10 @@ footer p {
 
 .taskbar-tray {
     margin-left: auto;
-    color: #a07818;
-    font-size: 12px;
+    color: #4a4030;
+    font-size: 13px;
     padding: 0 10px;
+    letter-spacing: 1px;
 }
 
 /* Factory Container (inside window) */
@@ -969,8 +1030,8 @@ footer p {
     right: 5px;
     z-index: 100;
     background-color: #131008;
-    border: 1px solid #d4a832;
-    color: #d4a832;
+    border: 1px solid #c49a2a;
+    color: #c49a2a;
     padding: 4px 10px;
     cursor: pointer;
     font-family: 'VT323', 'Courier New', monospace;
@@ -981,7 +1042,7 @@ footer p {
 
 .sidebar-toggle:hover {
     background-color: #1e1a0a;
-    box-shadow: 0 0 8px #d4a832;
+    box-shadow: 0 0 8px #c49a2a;
 }
 
 .factory-container.tiny .sidebar-toggle {
@@ -1017,7 +1078,7 @@ footer p {
 
 .market-nav {
     background-color: #131008;
-    border-bottom: 2px solid #d4a832;
+    border-bottom: 2px solid #c49a2a;
     padding: 10px;
     display: flex;
     gap: 10px;
@@ -1027,8 +1088,8 @@ footer p {
 
 .nav-btn {
     background-color: #131008;
-    color: #d4a832;
-    border: 1px solid #a07818;
+    color: #c49a2a;
+    border: 1px solid #8a6b1a;
     padding: 5px 15px;
     cursor: pointer;
     font-family: 'VT323', 'Courier New', monospace;
@@ -1040,7 +1101,7 @@ footer p {
 }
 
 .nav-btn.active {
-    border-color: #d4a832;
+    border-color: #c49a2a;
     background-color: #1e1a0a;
     font-weight: bold;
 }
@@ -1048,9 +1109,9 @@ footer p {
 .url-bar {
     flex: 1;
     background-color: #07060a;
-    border: 1px solid #a07818;
+    border: 1px solid #8a6b1a;
     padding: 5px 10px;
-    color: #a07818;
+    color: #8a6b1a;
     font-size: 11px;
 }
 
@@ -1061,17 +1122,18 @@ footer p {
 }
 
 .market-content h2 {
-    color: #d4a832;
+    color: #c49a2a;
     text-align: center;
     font-size: 20px;
     margin-bottom: 5px;
-    text-shadow: 0 0 10px #d4a832;
+    letter-spacing: 3px;
 }
 
 .market-subtitle {
     text-align: center;
-    color: #a07818;
+    color: #4a4030;
     font-size: 12px;
+    letter-spacing: 1px;
     margin-bottom: 30px;
 }
 
@@ -1084,16 +1146,18 @@ footer p {
 
 .market-listing {
     background-color: #0f0d06;
-    border: 2px solid #a07818;
+    border: 1px solid #2a2010;
+    border-left: 2px solid #3a2e18;
     padding: 15px;
     display: flex;
     gap: 15px;
     align-items: center;
+    transition: border-left-color 0.15s;
 }
 
 .market-listing:hover {
-    border-color: #d4a832;
-    background-color: #16120a;
+    border-left-color: #c49a2a;
+    background-color: #111008;
 }
 
 .listing-icon {
@@ -1107,26 +1171,27 @@ footer p {
 }
 
 .listing-name {
-    color: #d4a832;
-    font-size: 18px;
+    color: #e8d5b0;
+    font-size: 16px;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
 }
 
 .listing-price {
-    color: #e8c840;
-    font-size: 14px;
-    margin-bottom: 5px;
+    color: #c49a2a;
+    font-size: 13px;
+    margin-bottom: 4px;
 }
 
 .listing-inventory {
-    color: #a07818;
+    color: #9a8b72;
     font-size: 12px;
     margin-bottom: 3px;
 }
 
 .listing-value {
-    color: #d4a832;
+    color: #8a6b1a;
     font-size: 11px;
 }
 
@@ -1138,8 +1203,8 @@ footer p {
 
 .sell-btn {
     background-color: #131008;
-    color: #d4a832;
-    border: 1px solid #d4a832;
+    color: #c49a2a;
+    border: 1px solid #c49a2a;
     padding: 8px 12px;
     cursor: pointer;
     font-family: 'VT323', 'Courier New', monospace;
@@ -1150,36 +1215,36 @@ footer p {
 
 .sell-btn:hover {
     background-color: #1e1a0a;
-    box-shadow: 0 0 10px #d4a832;
+    box-shadow: 0 0 10px #c49a2a;
 }
 
 .sell-btn.sell-all {
-    background-color: #3c2c0c;
-    border-color: #d4a832;
+    background-color: #2a2010;
+    border-color: #c49a2a;
     font-weight: bold;
 }
 
 .sell-btn.sell-all:hover {
-    background-color: #006600;
+    background-color: #2a2010;
 }
 
 .market-footer {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 2px solid #a07818;
+    border-top: 2px solid #8a6b1a;
     text-align: center;
     font-size: 16px;
-    color: #e8c840;
+    color: #c49a2a;
 }
 
 /* About page */
 .about-content {
-    color: #d4a832;
+    color: #c49a2a;
     line-height: 1.6;
 }
 
 .about-content h3 {
-    color: #d4a832;
+    color: #c49a2a;
     margin-top: 20px;
     margin-bottom: 10px;
 }
@@ -1190,13 +1255,13 @@ footer p {
 }
 
 .about-content li {
-    color: #a07818;
+    color: #8a6b1a;
     margin-bottom: 5px;
 }
 
 .about-content li:before {
     content: "▸ ";
-    color: #d4a832;
+    color: #c49a2a;
 }
 
 .disclaimer {
@@ -1208,10 +1273,10 @@ footer p {
 
 .future-notice {
     background-color: #0f0d06;
-    border: 1px solid #a07818;
+    border: 1px solid #8a6b1a;
     padding: 10px;
     margin-top: 20px;
-    color: #d4a832;
+    color: #c49a2a;
     text-align: center;
 }
 
@@ -1234,15 +1299,15 @@ footer p {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    border-bottom: 2px solid #d4a832;
+    border-bottom: 1px solid #2a2010;
     padding-bottom: 10px;
 }
 
 .warehouse-header h2 {
-    color: #d4a832;
-    font-size: 20px;
+    color: #c49a2a;
+    font-size: 18px;
     margin: 0;
-    text-shadow: 0 0 10px #d4a832;
+    letter-spacing: 3px;
 }
 
 .status-lights {
@@ -1259,13 +1324,13 @@ footer p {
 }
 
 .status-light.green {
-    background-color: #d4a832;
-    box-shadow: 0 0 10px #d4a832;
+    background-color: #c49a2a;
+    box-shadow: 0 0 10px #c49a2a;
 }
 
 .status-light.yellow {
-    background-color: #e8c840;
-    box-shadow: 0 0 10px #e8c840;
+    background-color: #c49a2a;
+    box-shadow: 0 0 10px #c49a2a;
 }
 
 .status-light.red {
@@ -1281,19 +1346,19 @@ footer p {
 
 .warehouse-table th {
     background-color: #131008;
-    color: #d4a832;
+    color: #c49a2a;
     padding: 10px;
     text-align: left;
-    border: 1px solid #a07818;
+    border: 1px solid #8a6b1a;
     font-size: 12px;
     font-weight: bold;
 }
 
 .warehouse-table td {
-    padding: 15px 10px;
-    border: 1px solid #3c2c0c;
-    background-color: #0f0d06;
-    color: #d4a832;
+    padding: 12px 10px;
+    border: 1px solid #1e1a0a;
+    background-color: #0c0a06;
+    color: #9a8b72;
     font-size: 13px;
 }
 
@@ -1314,13 +1379,13 @@ footer p {
 }
 
 .status-indicator.green {
-    background-color: #d4a832;
-    box-shadow: 0 0 8px #d4a832;
+    background-color: #c49a2a;
+    box-shadow: 0 0 8px #c49a2a;
 }
 
 .status-indicator.yellow {
-    background-color: #e8c840;
-    box-shadow: 0 0 8px #e8c840;
+    background-color: #c49a2a;
+    box-shadow: 0 0 8px #c49a2a;
 }
 
 .status-indicator.red {
@@ -1338,7 +1403,7 @@ footer p {
 }
 
 .output-rate {
-    color: #d4a832;
+    color: #c49a2a;
 }
 
 .demand-rate {
@@ -1352,8 +1417,8 @@ footer p {
 
 .upgrade-capacity-btn {
     background-color: #131008;
-    color: #d4a832;
-    border: 1px solid #d4a832;
+    color: #c49a2a;
+    border: 1px solid #c49a2a;
     padding: 6px 10px;
     cursor: pointer;
     font-family: 'VT323', 'Courier New', monospace;
@@ -1363,7 +1428,7 @@ footer p {
 
 .upgrade-capacity-btn:hover {
     background-color: #1e1a0a;
-    box-shadow: 0 0 10px #d4a832;
+    box-shadow: 0 0 10px #c49a2a;
 }
 
 .upgrade-capacity-btn:disabled {
@@ -1376,7 +1441,7 @@ footer p {
     display: flex;
     justify-content: center;
     padding-top: 20px;
-    border-top: 1px solid #3c2c0c;
+    border-top: 1px solid #2a2010;
 }
 
 .pagination {
@@ -1386,8 +1451,8 @@ footer p {
 
 .page-btn {
     background-color: #131008;
-    color: #d4a832;
-    border: 1px solid #a07818;
+    color: #c49a2a;
+    border: 1px solid #8a6b1a;
     padding: 8px 15px;
     cursor: pointer;
     font-family: 'VT323', 'Courier New', monospace;
@@ -1400,7 +1465,7 @@ footer p {
 
 .page-btn.active {
     background-color: #1e1a0a;
-    border-color: #d4a832;
+    border-color: #c49a2a;
     font-weight: bold;
 }
 
@@ -1438,20 +1503,21 @@ footer p {
 
 .notification-content {
     position: relative;
-    background-color: #131008;
-    border: 3px solid #d4a832;
-    box-shadow: 0 0 30px #d4a832;
+    background-color: #0e0c09;
+    border: 1px solid #3a2e18;
+    border-top: 2px solid #c49a2a;
     max-width: 600px;
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
     z-index: 10001;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.85);
 }
 
 .notification-header {
-    background-color: #1e1a0a;
-    border-bottom: 2px solid #d4a832;
-    padding: 15px 20px;
+    background-color: #131008;
+    border-bottom: 1px solid #2a2010;
+    padding: 12px 20px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -1462,16 +1528,16 @@ footer p {
 }
 
 .notification-title {
-    color: #d4a832;
-    font-size: 18px;
-    font-weight: bold;
-    text-shadow: 0 0 10px #d4a832;
+    color: #e8d5b0;
+    font-size: 16px;
+    letter-spacing: 1px;
 }
 
 .notification-body {
     padding: 20px;
-    color: #d4a832;
+    color: #9a8b72;
     line-height: 1.6;
+    font-size: 15px;
 }
 
 .notification-body p {
@@ -1487,7 +1553,7 @@ footer p {
 
 .notification-app-item {
     background-color: #16120a;
-    border: 1px solid #a07818;
+    border: 1px solid #8a6b1a;
     padding: 15px;
     display: flex;
     align-items: flex-start;
@@ -1500,32 +1566,32 @@ footer p {
 }
 
 .notification-app-item strong {
-    color: #d4a832;
+    color: #e8d5b0;
     font-size: 14px;
 }
 
 .notification-app-desc {
-    color: #a07818;
+    color: #9a8b72;
     font-size: 12px;
 }
 
 .notification-signature {
     text-align: right;
     font-style: italic;
-    color: #d4a832;
+    color: #c49a2a;
     margin-top: 20px;
 }
 
 .notification-footer {
-    border-top: 2px solid #a07818;
+    border-top: 2px solid #8a6b1a;
     padding: 15px 20px;
     text-align: center;
 }
 
 .notification-footer .btn {
     background-color: #1e1a0a;
-    color: #d4a832;
-    border: 2px solid #d4a832;
+    color: #c49a2a;
+    border: 2px solid #c49a2a;
     padding: 10px 30px;
     font-size: 14px;
     cursor: pointer;
@@ -1534,8 +1600,8 @@ footer p {
 }
 
 .notification-footer .btn:hover {
-    background-color: #3c2c0c;
-    box-shadow: 0 0 15px #d4a832;
+    background-color: #2a2010;
+    box-shadow: 0 0 15px #c49a2a;
 }
 
 /* User Notifications (Toast Messages) */
@@ -1569,13 +1635,13 @@ footer p {
 }
 
 .user-notification.success {
-    border-color: #d4a832;
-    color: #d4a832;
+    border-color: #c49a2a;
+    color: #c49a2a;
 }
 
 .user-notification.info {
-    border-color: #00aaff;
-    color: #00aaff;
+    border-color: #40c8a8;
+    color: #40c8a8;
 }
 
 /* Offline Progress Modal */
@@ -1594,18 +1660,19 @@ footer p {
 }
 
 .offline-progress-content {
-    background: #0a0806;
-    border: 3px solid #d4a832;
+    background: #0e0c09;
+    border: 1px solid #3a2e18;
+    border-top: 2px solid #c49a2a;
     padding: 30px;
     max-width: 500px;
     text-align: center;
     font-family: 'VT323', 'Courier New', monospace;
-    box-shadow: 0 0 30px rgba(212, 168, 50, 0.5);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.8);
     animation: slideDown 0.4s;
 }
 
 .offline-progress-content h2 {
-    color: #d4a832;
+    color: #c49a2a;
     font-size: 24px;
     margin-bottom: 20px;
     text-transform: uppercase;
@@ -1613,7 +1680,7 @@ footer p {
 }
 
 .offline-progress-content h3 {
-    color: #a07818;
+    color: #8a6b1a;
     font-size: 16px;
     margin-top: 25px;
     margin-bottom: 15px;
@@ -1621,19 +1688,19 @@ footer p {
 }
 
 .offline-progress-content p {
-    color: #d4a832;
+    color: #c49a2a;
     font-size: 16px;
     margin: 10px 0;
 }
 
 .offline-progress-content .highlight {
-    color: #00ffff;
+    color: #40c8a8;
     font-weight: bold;
     font-size: 18px;
 }
 
 .offline-progress-content .note {
-    color: #a07818;
+    color: #8a6b1a;
     font-size: 12px;
     font-style: italic;
 }
@@ -1649,7 +1716,7 @@ footer p {
 }
 
 .offline-progress-content .gains-list li {
-    color: #d4a832;
+    color: #c49a2a;
     font-size: 14px;
     padding: 5px 0;
     border-bottom: 1px solid #1e1a0a;
@@ -1657,8 +1724,8 @@ footer p {
 
 .offline-progress-content .dismiss-btn {
     background-color: #1e1a0a;
-    color: #d4a832;
-    border: 2px solid #d4a832;
+    color: #c49a2a;
+    border: 2px solid #c49a2a;
     padding: 12px 40px;
     font-size: 16px;
     font-family: 'VT323', 'Courier New', monospace;
@@ -1669,8 +1736,8 @@ footer p {
 }
 
 .offline-progress-content .dismiss-btn:hover {
-    background-color: #3c2c0c;
-    box-shadow: 0 0 15px #d4a832;
+    background-color: #2a2010;
+    box-shadow: 0 0 15px #c49a2a;
     transform: scale(1.05);
 }
 
@@ -1699,42 +1766,54 @@ footer p {
     position: fixed;
     bottom: 42px;
     left: 10px;
-    background: #0a0806;
-    border: 2px solid #d4a832;
-    padding: 5px 0;
-    min-width: 200px;
+    background: #0e0c09;
+    border: 1px solid #2a2010;
+    border-top: 2px solid #c49a2a;
+    padding: 4px 0;
+    min-width: 260px;
     z-index: 9999;
     display: none;
-    box-shadow: 0 0 20px rgba(212, 168, 50, 0.3);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.7);
 }
 
 .app-menu-item {
-    padding: 12px 20px;
-    color: #d4a832;
+    padding: 10px 16px;
+    color: #9a8b72;
     font-family: 'VT323', 'Courier New', monospace;
     font-size: 14px;
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.1s, color 0.1s;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .app-menu-item:hover {
-    background: #1e1a0a;
+    background: rgba(196, 154, 42, 0.06);
+    color: #e8d5b0;
 }
 
 .app-menu-icon {
-    font-size: 18px;
-    width: 24px;
-    text-align: center;
+    font-size: 11px;
+    font-family: 'VT323', 'Courier New', monospace;
+    width: 32px;
+    height: 22px;
+    border: 1px solid #3a2e18;
+    background: #1a1610;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8a6b1a;
+    letter-spacing: 0;
+    flex-shrink: 0;
 }
 
 /* Taskbar App Buttons */
 .taskbar-app-button {
     background: #1e1a0a;
-    color: #d4a832;
-    border: 2px solid #a07818;
+    color: #c49a2a;
+    border: 2px solid #8a6b1a;
     padding: 5px 15px;
     margin: 0 5px;
     font-family: 'VT323', 'Courier New', monospace;
@@ -1748,7 +1827,7 @@ footer p {
 }
 
 .taskbar-app-button:hover {
-    background: #3c2c0c;
-    border-color: #d4a832;
+    background: #2a2010;
+    border-color: #c49a2a;
     box-shadow: 0 0 10px rgba(212, 168, 50, 0.3);
 }
