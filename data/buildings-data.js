@@ -15,9 +15,9 @@ const BUILDINGS = {
         costMultiplier: 1.15,
         production: { oreA: 1.0 }, // 60/min
         consumption: {},
-        width: 150,
+        width: 160,
         height: 80,
-        color: '#004400',
+        color: '#0d1510',
         icon: '⛏️',
         unlocked: true
     },
@@ -32,9 +32,9 @@ const BUILDINGS = {
         costMultiplier: 1.15,
         production: { oreB: 1.0 }, // 60/min
         consumption: {},
-        width: 150,
+        width: 160,
         height: 80,
-        color: '#443300',
+        color: '#1a1108',
         icon: '🪨',
         unlocked: true
     },
@@ -52,9 +52,9 @@ const BUILDINGS = {
         costMultiplier: 1.15,
         production: {}, // Determined by recipe
         consumption: {}, // Determined by recipe
-        width: 150,
+        width: 160,
         height: 80,
-        color: '#440000',
+        color: '#1a0c08',
         icon: '🔥',
         unlocked: true,
         usesRecipes: true
@@ -73,9 +73,9 @@ const BUILDINGS = {
         costMultiplier: 1.15,
         production: {}, // Determined by recipe
         consumption: {}, // Determined by recipe
-        width: 150,
+        width: 160,
         height: 80,
-        color: '#003344',
+        color: '#0a1019',
         icon: '🔧',
         unlocked: true,
         usesRecipes: true
@@ -94,9 +94,9 @@ const BUILDINGS = {
         costMultiplier: 1.15,
         production: {}, // Determined by recipe
         consumption: {}, // Determined by recipe
-        width: 150,
+        width: 160,
         height: 80,
-        color: '#000044',
+        color: '#12081a',
         icon: '🏭',
         unlocked: true,
         usesRecipes: true
@@ -115,9 +115,9 @@ const BUILDINGS = {
         costMultiplier: 1.15,
         production: {}, // Determined by recipe
         consumption: {}, // Determined by recipe
-        width: 150,
+        width: 160,
         height: 80,
-        color: '#1a3a1a',
+        color: '#141008',
         icon: '📦',
         unlocked: true,
         usesRecipes: true

@@ -340,7 +340,7 @@ class CanvasManager {
         if (!this._actionBar || !node) return;
         const def = node.buildingDef;
         const screenPos = this.worldToScreen(node.x, node.y);
-        const nodeWidthScreen = def.width * this.scale;
+        const nodeWidthScreen = NODE_W * this.scale;
 
         this._actionBar.style.left = `${screenPos.x + nodeWidthScreen / 2}px`;
         this._actionBar.style.top = `${screenPos.y - 6}px`;
@@ -396,8 +396,8 @@ class CanvasManager {
         fromNode.showPorts();
 
         // Create a temporary guide line
-        const portWorldX = fromNode.x + fromNode.buildingDef.width;
-        const portWorldY = fromNode.y + fromNode.buildingDef.height / 2;
+        const portWorldX = fromNode.x + NODE_W;
+        const portWorldY = fromNode.y + fromNode.calcHeight() / 2;
 
         const line = new Konva.Line({
             points: [portWorldX, portWorldY, portWorldX, portWorldY],
@@ -418,8 +418,8 @@ class CanvasManager {
         if (!this.connectDrag) return;
 
         const { fromNode, line } = this.connectDrag;
-        const portWorldX = fromNode.x + fromNode.buildingDef.width;
-        const portWorldY = fromNode.y + fromNode.buildingDef.height / 2;
+        const portWorldX = fromNode.x + NODE_W;
+        const portWorldY = fromNode.y + fromNode.calcHeight() / 2;
 
         const pointer = this.stage.getPointerPosition();
         const worldPos = this.screenToWorld(pointer.x, pointer.y);
