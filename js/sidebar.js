@@ -1,5 +1,5 @@
 // Sidebar UI Manager
-// Handles updating the left and right sidebars
+// Handles updating the left sidebar: resources + building palette
 
 class SidebarManager {
     constructor(resourceManager, rootElement = document) {
@@ -10,136 +10,149 @@ class SidebarManager {
 
     initialize() {
         this.populateBuildingPalette();
+        this.setupSearch();
         log('SidebarManager initialized');
     }
 
-    // Populate building palette with all available buildings organized by category
+    // Build a palette card element for an extractor (no recipe — directly produces a resource)
+    _makeExtractorCard(building) {
+        const outputKey = Object.keys(building.production)[0];
+        const ratePerSec = building.production[outputKey];
+        const resDef = RESOURCES[outputKey];
+
+        const icon = resDef?.icon || building.icon;
+        const name = resDef?.name.toUpperCase() || outputKey.toUpperCase();
+        const rate = formatRatePerMin(ratePerSec);
+
+        const card = document.createElement('div');
+        card.className = 'palette-card';
+        card.draggable = true;
+        card.setAttribute('data-building', building.id);
+        card.setAttribute('data-search-name', name);
+
+        card.innerHTML = `
+            <div class="palette-card-header">
+                <span class="palette-card-name">→ ${icon} ${name}</span>
+                <span class="palette-card-rate">${rate}</span>
+            </div>`;
+
+        return card;
+    }
+
+    // Build a palette card element for a recipe-based building
+    _makeRecipeCard(building, recipe) {
+        const outputKey = Object.keys(recipe.outputs)[0];
+        const outputRate = recipe.outputs[outputKey];
+        const resDef = RESOURCES[outputKey];
+
+        const icon = resDef?.icon || building.icon;
+        const name = resDef?.name.toUpperCase() || outputKey.toUpperCase();
+        const rate = formatRatePerMin(outputRate);
+
+        const inputsHtml = Object.entries(recipe.inputs).map(([resKey, resRate]) => {
+            const inputDef = RESOURCES[resKey];
+            const inputIcon = inputDef?.icon || '';
+            const inputName = inputDef?.name.toUpperCase() || resKey.toUpperCase();
+            return `<div class="palette-input-row">${inputIcon} ${inputName}  |  ${formatRatePerMin(resRate)}</div>`;
+        }).join('');
+
+        const card = document.createElement('div');
+        card.className = 'palette-card';
+        card.draggable = true;
+        card.setAttribute('data-building', building.id);
+        card.setAttribute('data-recipe', recipe.id);
+        card.setAttribute('data-search-name', name);
+
+        card.innerHTML = `
+            <div class="palette-card-header">
+                <span class="palette-card-name">→ ${icon} ${name}</span>
+                <span class="palette-card-rate">${rate}</span>
+            </div>
+            <div class="palette-card-inputs">${inputsHtml}</div>`;
+
+        return card;
+    }
+
     populateBuildingPalette() {
-        const buildingListContainer = this.rootElement.querySelector('#building-list');
-        if (!buildingListContainer) return;
+        const container = this.rootElement.querySelector('#building-list');
+        if (!container) return;
 
-        // Clear existing content
-        buildingListContainer.innerHTML = '';
+        container.innerHTML = '';
 
-        // Iterate through categories
-        Object.entries(BUILDING_CATEGORIES).forEach(([categoryId, category]) => {
-            // Add category header
-            const categoryHeader = document.createElement('h3');
-            categoryHeader.textContent = `${category.icon} ${category.name}`;
-            categoryHeader.style.marginTop = '15px';
-            categoryHeader.style.marginBottom = '10px';
-            buildingListContainer.appendChild(categoryHeader);
+        Object.values(BUILDINGS).forEach(building => {
+            if (!building.unlocked) return;
 
-            // Get buildings in this category
-            const buildings = getBuildingsByCategory(categoryId);
+            if (building.usesRecipes) {
+                const recipes = getRecipesForBuilding(building.id);
+                recipes.forEach(recipe => {
+                    container.appendChild(this._makeRecipeCard(building, recipe));
+                });
+            } else if (Object.keys(building.production || {}).length > 0) {
+                container.appendChild(this._makeExtractorCard(building));
+            }
+        });
+    }
 
-            // Add building items
-            buildings.forEach(building => {
-                const buildingItem = document.createElement('div');
-                buildingItem.className = 'building-item';
-                buildingItem.draggable = true;
-                buildingItem.setAttribute('data-building', building.id);
+    setupSearch() {
+        const input = this.rootElement.querySelector('#palette-search');
+        if (!input) return;
 
-                const buildingName = document.createElement('div');
-                buildingName.className = 'building-name';
-                buildingName.textContent = `${building.icon} ${building.name}`;
-
-                const buildingCost = document.createElement('div');
-                buildingCost.className = 'building-cost';
-                const costText = Object.entries(building.baseCost)
-                    .map(([resource, amount]) => `${amount} ${resource}`)
-                    .join(', ');
-                buildingCost.textContent = `Cost: ${costText}`;
-
-                const buildingDesc = document.createElement('div');
-                buildingDesc.className = 'building-description';
-                buildingDesc.textContent = building.description;
-
-                buildingItem.appendChild(buildingName);
-                buildingItem.appendChild(buildingCost);
-                buildingItem.appendChild(buildingDesc);
-
-                buildingListContainer.appendChild(buildingItem);
+        input.addEventListener('input', () => {
+            const query = input.value.trim().toUpperCase();
+            const cards = this.rootElement.querySelectorAll('.palette-card');
+            cards.forEach(card => {
+                const name = card.getAttribute('data-search-name') || '';
+                card.style.display = (query === '' || name.includes(query)) ? '' : 'none';
             });
         });
     }
 
     // Update left sidebar with current resources
     updateResources() {
-        // Update resource amounts
         Object.entries(this.resourceManager.resources).forEach(([type, data]) => {
-            const amountElement = this.rootElement.querySelector(`#${type}-amount`);
-            if (amountElement) {
-                amountElement.textContent = formatNumber(data.current);
+            const amountEl = this.rootElement.querySelector(`#${type}-amount`);
+            if (amountEl) amountEl.textContent = formatNumber(data.current);
+
+            const capacityEl = this.rootElement.querySelector(`#${type}-capacity`);
+            if (capacityEl) {
+                capacityEl.textContent = data.capacity === Infinity ? '' : ' / ' + formatNumber(data.capacity);
             }
 
-            // Update capacity display (if it exists)
-            const capacityElement = this.rootElement.querySelector(`#${type}-capacity`);
-            if (capacityElement) {
-                if (data.capacity === Infinity) {
-                    capacityElement.textContent = ''; // Hide capacity for unlimited resources
-                } else {
-                    capacityElement.textContent = ' / ' + formatNumber(data.capacity);
-                }
-            }
-
-            // Update production rates
-            const rateElement = this.rootElement.querySelector(`#${type}-rate`);
-            if (rateElement) {
+            const rateEl = this.rootElement.querySelector(`#${type}-rate`);
+            if (rateEl) {
                 const sign = data.production >= 0 ? '+' : '';
-                rateElement.textContent = sign + formatRate(data.production);
+                rateEl.textContent = sign + formatRate(data.production);
             }
         });
     }
 
-    // Update building palette (enable/disable based on affordability)
+    // Enable/disable cards based on affordability
     updateBuildingPalette(buildingCounts) {
-        const buildingItems = this.rootElement.querySelectorAll('.building-item');
+        const cards = this.rootElement.querySelectorAll('.palette-card');
 
-        buildingItems.forEach(item => {
-            const buildingType = item.getAttribute('data-building');
+        cards.forEach(card => {
+            const buildingType = card.getAttribute('data-building');
             const count = buildingCounts[buildingType] || 0;
             const cost = calculateBuildingCost(buildingType, count);
-
-            // Check if can afford
             const canAfford = this.resourceManager.canAfford(cost);
 
-            // Update visual state
-            if (!canAfford) {
-                item.style.opacity = '0.5';
-                item.style.cursor = 'not-allowed';
-            } else {
-                item.style.opacity = '1';
-                item.style.cursor = 'grab';
-            }
-
-            // Update cost display
-            const costElement = item.querySelector('.building-cost');
-            if (costElement) {
-                const costText = Object.entries(cost)
-                    .map(([resource, amount]) => `${formatNumber(amount)} ${resource}`)
-                    .join(', ');
-                costElement.textContent = `Cost: ${costText}`;
-            }
+            card.style.opacity = canAfford ? '1' : '0.4';
+            card.style.cursor = canAfford ? 'grab' : 'not-allowed';
         });
     }
 
     // Setup drag-and-drop for building palette
     setupDragAndDrop(onBuildingDropped) {
-        // Re-query building items (they may have been dynamically added)
-        const buildingItems = this.rootElement.querySelectorAll('.building-item');
-
-        buildingItems.forEach(item => {
-            item.addEventListener('dragstart', (e) => {
-                const buildingType = item.getAttribute('data-building');
-                e.dataTransfer.setData('buildingType', buildingType);
-                e.dataTransfer.effectAllowed = 'copy';
-                log(`Drag started: ${buildingType}`);
-            });
-        });
-
-        // Setup drop zone (canvas container)
         const canvasContainer = this.rootElement.querySelector('#canvas-container');
+        if (!canvasContainer) return;
+
+        this.rootElement.addEventListener('dragstart', (e) => {
+            const card = e.target.closest('.palette-card');
+            if (!card) return;
+            const buildingType = card.getAttribute('data-building');
+            e.dataTransfer.setData('buildingType', buildingType);
+            e.dataTransfer.effectAllowed = 'copy';
+        });
 
         canvasContainer.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -148,19 +161,13 @@ class SidebarManager {
 
         canvasContainer.addEventListener('drop', (e) => {
             e.preventDefault();
-
             const buildingType = e.dataTransfer.getData('buildingType');
             if (!buildingType) return;
 
-            // Get drop position relative to canvas container
             const rect = canvasContainer.getBoundingClientRect();
             const screenX = e.clientX - rect.left;
             const screenY = e.clientY - rect.top;
 
-            log(`Building dropped: ${buildingType} at screen (${screenX}, ${screenY})`);
-
-            // Call callback with screen coordinates
-            // Game will convert to world coordinates using canvas.screenToWorld()
             if (onBuildingDropped) {
                 onBuildingDropped(buildingType, screenX, screenY);
             }

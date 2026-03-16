@@ -34,8 +34,8 @@ class FactoryNode {
         this.group = null;
         this.rect = null;
         this.headerBg = null;
-        this.nameText = null;
-        this.levelText = null;
+        this.headerName = null;  // "→ [icon] OUTPUT NAME"
+        this.headerRate = null;  // "60/MIN" right-aligned
         this.divider = null;
         this.ioShapes = [];
         this.outputPort = null;
@@ -44,24 +44,50 @@ class FactoryNode {
         this.createKonvaShapes();
     }
 
-    calcHeight() {
+    // Returns the primary output info for the header
+    getNodeTitle() {
         const def = this.buildingDef;
-        let rows;
 
         if (def.usesRecipes) {
             if (this.activeRecipe) {
-                rows = Object.keys(this.activeRecipe.outputs).length
-                     + Object.keys(this.activeRecipe.inputs).length;
-            } else {
-                rows = 1; // "NO RECIPE" placeholder row
+                const [resKey, rate] = Object.entries(this.activeRecipe.outputs)[0];
+                const resDef = RESOURCES[resKey];
+                return {
+                    icon: resDef?.icon || '',
+                    name: resDef?.name.toUpperCase() || resKey.toUpperCase(),
+                    ratePerSec: rate
+                };
             }
-        } else {
-            rows = Object.keys(def.production || {}).length
-                 + Object.keys(def.consumption || {}).length;
-            if (rows === 0) rows = 1;
+            return { icon: def.icon, name: def.name.toUpperCase(), ratePerSec: null };
         }
 
-        return HEADER_H + 1 + rows * ROW_H + PAD_B;
+        const outputs = Object.entries(def.production || {});
+        if (outputs.length > 0) {
+            const [resKey, rate] = outputs[0];
+            const resDef = RESOURCES[resKey];
+            return {
+                icon: resDef?.icon || def.icon || '',
+                name: resDef?.name.toUpperCase() || resKey.toUpperCase(),
+                ratePerSec: rate
+            };
+        }
+
+        return { icon: def.icon, name: def.name.toUpperCase(), ratePerSec: null };
+    }
+
+    calcHeight() {
+        const def = this.buildingDef;
+        let inputRows;
+
+        if (def.usesRecipes) {
+            inputRows = this.activeRecipe ? Object.keys(this.activeRecipe.inputs).length : 1;
+        } else {
+            inputRows = Object.keys(def.consumption || {}).length;
+        }
+
+        // No body section for buildings with no inputs (extractors)
+        const bodyHeight = inputRows > 0 ? 1 + inputRows * ROW_H : 0;
+        return HEADER_H + bodyHeight + PAD_B;
     }
 
     createKonvaShapes() {
@@ -94,33 +120,34 @@ class FactoryNode {
             cornerRadius: [4, 4, 0, 0]
         });
 
-        // Building name
-        this.nameText = new Konva.Text({
+        // "→ [icon] NAME" — left side of header
+        this.headerName = new Konva.Text({
             x: 8, y: 8,
-            text: def.name.toUpperCase(),
+            text: '',
             fontSize: 11,
             fontFamily: 'Courier New',
             fill: '#d4a832',
-            width: NODE_W - 40,
+            width: NODE_W - 68,
             fontStyle: 'bold'
         });
 
-        // Level badge
-        this.levelText = new Konva.Text({
-            x: NODE_W - 32, y: 8,
-            text: `L${this.level}`,
+        // "X/MIN" — right side of header
+        this.headerRate = new Konva.Text({
+            x: NODE_W - 62, y: 8,
+            text: '',
             fontSize: 11,
             fontFamily: 'Courier New',
-            fill: '#6a5010',
-            width: 28,
+            fill: '#a07818',
+            width: 58,
             align: 'right'
         });
 
-        // Divider
+        // Divider (hidden for no-input buildings)
         this.divider = new Konva.Line({
             points: [0, HEADER_H, NODE_W, HEADER_H],
             stroke: '#3c2c0c',
-            strokeWidth: 1
+            strokeWidth: 1,
+            visible: false
         });
 
         // Output port (right edge) — drag-from to create connections
@@ -145,7 +172,7 @@ class FactoryNode {
             listening: true
         });
 
-        this.group.add(this.rect, this.headerBg, this.nameText, this.levelText, this.divider, this.outputPort, this.inputPort);
+        this.group.add(this.rect, this.headerBg, this.headerName, this.headerRate, this.divider, this.outputPort, this.inputPort);
 
         this.buildIOShapes();
 
@@ -164,66 +191,61 @@ class FactoryNode {
         this.ioShapes = [];
 
         const def = this.buildingDef;
+        const title = this.getNodeTitle();
+
+        // Update header
+        this.headerName.text(`→ ${title.icon} ${title.name}`);
+        this.headerRate.text(title.ratePerSec ? formatRatePerMin(title.ratePerSec * this.level) : '—');
+
         let y = HEADER_H + 5;
+        let hasInputRows = false;
 
-        const addRow = (prefix, resourceKey, rate, isOutput) => {
-            const prefixShape = new Konva.Text({
+        const addInputRow = (resourceKey, ratePerSec) => {
+            hasInputRows = true;
+            const resDef = RESOURCES[resourceKey];
+            const icon = resDef?.icon || '';
+            const label = resDef?.name.toUpperCase() || resourceKey.toUpperCase();
+            const totalRate = ratePerSec * this.level;
+
+            const row = new Konva.Text({
                 x: 8, y,
-                text: prefix,
-                fontSize: 11,
-                fontFamily: 'Courier New',
-                fill: isOutput ? '#d4a832' : '#a07818'
-            });
-
-            const labelShape = new Konva.Text({
-                x: 20, y,
-                text: getResourceLabel(resourceKey),
+                text: `${icon} ${label}  |  ${formatRatePerMin(totalRate)}`,
                 fontSize: 10,
                 fontFamily: 'Courier New',
                 fill: '#8a6820',
-                width: NODE_W - 80,
+                width: NODE_W - 16,
                 ellipsis: true
             });
 
-            const totalRate = rate * this.level;
-            const rateShape = new Konva.Text({
-                x: NODE_W - 58, y,
-                text: `${formatRate(totalRate)}/M`,
-                fontSize: 10,
-                fontFamily: 'Courier New',
-                fill: isOutput ? '#a07818' : '#6a5010',
-                width: 50,
-                align: 'right'
-            });
-
-            this.ioShapes.push(prefixShape, labelShape, rateShape);
-            this.group.add(prefixShape, labelShape, rateShape);
+            this.ioShapes.push(row);
+            this.group.add(row);
             y += ROW_H;
         };
 
         if (def.usesRecipes) {
             if (this.activeRecipe) {
-                Object.entries(this.activeRecipe.outputs).forEach(([res, rate]) => addRow('+', res, rate, true));
-                Object.entries(this.activeRecipe.inputs).forEach(([res, rate]) => addRow('-', res, rate, false));
+                Object.entries(this.activeRecipe.inputs).forEach(([res, rate]) => addInputRow(res, rate));
             } else {
-                const noRecipe = new Konva.Text({
+                hasInputRows = true;
+                const placeholder = new Konva.Text({
                     x: 8, y,
-                    text: 'NO RECIPE',
+                    text: 'AWAITING INPUT',
                     fontSize: 10,
                     fontFamily: 'Courier New',
                     fill: '#664420',
                     width: NODE_W - 16,
                     align: 'center'
                 });
-                this.ioShapes.push(noRecipe);
-                this.group.add(noRecipe);
+                this.ioShapes.push(placeholder);
+                this.group.add(placeholder);
             }
         } else {
-            Object.entries(def.production || {}).forEach(([res, rate]) => addRow('+', res, rate, true));
-            Object.entries(def.consumption || {}).forEach(([res, rate]) => addRow('-', res, rate, false));
+            Object.entries(def.consumption || {}).forEach(([res, rate]) => addInputRow(res, rate));
         }
 
-        // Resize and reposition ports to match new height
+        this.divider.visible(hasInputRows);
+
+        // Resize and reposition ports
         const h = this.calcHeight();
         this.rect.height(h);
         this.outputPort.y(h / 2);
@@ -247,16 +269,12 @@ class FactoryNode {
     updateDisplay() {
         this.buildIOShapes();
 
-        if (this.levelText) {
-            this.levelText.text(`L${this.level}`);
-        }
-
         if (this.stalled) {
             this.rect.fill('#1a0808');
-            this.nameText.fill('#cc3333');
+            this.headerName.fill('#cc3333');
         } else {
             this.rect.fill(this.buildingDef.color);
-            this.nameText.fill('#d4a832');
+            this.headerName.fill('#d4a832');
         }
 
         this.rect.stroke('#d4a832');

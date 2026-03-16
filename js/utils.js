@@ -10,6 +10,12 @@ function formatNumber(num) {
     return (num / 1000000000000).toFixed(2) + 'T';
 }
 
+// Format rate as per-minute for display
+function formatRatePerMin(ratePerSec) {
+    const perMin = ratePerSec * 60;
+    return (Number.isInteger(perMin) ? perMin : perMin.toFixed(1)) + '/MIN';
+}
+
 // Format production rate for display
 function formatRate(rate) {
     if (rate === 0) return '0.0/s';
