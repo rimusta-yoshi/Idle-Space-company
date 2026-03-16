@@ -5,6 +5,9 @@ const UPGRADE_COST_EXPONENT = 1.5;   // Exponential cost curve for upgrades
 const CAPACITY_UPGRADE_AMOUNT = 1000; // Storage added per capacity upgrade
 const BASE_UPGRADE_COST = 100;        // Base credit cost for first upgrade
 
+// Canvas constants
+const GRID_SNAP = 50;   // Snap grid size (matches visual grid)
+
 
 // Format numbers for display (1234 -> 1.23K)
 function formatNumber(num) {

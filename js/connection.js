@@ -1,6 +1,19 @@
 // Connection Manager
 // Handles connections between factory nodes
 
+// Calculate orthogonal (elbow) routing points between two port positions.
+// Forward (target to the right): single L-bend at the midpoint.
+// Backward (target to the left): U-route that steps outside both nodes.
+function calcElbowPoints(sx, sy, ex, ey) {
+    const STEP = 40; // How far to extend before routing around a node
+    if (ex >= sx) {
+        const midX = (sx + ex) / 2;
+        return [sx, sy, midX, sy, midX, ey, ex, ey];
+    }
+    const midY = (sy + ey) / 2;
+    return [sx, sy, sx + STEP, sy, sx + STEP, midY, ex - STEP, midY, ex - STEP, ey, ex, ey];
+}
+
 class Connection {
     constructor(fromNode, toNode, resourceType) {
         this.id = generateId();
@@ -13,31 +26,33 @@ class Connection {
     }
 
     createKonvaArrow() {
-        // Calculate arrow points from center of fromNode to center of toNode
         const points = this.getArrowPoints();
 
         this.arrow = new Konva.Arrow({
             points: points,
-            stroke: '#00ff00',
-            strokeWidth: 3,
-            fill: '#00ff00',
-            pointerLength: 12,
-            pointerWidth: 12,
-            lineCap: 'round',
-            lineJoin: 'round',
-            opacity: 0.8
+            stroke: '#c49a2a',
+            strokeWidth: 2,
+            fill: '#c49a2a',
+            pointerLength: 8,
+            pointerWidth: 8,
+            lineCap: 'square',
+            lineJoin: 'miter',
+            tension: 0,
+            opacity: 0.9
         });
 
         // Add hover effect
         this.arrow.on('mouseenter', () => {
-            this.arrow.stroke('#ffff00');
-            this.arrow.strokeWidth(4);
+            this.arrow.stroke('#e8c840');
+            this.arrow.fill('#e8c840');
+            this.arrow.strokeWidth(3);
             this.arrow.getLayer()?.draw();
         });
 
         this.arrow.on('mouseleave', () => {
-            this.arrow.stroke('#00ff00');
-            this.arrow.strokeWidth(3);
+            this.arrow.stroke('#c49a2a');
+            this.arrow.fill('#c49a2a');
+            this.arrow.strokeWidth(2);
             this.arrow.getLayer()?.draw();
         });
 
@@ -51,19 +66,18 @@ class Connection {
     }
 
     getArrowPoints() {
-        // Get center of both nodes
-        const fromX = this.fromNode.x + (this.fromNode.buildingDef.width / 2);
-        const fromY = this.fromNode.y + (this.fromNode.buildingDef.height / 2);
-        const toX = this.toNode.x + (this.toNode.buildingDef.width / 2);
-        const toY = this.toNode.y + (this.toNode.buildingDef.height / 2);
-
-        return [fromX, fromY, toX, toY];
+        // Output port: right edge center of fromNode
+        const sx = this.fromNode.x + NODE_W;
+        const sy = this.fromNode.y + this.fromNode.calcHeight() / 2;
+        // Input port: left edge center of toNode
+        const ex = this.toNode.x;
+        const ey = this.toNode.y + this.toNode.calcHeight() / 2;
+        return calcElbowPoints(sx, sy, ex, ey);
     }
 
     // Update arrow position (when nodes are dragged)
     updatePosition() {
-        const points = this.getArrowPoints();
-        this.arrow.points(points);
+        this.arrow.points(this.getArrowPoints());
     }
 
     // Add to Konva layer

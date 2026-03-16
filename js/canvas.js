@@ -296,8 +296,8 @@ class CanvasManager {
         bar.className = 'node-action-bar';
         bar.style.display = 'none';
         bar.innerHTML = `
+            <span class="node-action-label"></span>
             <button class="node-action-btn" data-action="upgrade">UPGRADE</button>
-            <button class="node-action-btn" data-action="info">INFO</button>
             <button class="node-action-btn node-action-btn--danger" data-action="delete">DELETE</button>
         `;
 
@@ -306,7 +306,7 @@ class CanvasManager {
             if (!action || !this.actionBarNode) return;
             e.stopPropagation();
 
-            if (action === 'upgrade' || action === 'info') {
+            if (action === 'upgrade') {
                 document.dispatchEvent(new CustomEvent('openUpgradePanel', {
                     detail: { node: this.actionBarNode }
                 }));
@@ -327,6 +327,8 @@ class CanvasManager {
 
     showActionBar(node) {
         this.actionBarNode = node;
+        const label = this._actionBar.querySelector('.node-action-label');
+        if (label) label.textContent = `${node.buildingDef.name.toUpperCase()}  LVL ${node.level}`;
         this._positionActionBar(node);
         this._actionBar.style.display = 'flex';
     }
@@ -338,7 +340,6 @@ class CanvasManager {
 
     _positionActionBar(node) {
         if (!this._actionBar || !node) return;
-        const def = node.buildingDef;
         const screenPos = this.worldToScreen(node.x, node.y);
         const nodeWidthScreen = NODE_W * this.scale;
 
@@ -364,6 +365,20 @@ class CanvasManager {
             e.cancelBubble = true;
             node.group.draggable(false);
             this.startConnectionDrag(node);
+        });
+
+        // Snap to grid on drag end
+        node.group.on('dragend', () => {
+            const raw = node.group.position();
+            const snapped = {
+                x: Math.round(raw.x / GRID_SNAP) * GRID_SNAP,
+                y: Math.round(raw.y / GRID_SNAP) * GRID_SNAP
+            };
+            node.group.position(snapped);
+            node.x = snapped.x;
+            node.y = snapped.y;
+            document.dispatchEvent(new CustomEvent('nodeDragged', { detail: { nodeId: node.id } }));
+            this.layer.draw();
         });
 
         // Single click — show/toggle action bar
@@ -424,7 +439,7 @@ class CanvasManager {
         const pointer = this.stage.getPointerPosition();
         const worldPos = this.screenToWorld(pointer.x, pointer.y);
 
-        line.points([portWorldX, portWorldY, worldPos.x, worldPos.y]);
+        line.points(calcElbowPoints(portWorldX, portWorldY, worldPos.x, worldPos.y));
         this.layer.batchDraw();
     }
 
