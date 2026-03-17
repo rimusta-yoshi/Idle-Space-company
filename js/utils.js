@@ -8,6 +8,15 @@ const BASE_UPGRADE_COST = 100;        // Base credit cost for first upgrade
 // Canvas constants
 const GRID_SNAP = 50;   // Snap grid size (matches visual grid)
 
+// Offscreen canvas for text measurement (reused to avoid GC pressure)
+const _measureCanvas = document.createElement('canvas');
+const _measureCtx = _measureCanvas.getContext('2d');
+
+function measureTextWidth(text, fontSize, fontFamily, bold = false) {
+    _measureCtx.font = `${bold ? 'bold ' : ''}${fontSize}px ${fontFamily}`;
+    return _measureCtx.measureText(text).width;
+}
+
 
 // Format numbers for display (1234 -> 1.23K)
 function formatNumber(num) {

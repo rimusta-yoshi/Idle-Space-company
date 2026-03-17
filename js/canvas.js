@@ -269,6 +269,10 @@ class CanvasManager {
         document.addEventListener('deleteConnection', (e) => {
             this.deleteConnection(e.detail.connectionId);
         });
+
+        document.addEventListener('recipeChanged', (e) => {
+            this.disconnectAllForNode(e.detail.nodeId);
+        });
     }
 
     screenToWorld(screenX, screenY) {
@@ -297,6 +301,7 @@ class CanvasManager {
         bar.style.display = 'none';
         bar.innerHTML = `
             <span class="node-action-label"></span>
+            <button class="node-action-btn node-action-btn--recipe" data-action="recipe" style="display:none">RECIPE</button>
             <button class="node-action-btn" data-action="upgrade">UPGRADE</button>
             <button class="node-action-btn node-action-btn--danger" data-action="delete">DELETE</button>
         `;
@@ -306,7 +311,11 @@ class CanvasManager {
             if (!action || !this.actionBarNode) return;
             e.stopPropagation();
 
-            if (action === 'upgrade') {
+            if (action === 'recipe') {
+                document.dispatchEvent(new CustomEvent('openRecipePicker', {
+                    detail: { node: this.actionBarNode }
+                }));
+            } else if (action === 'upgrade') {
                 document.dispatchEvent(new CustomEvent('openUpgradePanel', {
                     detail: { node: this.actionBarNode }
                 }));
@@ -329,6 +338,10 @@ class CanvasManager {
         this.actionBarNode = node;
         const label = this._actionBar.querySelector('.node-action-label');
         if (label) label.textContent = `${node.buildingDef.name.toUpperCase()}  LVL ${node.level}`;
+
+        const recipeBtn = this._actionBar.querySelector('[data-action="recipe"]');
+        if (recipeBtn) recipeBtn.style.display = node.buildingDef.usesRecipes ? '' : 'none';
+
         this._positionActionBar(node);
         this._actionBar.style.display = 'flex';
     }
@@ -341,7 +354,7 @@ class CanvasManager {
     _positionActionBar(node) {
         if (!this._actionBar || !node) return;
         const screenPos = this.worldToScreen(node.x, node.y);
-        const nodeWidthScreen = NODE_W * this.scale;
+        const nodeWidthScreen = node.nodeWidth * this.scale;
 
         this._actionBar.style.left = `${screenPos.x + nodeWidthScreen / 2}px`;
         this._actionBar.style.top = `${screenPos.y - 6}px`;
@@ -411,7 +424,7 @@ class CanvasManager {
         fromNode.showPorts();
 
         // Create a temporary guide line
-        const portWorldX = fromNode.x + NODE_W;
+        const portWorldX = fromNode.x + fromNode.nodeWidth;
         const portWorldY = fromNode.y + fromNode.calcHeight() / 2;
 
         const line = new Konva.Line({
@@ -433,7 +446,7 @@ class CanvasManager {
         if (!this.connectDrag) return;
 
         const { fromNode, line } = this.connectDrag;
-        const portWorldX = fromNode.x + NODE_W;
+        const portWorldX = fromNode.x + fromNode.nodeWidth;
         const portWorldY = fromNode.y + fromNode.calcHeight() / 2;
 
         const pointer = this.stage.getPointerPosition();
@@ -533,63 +546,62 @@ class CanvasManager {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
 
-        // Use actual active recipe outputs if known, otherwise all possible outputs
         let producedResources;
         if (fromDef.usesRecipes) {
-            producedResources = fromNode.activeRecipe
-                ? Object.keys(fromNode.activeRecipe.outputs)
-                : getAllRecipeOutputs(fromDef.id);
+            if (!fromNode.assignedRecipe) return false; // Must assign recipe before connecting
+            producedResources = Object.keys(fromNode.assignedRecipe.outputs);
         } else {
-            if (!fromDef.production || Object.keys(fromDef.production).length === 0) {
-                return false;
-            }
+            if (!fromDef.production || Object.keys(fromDef.production).length === 0) return false;
             producedResources = Object.keys(fromDef.production);
         }
 
         if (producedResources.length === 0) return false;
 
+        if (toDef.autoSell) {
+            // Export terminal accepts any non-credits resource
+            return producedResources.some(r => r !== 'credits');
+        }
+
         if (toDef.usesRecipes) {
-            const recipes = getRecipesForBuilding(toDef.id);
-            if (!recipes || recipes.length === 0) return false;
-            return recipes.some(recipe =>
-                producedResources.some(type => Object.keys(recipe.inputs).includes(type))
-            );
+            if (!toNode.assignedRecipe) return false; // Must assign recipe before connecting
+            return producedResources.some(type => Object.keys(toNode.assignedRecipe.inputs).includes(type));
         }
 
         if (!toDef.consumption || Object.keys(toDef.consumption).length === 0) return false;
-
-        const consumedResources = Object.keys(toDef.consumption);
-        return producedResources.some(r => consumedResources.includes(r));
+        return producedResources.some(r => Object.keys(toDef.consumption).includes(r));
     }
 
     getConnectionResourceType(fromNode, toNode) {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
 
-        // Use actual active recipe outputs if known, otherwise all possible outputs
         let producedResources;
         if (fromDef.usesRecipes) {
-            producedResources = fromNode.activeRecipe
-                ? Object.keys(fromNode.activeRecipe.outputs)
-                : getAllRecipeOutputs(fromDef.id);
+            if (!fromNode.assignedRecipe) return null;
+            producedResources = Object.keys(fromNode.assignedRecipe.outputs);
         } else {
             producedResources = Object.keys(fromDef.production || {});
         }
 
+        if (toDef.autoSell) {
+            return producedResources.find(r => r !== 'credits') || null;
+        }
+
         if (toDef.usesRecipes) {
-            const recipes = getRecipesForBuilding(toDef.id);
-            for (const recipe of recipes) {
-                for (const producedType of producedResources) {
-                    if (Object.keys(recipe.inputs).includes(producedType)) {
-                        return producedType;
-                    }
-                }
-            }
-            return null;
+            if (!toNode.assignedRecipe) return null;
+            const inputKeys = Object.keys(toNode.assignedRecipe.inputs);
+            return producedResources.find(r => inputKeys.includes(r)) || null;
         }
 
         const consumedResources = Object.keys(toDef.consumption || {});
         return producedResources.find(r => consumedResources.includes(r)) || null;
+    }
+
+    disconnectAllForNode(nodeId) {
+        const toRemove = this.connections.filter(
+            c => c.fromNode.id === nodeId || c.toNode.id === nodeId
+        );
+        toRemove.forEach(c => this.deleteConnection(c.id));
     }
 
     deleteConnection(connectionId) {

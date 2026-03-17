@@ -18,7 +18,7 @@ const BUILDINGS = {
         width: 160,
         height: 80,
         color: '#0d1510',
-        icon: '⛏️',
+        icon: 'mining',
         unlocked: true
     },
 
@@ -35,7 +35,7 @@ const BUILDINGS = {
         width: 160,
         height: 80,
         color: '#1a1108',
-        icon: '🪨',
+        icon: 'mining',
         unlocked: true
     },
 
@@ -53,7 +53,7 @@ const BUILDINGS = {
         width: 160,
         height: 80,
         color: '#1a0c08',
-        icon: '🔥',
+        icon: 'mode_heat',
         unlocked: true,
         usesRecipes: true
     },
@@ -72,7 +72,7 @@ const BUILDINGS = {
         width: 160,
         height: 80,
         color: '#0a1019',
-        icon: '🔧',
+        icon: 'build',
         unlocked: true,
         usesRecipes: true
     },
@@ -91,7 +91,7 @@ const BUILDINGS = {
         width: 160,
         height: 80,
         color: '#12081a',
-        icon: '🏭',
+        icon: 'precision_manufacturing',
         unlocked: true,
         usesRecipes: true
     },
@@ -110,10 +110,9 @@ const BUILDINGS = {
         width: 160,
         height: 80,
         color: '#141008',
-        icon: '📦',
+        icon: 'outbox',
         unlocked: true,
-        usesRecipes: true,
-        singlePaletteCard: true  // Shows one card in palette, not one per recipe
+        autoSell: true  // Accepts any resource input, sells for credits at 70% market rate
     }
 };
 
@@ -127,14 +126,14 @@ const RECIPES = {
             name: 'Iron Bar',
             inputs: { oreA: 2.0 },      // 2 iron ore per second
             outputs: { barA: 1.0 },     // 1 iron bar per second
-            icon: '🔩'
+            icon: 'view_timeline'
         },
         {
             id: 'copper_bar',
             name: 'Copper Bar',
             inputs: { oreB: 2.0 },      // 2 copper ore per second
             outputs: { barB: 1.0 },     // 1 copper bar per second
-            icon: '🟫'
+            icon: 'view_timeline'
         }
     ],
 
@@ -145,89 +144,21 @@ const RECIPES = {
             name: 'Steel Plate',
             inputs: { barA: 2.0 },      // 2 iron bars per second
             outputs: { componentA: 1.0 },  // 1 steel plate per second
-            icon: '⬜'
+            icon: 'layers'
         },
         {
             id: 'wire',
             name: 'Wire',
             inputs: { barB: 1.0 },      // 1 copper bar per second
             outputs: { componentB: 2.0 },  // 2 wire per second (efficient!)
-            icon: '〰️'
+            icon: 'cable'
         },
         {
             id: 'circuit',
             name: 'Circuit',
             inputs: { barA: 1.0, barB: 1.0 },  // 1 iron + 1 copper bar per second
             outputs: { componentC: 1.0 },       // 1 circuit per second
-            icon: '💾'
-        }
-    ],
-
-    // EXPORT TERMINAL RECIPES (Commerce)
-    // Each recipe consumes 1 unit/s and produces credits at 70% of manual sell price
-    exportTerminal: [
-        {
-            id: 'export_oreA',
-            name: 'Export Iron Ore',
-            inputs: { oreA: 1.0 },
-            outputs: { credits: 0.35 },  // 0.5 * 0.70
-            icon: '📦'
-        },
-        {
-            id: 'export_oreB',
-            name: 'Export Copper Ore',
-            inputs: { oreB: 1.0 },
-            outputs: { credits: 0.56 },  // 0.8 * 0.70
-            icon: '📦'
-        },
-        {
-            id: 'export_barA',
-            name: 'Export Iron Bar',
-            inputs: { barA: 1.0 },
-            outputs: { credits: 1.4 },   // 2.0 * 0.70
-            icon: '📦'
-        },
-        {
-            id: 'export_barB',
-            name: 'Export Copper Bar',
-            inputs: { barB: 1.0 },
-            outputs: { credits: 2.1 },   // 3.0 * 0.70
-            icon: '📦'
-        },
-        {
-            id: 'export_componentA',
-            name: 'Export Steel Plate',
-            inputs: { componentA: 1.0 },
-            outputs: { credits: 7.0 },   // 10.0 * 0.70
-            icon: '📦'
-        },
-        {
-            id: 'export_componentB',
-            name: 'Export Wire',
-            inputs: { componentB: 1.0 },
-            outputs: { credits: 5.6 },   // 8.0 * 0.70
-            icon: '📦'
-        },
-        {
-            id: 'export_componentC',
-            name: 'Export Circuit',
-            inputs: { componentC: 1.0 },
-            outputs: { credits: 14.0 },  // 20.0 * 0.70
-            icon: '📦'
-        },
-        {
-            id: 'export_productA',
-            name: 'Export Engine',
-            inputs: { productA: 1.0 },
-            outputs: { credits: 56.0 },  // 80.0 * 0.70
-            icon: '📦'
-        },
-        {
-            id: 'export_productB',
-            name: 'Export Computer',
-            inputs: { productB: 1.0 },
-            outputs: { credits: 70.0 },  // 100.0 * 0.70
-            icon: '📦'
+            icon: 'memory'
         }
     ],
 
@@ -238,14 +169,14 @@ const RECIPES = {
             name: 'Engine',
             inputs: { componentA: 2.0, componentB: 1.0 },  // 2 steel plates + 1 wire per second
             outputs: { productA: 1.0 },                     // 1 engine per second
-            icon: '⚙️'
+            icon: 'settings'
         },
         {
             id: 'computer',
             name: 'Computer',
             inputs: { componentC: 1.0, componentB: 2.0 },  // 1 circuit + 2 wire per second
             outputs: { productB: 1.0 },                     // 1 computer per second
-            icon: '💻'
+            icon: 'computer'
         }
     ]
 };
@@ -255,31 +186,31 @@ const BUILDING_CATEGORIES = {
     extractors: {
         name: 'Extractors',
         description: 'Extract raw ores from the planet',
-        icon: '⛏️',
+        icon: 'mining',
         tier: 1
     },
     smelters: {
         name: 'Smelters',
         description: 'Smelt ores into refined bars',
-        icon: '🔥',
+        icon: 'mode_heat',
         tier: 2
     },
     assemblers: {
         name: 'Assemblers',
         description: 'Assemble components from bars',
-        icon: '🔧',
+        icon: 'build',
         tier: 3
     },
     manufacturers: {
         name: 'Manufacturers',
         description: 'Manufacture advanced products',
-        icon: '🏭',
+        icon: 'precision_manufacturing',
         tier: 4
     },
     commerce: {
         name: 'Commerce',
         description: 'Sell resources for credits',
-        icon: '📦',
+        icon: 'outbox',
         tier: 2
     }
 };

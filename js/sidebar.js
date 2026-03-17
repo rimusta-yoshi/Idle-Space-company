@@ -14,68 +14,11 @@ class SidebarManager {
         log('SidebarManager initialized');
     }
 
-    // Build a palette card element for an extractor (no recipe — directly produces a resource)
-    _makeExtractorCard(building) {
-        const outputKey = Object.keys(building.production)[0];
-        const ratePerSec = building.production[outputKey];
-        const resDef = RESOURCES[outputKey];
+    // Build a palette card for a building type (one card per building, regardless of recipes)
+    _makeBuildingCard(building) {
+        const recipeCount = building.usesRecipes ? getRecipesForBuilding(building.id).length : 0;
+        const subtitle = recipeCount > 0 ? `${recipeCount} RECIPES` : building.autoSell ? 'AUTO SELL' : 'FIXED OUTPUT';
 
-        const icon = resDef?.icon || building.icon;
-        const name = resDef?.name.toUpperCase() || outputKey.toUpperCase();
-        const rate = formatRatePerMin(ratePerSec);
-
-        const card = document.createElement('div');
-        card.className = 'palette-card';
-        card.draggable = true;
-        card.setAttribute('data-building', building.id);
-        card.setAttribute('data-search-name', name);
-
-        card.innerHTML = `
-            <div class="palette-card-header">
-                <span class="palette-card-name">→ ${icon} ${name}</span>
-                <span class="palette-card-rate">${rate}</span>
-            </div>`;
-
-        return card;
-    }
-
-    // Build a palette card element for a recipe-based building
-    _makeRecipeCard(building, recipe) {
-        const outputKey = Object.keys(recipe.outputs)[0];
-        const outputRate = recipe.outputs[outputKey];
-        const resDef = RESOURCES[outputKey];
-
-        const icon = resDef?.icon || building.icon;
-        const name = resDef?.name.toUpperCase() || outputKey.toUpperCase();
-        const rate = formatRatePerMin(outputRate);
-
-        const inputsHtml = Object.entries(recipe.inputs).map(([resKey, resRate]) => {
-            const inputDef = RESOURCES[resKey];
-            const inputIcon = inputDef?.icon || '';
-            const inputName = inputDef?.name.toUpperCase() || resKey.toUpperCase();
-            return `<div class="palette-input-row">${inputIcon} ${inputName}  |  ${formatRatePerMin(resRate)}</div>`;
-        }).join('');
-
-        const card = document.createElement('div');
-        card.className = 'palette-card';
-        card.draggable = true;
-        card.setAttribute('data-building', building.id);
-        card.setAttribute('data-recipe', recipe.id);
-        card.setAttribute('data-search-name', name);
-
-        card.innerHTML = `
-            <div class="palette-card-header">
-                <span class="palette-card-name">→ ${icon} ${name}</span>
-                <span class="palette-card-rate">${rate}</span>
-            </div>
-            <div class="palette-card-inputs">${inputsHtml}</div>`;
-
-        return card;
-    }
-
-    // Build a single generic card for buildings like Export Terminal
-    // that accept any connected resource (no per-recipe split needed in palette)
-    _makeSingleCard(building) {
         const card = document.createElement('div');
         card.className = 'palette-card';
         card.draggable = true;
@@ -84,12 +27,10 @@ class SidebarManager {
 
         card.innerHTML = `
             <div class="palette-card-header">
-                <span class="palette-card-name">→ ${building.icon} ${building.name.toUpperCase()}</span>
-                <span class="palette-card-rate">AUTO</span>
+                <span class="palette-card-name"><span class="material-symbols-outlined palette-icon">${building.icon}</span>${building.name.toUpperCase()}</span>
+                <span class="palette-card-type">${subtitle}</span>
             </div>
-            <div class="palette-card-inputs">
-                <div class="palette-input-row">connects any resource</div>
-            </div>`;
+            <div class="palette-card-cost" data-cost=""></div>`;
 
         return card;
     }
@@ -102,17 +43,7 @@ class SidebarManager {
 
         Object.values(BUILDINGS).forEach(building => {
             if (!building.unlocked) return;
-
-            if (building.singlePaletteCard) {
-                container.appendChild(this._makeSingleCard(building));
-            } else if (building.usesRecipes) {
-                const recipes = getRecipesForBuilding(building.id);
-                recipes.forEach(recipe => {
-                    container.appendChild(this._makeRecipeCard(building, recipe));
-                });
-            } else if (Object.keys(building.production || {}).length > 0) {
-                container.appendChild(this._makeExtractorCard(building));
-            }
+            container.appendChild(this._makeBuildingCard(building));
         });
     }
 
@@ -130,26 +61,24 @@ class SidebarManager {
         });
     }
 
-    // Update left sidebar with current resources
+    // Update credits balance and P&L rate in the sidebar
     updateResources() {
-        Object.entries(this.resourceManager.resources).forEach(([type, data]) => {
-            const amountEl = this.rootElement.querySelector(`#${type}-amount`);
-            if (amountEl) amountEl.textContent = formatNumber(data.current);
+        const credits = this.resourceManager.resources['credits'];
+        if (!credits) return;
 
-            const capacityEl = this.rootElement.querySelector(`#${type}-capacity`);
-            if (capacityEl) {
-                capacityEl.textContent = data.capacity === Infinity ? '' : ' / ' + formatNumber(data.capacity);
-            }
+        const balanceEl = this.rootElement.querySelector('#credits-amount');
+        if (balanceEl) balanceEl.textContent = formatNumber(credits.current);
 
-            const rateEl = this.rootElement.querySelector(`#${type}-rate`);
-            if (rateEl) {
-                const sign = data.production >= 0 ? '+' : '';
-                rateEl.textContent = sign + formatRate(data.production);
-            }
-        });
+        const pnlEl = this.rootElement.querySelector('#credits-pnl');
+        if (pnlEl) {
+            const ratePerMin = credits.production * 60;
+            const sign = ratePerMin >= 0 ? '+' : '';
+            pnlEl.textContent = `${sign}${formatNumber(Math.abs(ratePerMin))}/MIN`;
+            pnlEl.className = 'credits-pnl ' + (ratePerMin > 0 ? 'positive' : ratePerMin < 0 ? 'negative' : 'neutral');
+        }
     }
 
-    // Enable/disable cards based on affordability
+    // Enable/disable cards and update cost display based on affordability + buildingCounts
     updateBuildingPalette(buildingCounts) {
         const cards = this.rootElement.querySelectorAll('.palette-card');
 
@@ -161,6 +90,15 @@ class SidebarManager {
 
             card.style.opacity = canAfford ? '1' : '0.4';
             card.style.cursor = canAfford ? 'grab' : 'not-allowed';
+
+            // Update cost label
+            const costEl = card.querySelector('.palette-card-cost');
+            if (costEl && cost) {
+                costEl.textContent = Object.entries(cost)
+                    .map(([res, amt]) => `${formatNumber(amt)} ${res.toUpperCase()}`)
+                    .join(' + ');
+                costEl.style.color = canAfford ? '#6a5a30' : '#663030';
+            }
         });
     }
 
@@ -173,9 +111,7 @@ class SidebarManager {
             const card = e.target.closest('.palette-card');
             if (!card) return;
             const buildingType = card.getAttribute('data-building');
-            const recipeId = card.getAttribute('data-recipe') || '';
             e.dataTransfer.setData('buildingType', buildingType);
-            e.dataTransfer.setData('recipeId', recipeId);
             e.dataTransfer.effectAllowed = 'copy';
         });
 
@@ -189,13 +125,12 @@ class SidebarManager {
             const buildingType = e.dataTransfer.getData('buildingType');
             if (!buildingType) return;
 
-            const recipeId = e.dataTransfer.getData('recipeId') || null;
             const rect = canvasContainer.getBoundingClientRect();
             const screenX = e.clientX - rect.left;
             const screenY = e.clientY - rect.top;
 
             if (onBuildingDropped) {
-                onBuildingDropped(buildingType, screenX, screenY, recipeId);
+                onBuildingDropped(buildingType, screenX, screenY);
             }
         });
     }

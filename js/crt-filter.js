@@ -59,7 +59,7 @@ const CRTFilter = (function () {
 
     function isEnabled() {
         const stored = localStorage.getItem(STORAGE_KEY);
-        return stored === null ? true : stored === 'true';
+        return stored === null ? false : stored === 'true';
     }
 
     function apply() {

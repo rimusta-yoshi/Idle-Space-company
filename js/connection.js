@@ -67,7 +67,7 @@ class Connection {
 
     getArrowPoints() {
         // Output port: right edge center of fromNode
-        const sx = this.fromNode.x + NODE_W;
+        const sx = this.fromNode.x + this.fromNode.nodeWidth;
         const sy = this.fromNode.y + this.fromNode.calcHeight() / 2;
         // Input port: left edge center of toNode
         const ex = this.toNode.x;

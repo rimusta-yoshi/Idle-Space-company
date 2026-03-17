@@ -144,64 +144,21 @@
 
             <!-- Main 2-Panel Layout -->
             <div class="main-layout">
-                <!-- Left Sidebar: Production Info & Build Palette -->
+                <!-- Left Sidebar: Credits widget + Build Palette -->
                 <aside id="resources-sidebar" class="sidebar left-sidebar">
-                    <h2>CREDITS</h2>
-                    <div id="credits-info">
-                        <div class="resource-item">
-                            <span class="resource-name">Balance:</span>
-                            <span id="credits-amount" class="resource-amount">100</span>
+                    <!-- Compact credits panel -->
+                    <div id="credits-panel">
+                        <div class="credits-balance-row">
+                            <span class="material-symbols-outlined credits-icon">paid</span>
+                            <span id="credits-amount" class="credits-amount">100</span>
+                        </div>
+                        <div class="credits-pnl-row">
+                            <span id="credits-pnl" class="credits-pnl neutral">+0/MIN</span>
                         </div>
                     </div>
 
-                    <h3>PRODUCTION RATES</h3>
-                    <div id="production-rates">
-                        <!-- Tier 1 - Raw Ores -->
-                        <div class="production-item">
-                            <span class="resource-name">⛏️ Iron Ore:</span>
-                            <span id="oreA-rate" class="production-rate">+0.0/s</span>
-                        </div>
-                        <div class="production-item">
-                            <span class="resource-name">🪨 Copper Ore:</span>
-                            <span id="oreB-rate" class="production-rate">+0.0/s</span>
-                        </div>
-
-                        <!-- Tier 2 - Bars -->
-                        <div class="production-item">
-                            <span class="resource-name">🔩 Iron Bar:</span>
-                            <span id="barA-rate" class="production-rate">+0.0/s</span>
-                        </div>
-                        <div class="production-item">
-                            <span class="resource-name">🟫 Copper Bar:</span>
-                            <span id="barB-rate" class="production-rate">+0.0/s</span>
-                        </div>
-
-                        <!-- Tier 3 - Components -->
-                        <div class="production-item">
-                            <span class="resource-name">⬜ Steel Plate:</span>
-                            <span id="componentA-rate" class="production-rate">+0.0/s</span>
-                        </div>
-                        <div class="production-item">
-                            <span class="resource-name">〰️ Wire:</span>
-                            <span id="componentB-rate" class="production-rate">+0.0/s</span>
-                        </div>
-                        <div class="production-item">
-                            <span class="resource-name">💾 Circuit:</span>
-                            <span id="componentC-rate" class="production-rate">+0.0/s</span>
-                        </div>
-
-                        <!-- Tier 4 - Advanced Products -->
-                        <div class="production-item">
-                            <span class="resource-name">⚙️ Engine:</span>
-                            <span id="productA-rate" class="production-rate">+0.0/s</span>
-                        </div>
-                        <div class="production-item">
-                            <span class="resource-name">💻 Computer:</span>
-                            <span id="productB-rate" class="production-rate">+0.0/s</span>
-                        </div>
-                    </div>
-
-                    <h2 class="section-header">BUILD</h2>
+                    <!-- Build palette -->
+                    <div class="palette-section-header">BUILD</div>
                     <input type="text" id="palette-search" class="palette-search" placeholder="SEARCH..." autocomplete="off" spellcheck="false" />
                     <div id="building-list">
                         <!-- Will be dynamically populated by sidebar.js -->
@@ -616,6 +573,9 @@
         </defs>
     </svg>
 
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0" />
+
     <!-- Load JavaScript files -->
     <script src="js/crt-filter.js"></script>
     <script src="js/utils.js"></script>
@@ -625,6 +585,7 @@
     <script src="js/resources.js"></script>
     <script src="js/node.js"></script>
     <script src="js/connection.js"></script>
+    <script src="js/recipe-picker.js"></script>
     <script src="js/canvas.js"></script>
     <script src="js/sidebar.js"></script>
     <script src="js/upgrades.js"></script>

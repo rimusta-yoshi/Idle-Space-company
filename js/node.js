@@ -1,10 +1,11 @@
 // Factory Node
 // Represents a building placed on the canvas
 
-const NODE_W = 160;
-const HEADER_H = 28;
-const ROW_H = 20;
+const MIN_NODE_W = 150;  // Minimum node width — actual width hugs content
+const HEADER_H = 32;
+const ROW_H = 22;
 const PAD_B = 8;
+const MS_ICON_W = 22;    // Horizontal space reserved for a Material Symbol icon
 
 function getResourceLabel(key) {
     const def = RESOURCES[key];
@@ -27,15 +28,20 @@ class FactoryNode {
         this.inputs = [];
         this.outputs = [];
         this.stalled = false;
-        this.activeRecipe = null;   // Set by game loop from connections
-        this.hintRecipe = null;     // Set at placement time for display-only preview
+        this.efficiency = 1.0;         // Derived each tick — fraction of max capacity (0–1)
+        this.actualOutputRate = {};    // Derived each tick — {resource: rate/s}
+        this.activeRecipe = null;      // Derived each tick — connections validate assignedRecipe
+        this.assignedRecipe = null;    // Persisted user-set recipe for usesRecipes buildings
+        this.autoSellResource = null;  // Derived each tick — resource being sold by autoSell buildings
         this.isDraggingConnection = false;
+        this.nodeWidth = MIN_NODE_W;   // Calculated dynamically in buildIOShapes
 
         // Konva shapes
         this.group = null;
         this.rect = null;
         this.headerBg = null;
-        this.headerName = null;  // "→ [icon] OUTPUT NAME"
+        this.headerIcon = null;  // Material Symbol icon (transition_push)
+        this.headerName = null;  // Output resource name
         this.headerRate = null;  // "60/MIN" right-aligned
         this.divider = null;
         this.ioShapes = [];
@@ -49,8 +55,14 @@ class FactoryNode {
     getNodeTitle() {
         const def = this.buildingDef;
 
+        if (def.autoSell) {
+            const resDef = RESOURCES[this.autoSellResource];
+            const sellRate = resDef ? resDef.sellPrice * 0.70 : null;
+            return { icon: 'paid', name: 'CREDITS', ratePerSec: sellRate };
+        }
+
         if (def.usesRecipes) {
-            const recipe = this.activeRecipe || this.hintRecipe;
+            const recipe = this.activeRecipe || this.assignedRecipe;
             if (recipe) {
                 const [resKey, rate] = Object.entries(recipe.outputs)[0];
                 const resDef = RESOURCES[resKey];
@@ -60,7 +72,7 @@ class FactoryNode {
                     ratePerSec: rate
                 };
             }
-            return { icon: def.icon, name: def.name.toUpperCase(), ratePerSec: null };
+            return { icon: def.icon, name: 'SET RECIPE', ratePerSec: null };
         }
 
         const outputs = Object.entries(def.production || {});
@@ -81,9 +93,11 @@ class FactoryNode {
         const def = this.buildingDef;
         let inputRows;
 
-        if (def.usesRecipes) {
-            const recipe = this.activeRecipe || this.hintRecipe;
-            inputRows = recipe ? Object.keys(recipe.inputs).length : 1;
+        if (def.autoSell) {
+            inputRows = this.autoSellResource ? 1 : 0;
+        } else if (def.usesRecipes) {
+            const recipe = this.activeRecipe || this.assignedRecipe;
+            inputRows = recipe ? Object.keys(recipe.inputs).length : 0;
         } else {
             inputRows = Object.keys(def.consumption || {}).length;
         }
@@ -93,9 +107,57 @@ class FactoryNode {
         return HEADER_H + bodyHeight + PAD_B;
     }
 
+    calcWidth() {
+        const title = this.getNodeTitle();
+        const rateStr = title.ratePerSec ? formatRatePerMin(title.ratePerSec * this.level) : '—';
+
+        // Header: [8px pad] [MS icon 22px] [name VT323 15px] ... [rate VT323 15px] [8px pad]
+        const nameW = measureTextWidth(title.name, 15, 'VT323');
+        const rateW = measureTextWidth(rateStr, 15, 'VT323');
+        const headerW = 8 + MS_ICON_W + nameW + 14 + rateW + 10;
+
+        // Input rows: [8px pad] [MS icon 22px] [label VT323 13px] [8px pad]
+        const def = this.buildingDef;
+        const recipe = this.activeRecipe || this.assignedRecipe;
+        const inputs = recipe ? recipe.inputs : (def.usesRecipes ? {} : (def.consumption || {}));
+
+        let maxRowW = 0;
+        Object.entries(inputs).forEach(([resKey, resRate]) => {
+            const resDef = RESOURCES[resKey];
+            const label = resDef?.name.toUpperCase() || resKey.toUpperCase();
+            const rowText = `${label}  |  ${formatRatePerMin(resRate * this.level)}`;
+            const rowW = 8 + MS_ICON_W + measureTextWidth(rowText, 13, 'VT323') + 10;
+            maxRowW = Math.max(maxRowW, rowW);
+        });
+
+        return Math.max(MIN_NODE_W, Math.ceil(Math.max(headerW, maxRowW)));
+    }
+
+    // Returns the output resource colour for tier stripe and status accents
+    _getOutputColor() {
+        const def = this.buildingDef;
+
+        if (def.autoSell) {
+            return RESOURCES['credits']?.color || '#e8c840';
+        }
+
+        const recipe = this.activeRecipe || this.assignedRecipe;
+
+        if (def.usesRecipes) {
+            if (!recipe) return '#2a2010';
+            const outputKey = Object.keys(recipe.outputs)[0];
+            return RESOURCES[outputKey]?.color || '#d4a832';
+        }
+
+        const outputKey = Object.keys(def.production || {})[0];
+        return outputKey ? (RESOURCES[outputKey]?.color || '#d4a832') : '#d4a832';
+    }
+
     createKonvaShapes() {
         const def = this.buildingDef;
+        this.nodeWidth = this.calcWidth();
         const h = this.calcHeight();
+        const w = this.nodeWidth;
 
         this.group = new Konva.Group({
             x: this.x,
@@ -108,54 +170,74 @@ class FactoryNode {
         // Background
         this.rect = new Konva.Rect({
             x: 0, y: 0,
-            width: NODE_W, height: h,
+            width: w, height: h,
             fill: def.color,
             stroke: '#d4a832',
             strokeWidth: 1.5,
             cornerRadius: 4
         });
 
-        // Header background tint
+        // Left tier stripe — coloured by output resource
+        this.tierStripe = new Konva.Rect({
+            x: 0, y: 0,
+            width: 3, height: h,
+            fill: this._getOutputColor(),
+            cornerRadius: [4, 0, 0, 4]
+        });
+
+        // Header background — dark overlay for clear separation
         this.headerBg = new Konva.Rect({
             x: 0, y: 0,
-            width: NODE_W, height: HEADER_H,
-            fill: 'rgba(212, 168, 50, 0.07)',
+            width: w, height: HEADER_H,
+            fill: 'rgba(0, 0, 0, 0.22)',
             cornerRadius: [4, 4, 0, 0]
         });
 
-        // "→ [icon] NAME" — left side of header
+        // Output direction indicator (Material Symbol)
+        this.headerIcon = new Konva.Text({
+            x: 8, y: 7,
+            text: 'transition_push',
+            fontSize: 16,
+            fontFamily: 'Material Symbols Outlined',
+            fill: '#c49a2a'
+        });
+
+        // Resource/building name — VT323 for the retro feel
         this.headerName = new Konva.Text({
-            x: 8, y: 8,
+            x: 8 + MS_ICON_W, y: 8,
             text: '',
-            fontSize: 11,
-            fontFamily: 'Courier New',
-            fill: '#d4a832',
-            width: NODE_W - 68,
-            fontStyle: 'bold'
+            fontSize: 15,
+            fontFamily: 'VT323, Courier New',
+            fill: '#e8d5b0'
         });
 
-        // "X/MIN" — right side of header
+        // Rate — right-aligned, positioned dynamically in buildIOShapes
         this.headerRate = new Konva.Text({
-            x: NODE_W - 62, y: 8,
+            x: w - 50, y: 8,
             text: '',
-            fontSize: 11,
-            fontFamily: 'Courier New',
-            fill: '#a07818',
-            width: 58,
-            align: 'right'
+            fontSize: 15,
+            fontFamily: 'VT323, Courier New',
+            fill: '#c49a2a'
         });
 
-        // Divider (hidden for no-input buildings)
+        // Status pip — top-right corner, shows production state
+        this.statusPip = new Konva.Circle({
+            x: w - 9, y: HEADER_H / 2,
+            radius: 4,
+            fill: '#2a2010'
+        });
+
+        // Divider line between header and body
         this.divider = new Konva.Line({
-            points: [0, HEADER_H, NODE_W, HEADER_H],
-            stroke: '#3c2c0c',
+            points: [0, HEADER_H, w, HEADER_H],
+            stroke: '#2a1c08',
             strokeWidth: 1,
             visible: false
         });
 
-        // Output port (right edge) — drag-from to create connections
+        // Output port (right edge)
         this.outputPort = new Konva.Circle({
-            x: NODE_W, y: h / 2,
+            x: w, y: h / 2,
             radius: 7,
             fill: '#07060a',
             stroke: '#d4a832',
@@ -164,7 +246,7 @@ class FactoryNode {
             listening: true
         });
 
-        // Input port (left edge) — drop target
+        // Input port (left edge)
         this.inputPort = new Konva.Circle({
             x: 0, y: h / 2,
             radius: 7,
@@ -175,7 +257,12 @@ class FactoryNode {
             listening: true
         });
 
-        this.group.add(this.rect, this.headerBg, this.headerName, this.headerRate, this.divider, this.outputPort, this.inputPort);
+        this.group.add(
+            this.rect, this.tierStripe, this.headerBg,
+            this.headerIcon, this.headerName, this.headerRate,
+            this.statusPip, this.divider,
+            this.outputPort, this.inputPort
+        );
 
         this.buildIOShapes();
 
@@ -195,65 +282,85 @@ class FactoryNode {
 
         const def = this.buildingDef;
         const title = this.getNodeTitle();
+        // Show actual throughput (max × efficiency), not theoretical max
+        const eff = this.efficiency ?? 1.0;
+        const rateStr = (title.ratePerSec && eff > 0.001)
+            ? formatRatePerMin(title.ratePerSec * this.level * eff)
+            : '—';
 
-        // Update header
-        this.headerName.text(`→ ${title.icon} ${title.name}`);
-        this.headerRate.text(title.ratePerSec ? formatRatePerMin(title.ratePerSec * this.level) : '—');
+        // Recalculate dimensions
+        const w = this.calcWidth();
+        const h = this.calcHeight();
+        this.nodeWidth = w;
 
-        let y = HEADER_H + 5;
+        // Update header texts and icon
+        this.headerIcon.text(title.icon || 'category');
+        this.headerName.text(title.name);
+        this.headerRate.text(rateStr);
+
+        // Right-align the rate (leave gap for status pip)
+        const rateW = measureTextWidth(rateStr, 15, 'VT323');
+        this.headerRate.x(w - rateW - 18);
+
+        let y = HEADER_H + 4;
         let hasInputRows = false;
 
         const addInputRow = (resourceKey, ratePerSec) => {
             hasInputRows = true;
             const resDef = RESOURCES[resourceKey];
-            const icon = resDef?.icon || '';
             const label = resDef?.name.toUpperCase() || resourceKey.toUpperCase();
             const totalRate = ratePerSec * this.level;
 
-            const row = new Konva.Text({
-                x: 8, y,
-                text: `${icon} ${label}  |  ${formatRatePerMin(totalRate)}`,
-                fontSize: 10,
-                fontFamily: 'Courier New',
-                fill: '#8a6820',
-                width: NODE_W - 16,
-                ellipsis: true
+            // MS icon for the input resource
+            const rowIcon = new Konva.Text({
+                x: 8, y: y + 2,
+                text: resDef?.icon || 'output',
+                fontSize: 14,
+                fontFamily: 'Material Symbols Outlined',
+                fill: '#8a6b1a'
             });
 
-            this.ioShapes.push(row);
-            this.group.add(row);
+            const rowLabel = new Konva.Text({
+                x: 8 + MS_ICON_W, y: y + 1,
+                text: `${label}  |  ${formatRatePerMin(totalRate)}`,
+                fontSize: 13,
+                fontFamily: 'VT323, Courier New',
+                fill: '#9a8b72'
+            });
+
+            this.ioShapes.push(rowIcon, rowLabel);
+            this.group.add(rowIcon, rowLabel);
             y += ROW_H;
         };
 
-        if (def.usesRecipes) {
-            const recipe = this.activeRecipe || this.hintRecipe;
+        if (def.autoSell) {
+            if (this.autoSellResource) {
+                addInputRow(this.autoSellResource, 1.0);
+            }
+        } else if (def.usesRecipes) {
+            const recipe = this.activeRecipe || this.assignedRecipe;
             if (recipe) {
                 Object.entries(recipe.inputs).forEach(([res, rate]) => addInputRow(res, rate));
-            } else {
-                hasInputRows = true;
-                const placeholder = new Konva.Text({
-                    x: 8, y,
-                    text: 'AWAITING INPUT',
-                    fontSize: 10,
-                    fontFamily: 'Courier New',
-                    fill: '#664420',
-                    width: NODE_W - 16,
-                    align: 'center'
-                });
-                this.ioShapes.push(placeholder);
-                this.group.add(placeholder);
             }
+            // No recipe: compact header-only node — user selects via action bar RECIPE button
         } else {
             Object.entries(def.consumption || {}).forEach(([res, rate]) => addInputRow(res, rate));
         }
 
         this.divider.visible(hasInputRows);
 
-        // Resize and reposition ports
-        const h = this.calcHeight();
+        // Resize all width-dependent shapes
+        this.rect.width(w);
         this.rect.height(h);
+        this.headerBg.width(w);
+        this.divider.points([0, HEADER_H, w, HEADER_H]);
+        this.outputPort.x(w);
         this.outputPort.y(h / 2);
         this.inputPort.y(h / 2);
+        this.tierStripe.height(h);
+        this.tierStripe.fill(this._getOutputColor());
+        this.statusPip.x(w - 9);
+
         this.group.getLayer()?.batchDraw();
     }
 
@@ -273,16 +380,43 @@ class FactoryNode {
     updateDisplay() {
         this.buildIOShapes();
 
-        if (this.stalled) {
+        const def = this.buildingDef;
+
+        const eff = this.efficiency ?? 1.0;
+
+        if (eff < 0.01) {
+            // No throughput — missing connections, no recipe, or zero supply
             this.rect.fill('#1a0808');
+            this.rect.stroke('#663030');
             this.headerName.fill('#cc3333');
+            this.statusPip.fill('#cc3333');
+        } else if (def.usesRecipes && !this.activeRecipe) {
+            // Recipe assigned but connections not established — waiting
+            this.rect.fill(def.color);
+            this.rect.stroke('#c49a2a');
+            this.headerName.fill('#e8d5b0');
+            this.statusPip.fill(this.assignedRecipe ? '#c49a2a' : '#2a2010');
+        } else if (eff < 0.999) {
+            // Partial throughput — supply-constrained, still producing
+            this.rect.fill(def.color);
+            this.rect.stroke('#a07818');
+            this.headerName.fill('#e8d5b0');
+            this.statusPip.fill('#c8a020'); // amber
         } else {
-            this.rect.fill(this.buildingDef.color);
-            this.headerName.fill('#d4a832');
+            // Full throughput
+            this.rect.fill(def.color);
+            this.rect.stroke('#c49a2a');
+            this.headerName.fill('#e8d5b0');
+            this.statusPip.fill('#4a8a4a'); // green
         }
 
-        this.rect.stroke('#d4a832');
         this.rect.strokeWidth(1.5);
+    }
+
+    setRecipe(recipe) {
+        this.assignedRecipe = recipe;
+        document.dispatchEvent(new CustomEvent('recipeChanged', { detail: { nodeId: this.id } }));
+        this.updateDisplay();
     }
 
     upgradeLevel() {
@@ -291,7 +425,7 @@ class FactoryNode {
     }
 
     getCenterX() {
-        return this.x + NODE_W / 2;
+        return this.x + this.nodeWidth / 2;
     }
 
     getCenterY() {
@@ -316,7 +450,8 @@ class FactoryNode {
             y: this.y,
             level: this.level,
             inputs: this.inputs,
-            outputs: this.outputs
+            outputs: this.outputs,
+            assignedRecipeId: this.assignedRecipe ? this.assignedRecipe.id : null
         };
     }
 
@@ -326,6 +461,11 @@ class FactoryNode {
         node.level = data.level || 1;
         node.inputs = data.inputs || [];
         node.outputs = data.outputs || [];
+
+        if (data.assignedRecipeId) {
+            const recipes = getRecipesForBuilding(data.buildingType);
+            node.assignedRecipe = recipes.find(r => r.id === data.assignedRecipeId) || null;
+        }
 
         if (!node.buildingDef) {
             throw new Error(`Failed to load buildingDef for ${data.buildingType}`);

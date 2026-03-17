@@ -27,6 +27,9 @@ class Game {
         // Initialize offline progress calculator
         this.offlineCalc = new OfflineProgressCalculator(this);
 
+        // Initialize recipe picker
+        this.recipePicker = new RecipePicker(this.rootElement);
+
         // Setup drag-and-drop
         this.sidebar.setupDragAndDrop((buildingType, x, y) => {
             this.onBuildingDropped(buildingType, x, y);
@@ -41,6 +44,20 @@ class Game {
         document.addEventListener('deleteNodeRequest', (e) => {
             this.upgrades.currentNode = e.detail.node;
             this.upgrades.deleteNode();
+        });
+
+        // Listen for recipe picker open requests (from action bar)
+        document.addEventListener('openRecipePicker', (e) => {
+            this.recipePicker.open(e.detail.node);
+        });
+
+        // Listen for recipe selection
+        document.addEventListener('recipeSelected', (e) => {
+            const node = this.canvas.getNode(e.detail.nodeId);
+            if (!node) return;
+            const recipes = getRecipesForBuilding(node.buildingType);
+            const recipe = recipes.find(r => r.id === e.detail.recipeId);
+            if (recipe) node.setRecipe(recipe);
         });
 
         // Initial UI update
@@ -77,6 +94,7 @@ class Game {
 
         // Update UI
         this.sidebar.updateResources();
+        this.sidebar.updateBuildingPalette(this.buildingCounts);
 
         // Debug: Log every 300 frames (~5 seconds)
         this.frameCount++;
@@ -125,8 +143,15 @@ class Game {
             return;
         }
 
+        if (!node.assignedRecipe) {
+            node.activeRecipe = null;
+            return;
+        }
+
+        // Verify all required inputs of the assigned recipe have connections
         const inputResources = this.getNodeInputResourceTypes(node);
-        node.activeRecipe = detectRecipe(def.id, inputResources);
+        const allConnected = Object.keys(node.assignedRecipe.inputs).every(res => inputResources[res]);
+        node.activeRecipe = allConnected ? node.assignedRecipe : null;
     }
 
     // Check if a node has the required input connections
@@ -166,73 +191,165 @@ class Game {
         return true;
     }
 
-    // Calculate production rates from all nodes
+    // Calculate production rates from all nodes using connection-based flow propagation.
+    // Each node's efficiency (0–1) is determined by the actual flow arriving through its
+    // input connections, not the global resource pool. This allows partial throughput
+    // when supply is less than demand, rather than binary stall/produce.
     calculateProduction() {
-        // Reset all production rates to 0
+        // Reset all global production rates to 0
         Object.keys(this.resources.resources).forEach(type => {
             this.resources.setProduction(type, 0);
         });
 
-        // Add production from each node
+        // ── Pass 0: resolve recipes and seed per-node flow state ────────────
+        this.canvas.nodes.forEach(node => {
+            const def = node.buildingDef;
+            if (!def) throw new Error(`Node ${node.id} has no buildingDef!`);
+            if (def.autoSell) return;
+
+            this.resolveActiveRecipe(node);
+
+            const outputs = def.usesRecipes
+                ? (node.activeRecipe?.outputs || {})
+                : (def.production || {});
+            const inputs = def.usesRecipes
+                ? (node.activeRecipe?.inputs || {})
+                : (def.consumption || {});
+
+            // Nodes with no inputs (extractors) always run at full capacity
+            if (Object.keys(inputs).length === 0) {
+                node.efficiency = 1.0;
+            } else if (def.usesRecipes && !node.activeRecipe) {
+                node.efficiency = 0; // No recipe / missing connections
+            } else {
+                node.efficiency = 0; // Will converge in iterations below
+            }
+
+            node.actualOutputRate = {};
+            Object.entries(outputs).forEach(([res, rate]) => {
+                node.actualOutputRate[res] = rate * node.level * node.efficiency;
+            });
+        });
+
+        // ── Iterative flow convergence ────────────────────────────────────────
+        // Each pass propagates actual flow one step down the chain.
+        // 10 passes handles chains far deeper than any realistic factory.
+        for (let pass = 0; pass < 10; pass++) {
+            let changed = false;
+
+            this.canvas.nodes.forEach(node => {
+                const def = node.buildingDef;
+                if (def.autoSell) return;
+
+                const inputs = def.usesRecipes
+                    ? (node.activeRecipe?.inputs || {})
+                    : (def.consumption || {});
+
+                if (Object.keys(inputs).length === 0) return; // Extractor — already final
+                if (def.usesRecipes && !node.activeRecipe) return; // No recipe — stays 0
+
+                // For each required input, sum the flow arriving via connections
+                let newEfficiency = 1.0;
+                for (const [resource, required] of Object.entries(inputs)) {
+                    let available = 0;
+                    this.canvas.connections.forEach(conn => {
+                        if (conn.toNode.id !== node.id || conn.resourceType !== resource) return;
+                        const fromNode = conn.fromNode;
+                        const fromRate = (fromNode.actualOutputRate || {})[resource] || 0;
+                        // Split upstream output equally among all its downstream connections
+                        const splitCount = this.canvas.connections.filter(c =>
+                            c.fromNode.id === fromNode.id && c.resourceType === resource
+                        ).length;
+                        available += fromRate / Math.max(1, splitCount);
+                    });
+                    newEfficiency = Math.min(newEfficiency, available / (required * node.level));
+                }
+
+                newEfficiency = Math.max(0, Math.min(1, newEfficiency));
+
+                if (Math.abs(newEfficiency - (node.efficiency || 0)) > 0.0001) {
+                    changed = true;
+                    node.efficiency = newEfficiency;
+
+                    const outputs = def.usesRecipes
+                        ? (node.activeRecipe?.outputs || {})
+                        : (def.production || {});
+                    node.actualOutputRate = {};
+                    Object.entries(outputs).forEach(([res, rate]) => {
+                        node.actualOutputRate[res] = rate * node.level * newEfficiency;
+                    });
+                }
+            });
+
+            if (!changed) break;
+        }
+
+        // ── Apply node flows to global resource pool ─────────────────────────
         this.canvas.nodes.forEach(node => {
             const def = node.buildingDef;
 
-            if (!def) {
-                throw new Error(`Node ${node.id} has no buildingDef!`);
-            }
+            // Auto-sell: consume the flow arriving from upstream, sell for credits
+            if (def.autoSell) {
+                const inputResources = this.getNodeInputResourceTypes(node);
+                const connectedResource = Object.keys(inputResources)[0] || null;
+                node.autoSellResource = connectedResource;
 
-            // Resolve active recipe for recipe-based buildings
-            this.resolveActiveRecipe(node);
+                if (connectedResource) {
+                    let available = 0;
+                    this.canvas.connections.forEach(conn => {
+                        if (conn.toNode.id !== node.id || conn.resourceType !== connectedResource) return;
+                        const fromNode = conn.fromNode;
+                        const fromRate = (fromNode.actualOutputRate || {})[connectedResource] || 0;
+                        const splitCount = this.canvas.connections.filter(c =>
+                            c.fromNode.id === fromNode.id && c.resourceType === connectedResource
+                        ).length;
+                        available += fromRate / Math.max(1, splitCount);
+                    });
 
-            // Determine effective production and consumption
-            let effectiveProduction;
-            let effectiveConsumption;
+                    const maxRate = 1.0 * node.level;
+                    const consumeRate = Math.min(maxRate, available);
+                    const resDef = RESOURCES[connectedResource];
+                    const sellRate = (resDef?.sellPrice || 0) * 0.70;
 
-            if (def.usesRecipes) {
-                if (node.activeRecipe) {
-                    effectiveProduction = node.activeRecipe.outputs;
-                    effectiveConsumption = node.activeRecipe.inputs;
+                    node.efficiency = maxRate > 0 ? consumeRate / maxRate : 0;
+                    node.stalled = consumeRate === 0;
+
+                    if (consumeRate > 0) {
+                        const cur = r => this.resources.resources[r].production;
+                        this.resources.setProduction(connectedResource, cur(connectedResource) - consumeRate);
+                        this.resources.setProduction('credits', cur('credits') + sellRate * consumeRate);
+                    }
                 } else {
-                    effectiveProduction = {};
-                    effectiveConsumption = {};
+                    node.efficiency = 0;
+                    node.stalled = true;
                 }
-            } else {
-                effectiveProduction = def.production || {};
-                effectiveConsumption = def.consumption || {};
+                return;
             }
 
-            // Determine stalled state
-            if (Object.keys(effectiveConsumption).length > 0) {
-                const hasRequiredInputs = this.checkNodeInputs(node);
-                const hasResources = this.resources.canAfford(effectiveConsumption);
-                node.stalled = !(hasRequiredInputs && hasResources);
-            } else if (def.usesRecipes && !node.activeRecipe) {
-                // Recipe building with no matched recipe: stalled
-                node.stalled = true;
-            } else {
-                node.stalled = false;
-            }
+            // Standard nodes: apply scaled production and consumption rates
+            const eff = node.efficiency || 0;
+            node.stalled = eff < 0.01;
 
-            // Apply production (if not stalled)
-            if (!node.stalled) {
-                Object.entries(effectiveProduction).forEach(([resource, rate]) => {
-                    const currentRate = this.resources.resources[resource].production;
-                    this.resources.setProduction(resource, currentRate + rate * node.level);
-                });
-            }
+            const outputs = def.usesRecipes
+                ? (node.activeRecipe?.outputs || {})
+                : (def.production || {});
+            const inputs = def.usesRecipes
+                ? (node.activeRecipe?.inputs || {})
+                : (def.consumption || {});
 
-            // Apply consumption (if not stalled)
-            if (!node.stalled) {
-                Object.entries(effectiveConsumption).forEach(([resource, rate]) => {
-                    const currentRate = this.resources.resources[resource].production;
-                    this.resources.setProduction(resource, currentRate - rate * node.level);
-                });
-            }
+            Object.entries(outputs).forEach(([res, rate]) => {
+                const cur = this.resources.resources[res].production;
+                this.resources.setProduction(res, cur + rate * node.level * eff);
+            });
+            Object.entries(inputs).forEach(([res, rate]) => {
+                const cur = this.resources.resources[res].production;
+                this.resources.setProduction(res, cur - rate * node.level * eff);
+            });
         });
     }
 
     // Handle building dropped on canvas
-    onBuildingDropped(buildingType, screenX, screenY, recipeId) {
+    onBuildingDropped(buildingType, screenX, screenY) {
         const count = this.buildingCounts[buildingType] || 0;
         const cost = calculateBuildingCost(buildingType, count);
 
@@ -252,20 +369,14 @@ class Game {
         // Convert screen coordinates to world coordinates (accounting for pan/zoom)
         const worldPos = this.canvas.screenToWorld(screenX, screenY);
 
-        // Create and place node at world coordinates
+        // Create and place node
         const node = new FactoryNode(buildingType, worldPos.x, worldPos.y);
-
-        // Pre-set hint recipe for immediate display (game loop will override from connections)
-        if (recipeId) {
-            const recipes = getRecipesForBuilding(buildingType);
-            const hint = recipes.find(r => r.id === recipeId);
-            if (hint) {
-                node.hintRecipe = hint;
-                node.updateDisplay();
-            }
-        }
-
         this.canvas.addNode(node);
+
+        // Auto-open recipe picker for recipe-capable buildings
+        if (node.buildingDef.usesRecipes) {
+            this.recipePicker.open(node);
+        }
 
         // Update count (immutable update)
         this.buildingCounts = {

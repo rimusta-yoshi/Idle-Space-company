@@ -75,7 +75,7 @@ class DesktopOS {
     setupDesktopIcons() {
         const icons = document.querySelectorAll('.desktop-icon');
         icons.forEach(icon => {
-            icon.addEventListener('dblclick', () => {
+            icon.addEventListener('click', () => {
                 const appId = icon.getAttribute('data-app');
                 if (appId) {
                     this.launchApp(appId);

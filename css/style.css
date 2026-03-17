@@ -101,29 +101,59 @@ header p {
     border-top: 1px solid #8a6b1a;
 }
 
-/* Resource Display */
-.resource-item, .production-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 5px;
-    margin-bottom: 5px;
-    background-color: #0f0d06;
+/* Credits Panel */
+#credits-panel {
+    background: #0a0806;
     border: 1px solid #2a2010;
+    border-left: 3px solid #c49a2a;
+    padding: 10px 12px;
+    margin-bottom: 12px;
 }
 
-.resource-name {
-    color: #9a8b72;
-    flex-shrink: 0;
+.credits-balance-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 3px;
 }
 
-.resource-amount, .production-rate {
+.credits-icon {
+    font-size: 16px;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
     color: #c49a2a;
-    font-weight: bold;
+    line-height: 1;
 }
 
-.resource-capacity {
-    color: #6a5010;
-    margin-left: 2px;
+.credits-amount {
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 22px;
+    color: #e8d5b0;
+    letter-spacing: 0.04em;
+}
+
+.credits-pnl-row {
+    padding-left: 22px;
+}
+
+.credits-pnl {
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+}
+
+.credits-pnl.positive { color: #4a8a4a; }
+.credits-pnl.negative { color: #cc3333; }
+.credits-pnl.neutral  { color: #6a5a30; }
+
+/* Palette section header */
+.palette-section-header {
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: #6a5a30;
+    padding: 0 0 6px 0;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #2a2010;
 }
 
 /* Building Palette Search */
@@ -187,13 +217,38 @@ header p {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.palette-card-rate {
+.palette-icon {
+    font-size: 14px;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.picker-icon {
+    font-size: 13px;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+    line-height: 1;
+    vertical-align: middle;
+    margin-right: 3px;
+}
+
+.palette-card-type {
     color: #9a8b72;
     font-size: 11px;
     white-space: nowrap;
     flex-shrink: 0;
+}
+
+.palette-card-cost {
+    margin-top: 3px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: #6a5a30;
 }
 
 .palette-card-inputs {
@@ -297,6 +352,115 @@ header p {
     color: #07060a;
 }
 
+.node-action-btn--recipe {
+    border-color: #40c8a8;
+    color: #40c8a8;
+}
+
+.node-action-btn--recipe:hover {
+    background-color: #40c8a8;
+    color: #07060a;
+}
+
+/* Recipe Picker Overlay */
+.recipe-picker-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(7, 6, 10, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.recipe-picker {
+    background: #1a1008;
+    border: 1px solid #d4a832;
+    min-width: 280px;
+    max-width: 360px;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    font-family: 'VT323', 'Courier New', monospace;
+}
+
+.recipe-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid #3c2c0c;
+    background: rgba(212, 168, 50, 0.07);
+}
+
+.recipe-picker-title {
+    font-size: 14px;
+    color: #d4a832;
+    letter-spacing: 0.1em;
+}
+
+.recipe-picker-close {
+    background: none;
+    border: none;
+    color: #8a6820;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0 4px;
+    font-family: inherit;
+}
+
+.recipe-picker-close:hover {
+    color: #d4a832;
+}
+
+.recipe-picker-list {
+    overflow-y: auto;
+    padding: 4px 0;
+}
+
+.recipe-picker-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #2a1c08;
+}
+
+.recipe-picker-item:last-child {
+    border-bottom: none;
+}
+
+.recipe-picker-item:hover {
+    background: rgba(212, 168, 50, 0.08);
+}
+
+.recipe-picker-item.active {
+    background: rgba(212, 168, 50, 0.12);
+    border-left: 2px solid #d4a832;
+}
+
+.recipe-picker-output {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+}
+
+.recipe-picker-output-name {
+    font-size: 13px;
+    color: #d4a832;
+}
+
+.recipe-picker-output-rate {
+    font-size: 11px;
+    color: #a07818;
+}
+
+.recipe-picker-input {
+    font-size: 10px;
+    color: #8a6820;
+    padding-left: 12px;
+    line-height: 1.6;
+}
+
 .canvas-info {
     background-color: #131008;
     border-top: 1px solid #8a6b1a;
@@ -351,7 +515,7 @@ footer {
 }
 
 footer p {
-    color: #4a4030;
+    color: #5a4a30;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -709,46 +873,67 @@ footer p {
     cursor: pointer;
     padding: 8px 6px;
     border: 1px solid transparent;
-    transition: all 0.15s;
+    transition: all 0.2s;
+    user-select: none;
 }
 
 .desktop-icon:hover {
-    background-color: rgba(196, 154, 42, 0.04);
-    border-color: rgba(196, 154, 42, 0.15);
+    background-color: rgba(74, 139, 139, 0.04);
+    border-color: rgba(74, 139, 139, 0.15);
 }
 
 .desktop-icon .icon {
     width: 48px;
     height: 48px;
     margin: 0 auto 6px;
-    border: 1px solid #2a2010;
-    background: #0e0c09;
+    border: 1px solid #8a6b1a;
+    background: #181410;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: 'VT323', 'Courier New', monospace;
-    font-size: 17px;
+    font-size: 18px;
     letter-spacing: 1px;
-    color: #4a4030;
-    transition: all 0.15s;
+    color: #c49a2a;
+    text-shadow:
+        0 0 6px rgba(196, 154, 42, 1.0),
+        0 0 14px rgba(196, 154, 42, 0.6),
+        0 0 28px rgba(196, 154, 42, 0.2);
+    box-shadow:
+        0 0 0 1px rgba(196, 154, 42, 0.12),
+        0 0 10px rgba(196, 154, 42, 0.2),
+        0 0 20px rgba(196, 154, 42, 0.08),
+        inset 0 0 10px rgba(196, 154, 42, 0.06);
+    transition: all 0.2s;
 }
 
 .desktop-icon:hover .icon {
-    border-color: #8a6b1a;
-    color: #c49a2a;
-    background: #141008;
+    border-color: #4a8b8b;
+    color: #4a8b8b;
+    background: #0e1414;
+    text-shadow:
+        0 0 6px rgba(74, 139, 139, 1.0),
+        0 0 14px rgba(74, 139, 139, 0.6),
+        0 0 28px rgba(74, 139, 139, 0.3);
+    box-shadow:
+        0 0 0 1px rgba(74, 139, 139, 0.15),
+        0 0 10px rgba(74, 139, 139, 0.25),
+        0 0 20px rgba(74, 139, 139, 0.1),
+        inset 0 0 10px rgba(74, 139, 139, 0.06);
 }
 
 .desktop-icon .icon-label {
-    color: #4a4030;
-    font-size: 11px;
+    color: #c49a2a;
+    font-size: 12px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    transition: color 0.15s;
+    text-shadow: 0 0 8px rgba(196, 154, 42, 0.4);
+    transition: all 0.2s;
 }
 
 .desktop-icon:hover .icon-label {
-    color: #9a8b72;
+    color: #4a8b8b;
+    text-shadow: 0 0 8px rgba(74, 139, 139, 0.4);
 }
 
 /* Windows Container */
@@ -1008,7 +1193,7 @@ footer p {
 
 .taskbar-tray {
     margin-left: auto;
-    color: #4a4030;
+    color: #8a6b1a;
     font-size: 13px;
     padding: 0 10px;
     letter-spacing: 1px;
@@ -1145,7 +1330,7 @@ footer p {
 
 .market-subtitle {
     text-align: center;
-    color: #4a4030;
+    color: #6a5a40;
     font-size: 12px;
     letter-spacing: 1px;
     margin-bottom: 30px;
