@@ -91,6 +91,8 @@ class UpgradeManager {
         const upgradeBtn = this.rootElement.querySelector('#upgrade-btn');
 
         if (upgradeCost && upgradeBtn) {
+            upgradeBtn.textContent = 'UPGRADE';
+
             const costText = Object.entries(upgradeCost)
                 .map(([resource, amount]) => `${formatNumber(amount)} ${resource}`)
                 .join(', ');

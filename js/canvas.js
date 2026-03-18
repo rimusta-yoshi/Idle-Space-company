@@ -271,7 +271,11 @@ class CanvasManager {
         });
 
         document.addEventListener('recipeChanged', (e) => {
-            this.disconnectAllForNode(e.detail.nodeId);
+            // Auto-assign preserves connections (they were just validated against the new recipe)
+            // Manual recipe changes disconnect all because old connections may be incompatible
+            if (!e.detail.autoAssigned) {
+                this.disconnectAllForNode(e.detail.nodeId);
+            }
         });
     }
 
@@ -537,9 +541,40 @@ class CanvasManager {
         fromNode.outputs = [...fromNode.outputs, toNode.id];
         toNode.inputs = [...toNode.inputs, fromNode.id];
 
+        // Auto-assign recipe if the destination is an unassigned recipe building
+        // and the connected inputs now uniquely resolve to one recipe
+        if (toNode.buildingDef.usesRecipes && !toNode.assignedRecipe) {
+            this._tryAutoAssignRecipe(toNode);
+        }
+
         this.layer.draw();
         log(`Connected ${fromNode.buildingDef.name} -> ${toNode.buildingDef.name} (${resourceType})`);
         return true;
+    }
+
+    _tryAutoAssignRecipe(node) {
+        // Gather the resource types currently connected as inputs to this node
+        const connectedInputTypes = this.connections
+            .filter(c => c.toNode === node)
+            .map(c => c.resourceType);
+
+        if (connectedInputTypes.length === 0) return;
+
+        // Find recipes whose input keys exactly match the connected resource types
+        const allRecipes = getRecipesForBuilding(node.buildingType);
+        const matches = allRecipes.filter(recipe => {
+            const required = Object.keys(recipe.inputs);
+            return required.length === connectedInputTypes.length &&
+                   required.every(r => connectedInputTypes.includes(r));
+        });
+
+        if (matches.length === 1) {
+            // Set directly — bypass setRecipe()'s recipeChanged event which would
+            // trigger disconnectAllForNode and remove the connection we just made
+            node.assignedRecipe = matches[0];
+            node.updateDisplay();
+            log(`Auto-assigned recipe: ${matches[0].id} for ${node.buildingDef.name}`);
+        }
     }
 
     areNodesCompatible(fromNode, toNode) {
@@ -563,7 +598,11 @@ class CanvasManager {
         }
 
         if (toDef.usesRecipes) {
-            if (!toNode.assignedRecipe) return false; // Must assign recipe before connecting
+            if (!toNode.assignedRecipe) {
+                // Allow connection if any recipe for this building accepts what fromNode produces
+                const allRecipes = getRecipesForBuilding(toNode.buildingType);
+                return allRecipes.some(r => producedResources.some(p => Object.keys(r.inputs).includes(p)));
+            }
             return producedResources.some(type => Object.keys(toNode.assignedRecipe.inputs).includes(type));
         }
 
@@ -588,7 +627,15 @@ class CanvasManager {
         }
 
         if (toDef.usesRecipes) {
-            if (!toNode.assignedRecipe) return null;
+            if (!toNode.assignedRecipe) {
+                // Find the first resource produced that any recipe for this building accepts
+                const allRecipes = getRecipesForBuilding(toNode.buildingType);
+                for (const recipe of allRecipes) {
+                    const match = producedResources.find(p => Object.keys(recipe.inputs).includes(p));
+                    if (match) return match;
+                }
+                return null;
+            }
             const inputKeys = Object.keys(toNode.assignedRecipe.inputs);
             return producedResources.find(r => inputKeys.includes(r)) || null;
         }

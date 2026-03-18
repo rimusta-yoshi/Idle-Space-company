@@ -284,6 +284,17 @@ class Game {
             if (!changed) break;
         }
 
+        // ── Update per-connection flow rates (for arrow labels) ──────────────
+        this.canvas.connections.forEach(conn => {
+            const fromNode = conn.fromNode;
+            const fromRate = (fromNode.actualOutputRate || {})[conn.resourceType] || 0;
+            const splitCount = this.canvas.connections.filter(c =>
+                c.fromNode.id === fromNode.id && c.resourceType === conn.resourceType
+            ).length;
+            conn.flowRate = fromRate / Math.max(1, splitCount);
+            conn.updateLabel();
+        });
+
         // ── Apply node flows to global resource pool ─────────────────────────
         this.canvas.nodes.forEach(node => {
             const def = node.buildingDef;
@@ -372,11 +383,6 @@ class Game {
         // Create and place node
         const node = new FactoryNode(buildingType, worldPos.x, worldPos.y);
         this.canvas.addNode(node);
-
-        // Auto-open recipe picker for recipe-capable buildings
-        if (node.buildingDef.usesRecipes) {
-            this.recipePicker.open(node);
-        }
 
         // Update count (immutable update)
         this.buildingCounts = {

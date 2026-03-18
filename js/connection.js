@@ -20,8 +20,11 @@ class Connection {
         this.fromNode = fromNode;
         this.toNode = toNode;
         this.resourceType = resourceType; // What resource flows through this connection
+        this.flowRate = 0; // Actual units/sec flowing — set by game.js each tick
 
-        this.arrow = null; // Konva arrow shape
+        this.arrow = null;
+        this.labelBg = null;
+        this.label = null;
         this.createKonvaArrow();
     }
 
@@ -56,6 +59,30 @@ class Connection {
             this.arrow.getLayer()?.draw();
         });
 
+        // Flow rate label — positioned at arrow midpoint, non-interactive
+        this.labelBg = new Konva.Rect({
+            x: 0, y: 0,
+            width: 68, height: 16,
+            fill: '#0e0c09',
+            stroke: '#3a2e10',
+            strokeWidth: 1,
+            cornerRadius: 2,
+            listening: false,
+            visible: false
+        });
+
+        this.label = new Konva.Text({
+            x: 0, y: 0,
+            text: '',
+            fontSize: 12,
+            fontFamily: 'VT323, Courier New',
+            fill: '#c49a2a',
+            align: 'center',
+            width: 68,
+            listening: false,
+            visible: false
+        });
+
         // Right-click to delete (handled by canvas manager)
         this.arrow.on('contextmenu', (e) => {
             e.evt.preventDefault();
@@ -75,21 +102,48 @@ class Connection {
         return calcElbowPoints(sx, sy, ex, ey);
     }
 
+    // Update the flow rate label text and position
+    updateLabel() {
+        const points = this.getArrowPoints();
+        // Midpoint between start and end for label placement
+        const sx = points[0], sy = points[1];
+        const ex = points[points.length - 2], ey = points[points.length - 1];
+        const mx = (sx + ex) / 2;
+        const my = (sy + ey) / 2;
+
+        const W = 68, H = 16; // Must match labelBg/label width above
+        const text = this.flowRate > 0.001 ? formatRatePerMin(this.flowRate) : '';
+        const visible = text.length > 0;
+
+        this.labelBg.x(mx - W / 2);
+        this.labelBg.y(my - H / 2);
+        this.labelBg.visible(visible);
+
+        this.label.x(mx - W / 2);
+        this.label.y(my - H / 2 + 1);
+        this.label.text(text);
+        this.label.visible(visible);
+    }
+
     // Update arrow position (when nodes are dragged)
     updatePosition() {
         this.arrow.points(this.getArrowPoints());
+        this.updateLabel();
     }
 
     // Add to Konva layer
     addToLayer(layer) {
+        // Arrow goes to the very bottom; labels sit just above it (below nodes)
         layer.add(this.arrow);
-        // Connections should be below nodes (add to back)
         this.arrow.moveToBottom();
+        layer.add(this.labelBg, this.label);
     }
 
     // Remove from layer
     removeFromLayer() {
         this.arrow.remove();
+        this.labelBg.remove();
+        this.label.remove();
     }
 
     // Get save data

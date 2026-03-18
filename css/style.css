@@ -248,7 +248,7 @@ header p {
     margin-top: 3px;
     font-size: 11px;
     letter-spacing: 0.04em;
-    color: #6a5a30;
+    color: #c49a2a;
 }
 
 .palette-card-inputs {
@@ -258,9 +258,35 @@ header p {
 }
 
 .palette-input-row {
-    color: #6a5010;
+    color: #9a8b72;
     font-size: 10px;
     line-height: 1.5;
+}
+
+/* Locked (can't afford) palette card */
+.palette-card.locked {
+    border-left-color: #3a2020;
+    background-color: #0d0b07;
+}
+
+.palette-card.locked .palette-card-name {
+    color: #7a6a50;
+}
+
+.palette-card.locked .palette-icon {
+    opacity: 0.5;
+}
+
+.palette-card.locked .palette-card-type {
+    color: #5a4a38;
+}
+
+.palette-card.locked .palette-card-cost {
+    color: #8a4040;
+}
+
+.palette-card.locked .palette-input-row {
+    color: #8a7a60;
 }
 
 /* Canvas Section */

@@ -282,10 +282,9 @@ class FactoryNode {
 
         const def = this.buildingDef;
         const title = this.getNodeTitle();
-        // Show actual throughput (max × efficiency), not theoretical max
-        const eff = this.efficiency ?? 1.0;
-        const rateStr = (title.ratePerSec && eff > 0.001)
-            ? formatRatePerMin(title.ratePerSec * this.level * eff)
+        // Header always shows max capacity — actual flow shown on connection arrows
+        const rateStr = title.ratePerSec
+            ? formatRatePerMin(title.ratePerSec * this.level)
             : '—';
 
         // Recalculate dimensions

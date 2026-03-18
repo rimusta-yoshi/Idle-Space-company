@@ -88,16 +88,20 @@ class SidebarManager {
             const cost = calculateBuildingCost(buildingType, count);
             const canAfford = this.resourceManager.canAfford(cost);
 
-            card.style.opacity = canAfford ? '1' : '0.4';
+            card.classList.toggle('locked', !canAfford);
             card.style.cursor = canAfford ? 'grab' : 'not-allowed';
 
             // Update cost label
             const costEl = card.querySelector('.palette-card-cost');
             if (costEl && cost) {
                 costEl.textContent = Object.entries(cost)
-                    .map(([res, amt]) => `${formatNumber(amt)} ${res.toUpperCase()}`)
+                    .map(([res, amt]) => {
+                        const name = (typeof RESOURCES !== 'undefined' && RESOURCES[res])
+                            ? RESOURCES[res].name.toUpperCase()
+                            : res.toUpperCase();
+                        return `${formatNumber(amt)} ${name}`;
+                    })
                     .join(' + ');
-                costEl.style.color = canAfford ? '#6a5a30' : '#663030';
             }
         });
     }
