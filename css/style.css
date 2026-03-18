@@ -145,6 +145,59 @@ header p {
 .credits-pnl.negative { color: #cc3333; }
 .credits-pnl.neutral  { color: #6a5a30; }
 
+/* Power Panel */
+#power-panel {
+    background: #0a0806;
+    border: 1px solid #2a2010;
+    border-left: 3px solid #4a8aaa;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+
+.power-balance-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 3px;
+}
+
+.power-icon {
+    font-size: 16px;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    color: #4a8aaa;
+    line-height: 1;
+}
+
+.power-supply {
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 22px;
+    color: #e8d5b0;
+    letter-spacing: 0.04em;
+}
+
+.power-supply-unit {
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 13px;
+    color: #4a8aaa;
+    letter-spacing: 0.05em;
+    align-self: flex-end;
+    padding-bottom: 3px;
+}
+
+.power-pnl-row {
+    padding-left: 22px;
+}
+
+.power-pnl {
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+}
+
+.power-pnl.positive { color: #4a8a4a; }
+.power-pnl.negative { color: #cc3333; }
+.power-pnl.neutral  { color: #4a8aaa; }
+
 /* Palette section header */
 .palette-section-header {
     font-family: 'VT323', 'Courier New', monospace;
@@ -248,6 +301,26 @@ header p {
     margin-top: 3px;
     font-size: 11px;
     letter-spacing: 0.04em;
+    color: #c49a2a;
+}
+
+.palette-card-outputs {
+    margin-top: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.palette-output-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: #9a8b72;
+    letter-spacing: 0.03em;
+}
+
+.palette-output-rate {
     color: #c49a2a;
 }
 

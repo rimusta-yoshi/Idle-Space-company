@@ -29,6 +29,7 @@ class FactoryNode {
         this.outputs = [];
         this.stalled = false;
         this.efficiency = 1.0;         // Derived each tick — fraction of max capacity (0–1)
+        this.powerThrottled = false;   // Derived each tick — true when power grid deficit is the throttle cause
         this.actualOutputRate = {};    // Derived each tick — {resource: rate/s}
         this.activeRecipe = null;      // Derived each tick — connections validate assignedRecipe
         this.assignedRecipe = null;    // Persisted user-set recipe for usesRecipes buildings
@@ -109,7 +110,9 @@ class FactoryNode {
 
     calcWidth() {
         const title = this.getNodeTitle();
-        const rateStr = title.ratePerSec ? formatRatePerMin(title.ratePerSec * this.level) : '—';
+        const maxRateStr = title.ratePerSec ? formatRatePerMin(title.ratePerSec * this.level) : '—';
+        // Reserve space for worst-case throttled format "actual/max" — both sides roughly equal width
+        const rateStr = title.ratePerSec ? `${maxRateStr}/${maxRateStr}` : '—';
 
         // Header: [8px pad] [MS icon 22px] [name VT323 15px] ... [rate VT323 15px] [8px pad]
         const nameW = measureTextWidth(title.name, 15, 'VT323');
@@ -282,10 +285,23 @@ class FactoryNode {
 
         const def = this.buildingDef;
         const title = this.getNodeTitle();
-        // Header always shows max capacity — actual flow shown on connection arrows
-        const rateStr = title.ratePerSec
-            ? formatRatePerMin(title.ratePerSec * this.level)
-            : '—';
+        const eff = this.efficiency ?? 1.0;
+        const maxRate = title.ratePerSec ? title.ratePerSec * this.level : null;
+
+        let rateStr;
+        if (!maxRate) {
+            rateStr = '—';
+        } else if (eff >= 0.999) {
+            // Full throughput — just show max
+            rateStr = formatRatePerMin(maxRate);
+        } else if (eff < 0.01) {
+            // Stalled — no output
+            rateStr = '—';
+        } else {
+            // Throttled — show actual/max so cause is immediately visible
+            const actualRate = maxRate * eff;
+            rateStr = `${formatRatePerMin(actualRate)}/${formatRatePerMin(maxRate)}`;
+        }
 
         // Recalculate dimensions
         const w = this.calcWidth();
@@ -387,29 +403,38 @@ class FactoryNode {
             // No throughput — missing connections, no recipe, or zero supply
             this.rect.fill('#1a0808');
             this.rect.stroke('#663030');
+            this.rect.strokeWidth(1.5);
             this.headerName.fill('#cc3333');
             this.statusPip.fill('#cc3333');
         } else if (def.usesRecipes && !this.activeRecipe) {
             // Recipe assigned but connections not established — waiting
             this.rect.fill(def.color);
             this.rect.stroke('#c49a2a');
+            this.rect.strokeWidth(1.5);
             this.headerName.fill('#e8d5b0');
             this.statusPip.fill(this.assignedRecipe ? '#c49a2a' : '#2a2010');
         } else if (eff < 0.999) {
-            // Partial throughput — supply-constrained, still producing
             this.rect.fill(def.color);
-            this.rect.stroke('#a07818');
             this.headerName.fill('#e8d5b0');
-            this.statusPip.fill('#c8a020'); // amber
+            if (this.powerThrottled) {
+                // Power grid deficit — red border, red-amber pip
+                this.rect.stroke('#993322');
+                this.rect.strokeWidth(2);
+                this.statusPip.fill('#cc4422');
+            } else {
+                // Supply-constrained — amber border, amber pip
+                this.rect.stroke('#a07818');
+                this.rect.strokeWidth(1.5);
+                this.statusPip.fill('#c8a020');
+            }
         } else {
             // Full throughput
             this.rect.fill(def.color);
             this.rect.stroke('#c49a2a');
+            this.rect.strokeWidth(1.5);
             this.headerName.fill('#e8d5b0');
             this.statusPip.fill('#4a8a4a'); // green
         }
-
-        this.rect.strokeWidth(1.5);
     }
 
     setRecipe(recipe) {

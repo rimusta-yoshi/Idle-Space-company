@@ -139,8 +139,11 @@ class ResourceManager {
     // Update resources based on production rates (called every tick)
     updateProduction(deltaTime) {
         Object.entries(this.resources).forEach(([type, data]) => {
-            if (data.production !== 0) {
-                this.add(type, data.production * deltaTime);
+            if (data.production === 0) return;
+            const delta = data.production * deltaTime;
+            const newAmount = Math.max(0, Math.min(data.current + delta, data.capacity));
+            if (newAmount !== data.current) {
+                this.resources[type] = { ...data, current: newAmount };
             }
         });
     }

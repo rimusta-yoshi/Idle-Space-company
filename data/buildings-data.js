@@ -3,7 +3,6 @@
 
 const BUILDINGS = {
     // ===== EXTRACTORS (Tier 1) =====
-    // Extract raw ores from the planet (resource-specific)
 
     ironExtractor: {
         id: 'ironExtractor',
@@ -13,10 +12,8 @@ const BUILDINGS = {
         tier: 1,
         baseCost: { credits: 10 },
         costMultiplier: 1.15,
-        production: { oreA: 1.0 }, // 60/min
+        production: { ironOre: 1.0 },
         consumption: {},
-        width: 160,
-        height: 80,
         color: '#0d1510',
         icon: 'mining',
         unlocked: true
@@ -30,17 +27,44 @@ const BUILDINGS = {
         tier: 1,
         baseCost: { credits: 15 },
         costMultiplier: 1.15,
-        production: { oreB: 1.0 }, // 60/min
+        production: { copperOre: 1.0 },
         consumption: {},
-        width: 160,
-        height: 80,
         color: '#1a1108',
         icon: 'mining',
         unlocked: true
     },
 
+    coalExtractor: {
+        id: 'coalExtractor',
+        name: 'Coal Extractor',
+        description: 'Extracts coal — burns for power or refines into fuel',
+        category: 'extractors',
+        tier: 1,
+        baseCost: { credits: 20 },
+        costMultiplier: 1.15,
+        production: { coal: 1.0 },
+        consumption: {},
+        color: '#0d0d0d',
+        icon: 'mining',
+        unlocked: true
+    },
+
+    rareMineralExtractor: {
+        id: 'rareMineralExtractor',
+        name: 'Rare Min. Extractor',
+        description: 'Extracts scarce rare minerals — critical for circuit boards',
+        category: 'extractors',
+        tier: 1,
+        baseCost: { credits: 50 },
+        costMultiplier: 1.2,
+        production: { rareMins: 0.5 },
+        consumption: {},
+        color: '#1a0a1a',
+        icon: 'mining',
+        unlocked: true
+    },
+
     // ===== SMELTER (Tier 2) =====
-    // Generic smelter - recipe determined by inputs
 
     smelter: {
         id: 'smelter',
@@ -50,8 +74,7 @@ const BUILDINGS = {
         tier: 2,
         baseCost: { credits: 50 },
         costMultiplier: 1.15,
-        width: 160,
-        height: 80,
+        powerDemand: 3,
         color: '#1a0c08',
         icon: 'mode_heat',
         unlocked: true,
@@ -59,7 +82,6 @@ const BUILDINGS = {
     },
 
     // ===== ASSEMBLER (Tier 3) =====
-    // Generic assembler - recipe determined by inputs
 
     assembler: {
         id: 'assembler',
@@ -67,10 +89,9 @@ const BUILDINGS = {
         description: 'Assembles components from bars (recipe auto-detected)',
         category: 'assemblers',
         tier: 3,
-        baseCost: { barA: 12, barB: 8 },
+        baseCost: { ironBar: 12, copperBar: 8 },
         costMultiplier: 1.5,
-        width: 160,
-        height: 80,
+        powerDemand: 5,
         color: '#0a1019',
         icon: 'build',
         unlocked: true,
@@ -78,26 +99,40 @@ const BUILDINGS = {
     },
 
     // ===== MANUFACTURER (Tier 4) =====
-    // Generic manufacturer - recipe determined by inputs
 
     manufacturer: {
         id: 'manufacturer',
         name: 'Manufacturer',
-        description: 'Manufactures advanced products (recipe auto-detected)',
+        description: 'Manufactures advanced components (recipe auto-detected)',
         category: 'manufacturers',
         tier: 4,
-        baseCost: { componentA: 8, componentC: 5, componentB: 10 },
+        baseCost: { steelPlate: 8, circuitBoard: 5, copperWire: 10 },
         costMultiplier: 1.5,
-        width: 160,
-        height: 80,
+        powerDemand: 8,
         color: '#12081a',
         icon: 'precision_manufacturing',
         unlocked: true,
         usesRecipes: true
     },
 
+    // ===== POWER GENERATOR (Infrastructure) =====
+
+    powerGenerator: {
+        id: 'powerGenerator',
+        name: 'Power Generator',
+        description: 'Burns coal to generate power for all buildings',
+        category: 'infrastructure',
+        tier: 1,
+        baseCost: { credits: 75 },
+        costMultiplier: 1.5,
+        production: { power: 5.0 },
+        consumption: { coal: 1.0 },
+        color: '#1a0808',
+        icon: 'bolt',
+        unlocked: true
+    },
+
     // ===== EXPORT TERMINAL (Commerce) =====
-    // Sells connected resources for credits at 70% market rate
 
     exportTerminal: {
         id: 'exportTerminal',
@@ -105,14 +140,12 @@ const BUILDINGS = {
         description: 'Sells connected resources for credits (70% market rate)',
         category: 'commerce',
         tier: 2,
-        baseCost: { barA: 5, barB: 5 },
+        baseCost: { ironBar: 5, copperBar: 5 },
         costMultiplier: 1.5,
-        width: 160,
-        height: 80,
         color: '#141008',
         icon: 'outbox',
         unlocked: true,
-        autoSell: true  // Accepts any resource input, sells for credits at 70% market rate
+        autoSell: true
     }
 };
 
@@ -124,16 +157,23 @@ const RECIPES = {
         {
             id: 'iron_bar',
             name: 'Iron Bar',
-            inputs: { oreA: 2.0 },      // 2 iron ore per second
-            outputs: { barA: 1.0 },     // 1 iron bar per second
+            inputs: { ironOre: 2.0 },
+            outputs: { ironBar: 1.0 },
             icon: 'view_timeline'
         },
         {
             id: 'copper_bar',
             name: 'Copper Bar',
-            inputs: { oreB: 2.0 },      // 2 copper ore per second
-            outputs: { barB: 1.0 },     // 1 copper bar per second
+            inputs: { copperOre: 2.0 },
+            outputs: { copperBar: 1.0 },
             icon: 'view_timeline'
+        },
+        {
+            id: 'refined_fuel',
+            name: 'Refined Fuel',
+            inputs: { coal: 2.0 },
+            outputs: { refinedFuel: 1.0 },
+            icon: 'local_gas_station'
         }
     ],
 
@@ -142,22 +182,22 @@ const RECIPES = {
         {
             id: 'steel_plate',
             name: 'Steel Plate',
-            inputs: { barA: 2.0 },      // 2 iron bars per second
-            outputs: { componentA: 1.0 },  // 1 steel plate per second
+            inputs: { ironBar: 2.0 },
+            outputs: { steelPlate: 1.0 },
             icon: 'layers'
         },
         {
-            id: 'wire',
-            name: 'Wire',
-            inputs: { barB: 1.0 },      // 1 copper bar per second
-            outputs: { componentB: 2.0 },  // 2 wire per second (efficient!)
+            id: 'copper_wire',
+            name: 'Copper Wire',
+            inputs: { copperBar: 1.0 },
+            outputs: { copperWire: 2.0 },
             icon: 'cable'
         },
         {
-            id: 'circuit',
-            name: 'Circuit',
-            inputs: { barA: 1.0, barB: 1.0 },  // 1 iron + 1 copper bar per second
-            outputs: { componentC: 1.0 },       // 1 circuit per second
+            id: 'circuit_board',
+            name: 'Circuit Board',
+            inputs: { copperWire: 1.0, rareMins: 1.0 },
+            outputs: { circuitBoard: 1.0 },
             icon: 'memory'
         }
     ],
@@ -165,18 +205,18 @@ const RECIPES = {
     // MANUFACTURER RECIPES (Tier 4)
     manufacturer: [
         {
-            id: 'engine',
-            name: 'Engine',
-            inputs: { componentA: 2.0, componentB: 1.0 },  // 2 steel plates + 1 wire per second
-            outputs: { productA: 1.0 },                     // 1 engine per second
-            icon: 'settings'
+            id: 'insulated_wire',
+            name: 'Insulated Wire',
+            inputs: { copperWire: 1.0, ironBar: 1.0 },
+            outputs: { insulatedWire: 2.0 },
+            icon: 'cable'
         },
         {
-            id: 'computer',
-            name: 'Computer',
-            inputs: { componentC: 1.0, componentB: 2.0 },  // 1 circuit + 2 wire per second
-            outputs: { productB: 1.0 },                     // 1 computer per second
-            icon: 'computer'
+            id: 'fuel_cell',
+            name: 'Fuel Cell',
+            inputs: { refinedFuel: 1.0, ironBar: 1.0 },
+            outputs: { fuelCell: 1.0 },
+            icon: 'battery_charging_full'
         }
     ]
 };
@@ -203,9 +243,15 @@ const BUILDING_CATEGORIES = {
     },
     manufacturers: {
         name: 'Manufacturers',
-        description: 'Manufacture advanced products',
+        description: 'Manufacture advanced components',
         icon: 'precision_manufacturing',
         tier: 4
+    },
+    infrastructure: {
+        name: 'Infrastructure',
+        description: 'Power and support systems',
+        icon: 'bolt',
+        tier: 1
     },
     commerce: {
         name: 'Commerce',
@@ -247,18 +293,14 @@ function detectRecipe(buildingId, inputResources) {
     const recipes = getRecipesForBuilding(buildingId);
     if (!recipes || recipes.length === 0) return null;
 
-    // Find first recipe where all input requirements match the available inputs
     for (const recipe of recipes) {
         const inputKeys = Object.keys(recipe.inputs);
         const availableKeys = Object.keys(inputResources);
 
-        // Check if recipe inputs match available inputs
         const matches = inputKeys.length === availableKeys.length &&
                        inputKeys.every(key => availableKeys.includes(key));
 
-        if (matches) {
-            return recipe;
-        }
+        if (matches) return recipe;
     }
 
     return null;
@@ -270,9 +312,7 @@ function getAllRecipeOutputs(buildingId) {
     if (!recipes || recipes.length === 0) return [];
 
     const outputs = new Set();
-    recipes.forEach(recipe => {
-        Object.keys(recipe.outputs).forEach(key => outputs.add(key));
-    });
+    recipes.forEach(recipe => Object.keys(recipe.outputs).forEach(key => outputs.add(key)));
     return Array.from(outputs);
 }
 
@@ -282,8 +322,6 @@ function getAllRecipeInputs(buildingId) {
     if (!recipes || recipes.length === 0) return [];
 
     const inputs = new Set();
-    recipes.forEach(recipe => {
-        Object.keys(recipe.inputs).forEach(key => inputs.add(key));
-    });
+    recipes.forEach(recipe => Object.keys(recipe.inputs).forEach(key => inputs.add(key)));
     return Array.from(inputs);
 }

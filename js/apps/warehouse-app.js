@@ -9,19 +9,22 @@ class WarehouseApp extends App {
         this.icon = 'WH';
         this.resourceManager = null;
         this.capacityUpgrades = {
-            // Tier 1
-            oreA: 0,
-            oreB: 0,
-            // Tier 2
-            barA: 0,
-            barB: 0,
-            // Tier 3
-            componentA: 0,
-            componentB: 0,
-            componentC: 0,
-            // Tier 4
-            productA: 0,
-            productB: 0
+            // Tier 1 — Raw Extractables
+            ironOre: 0,
+            copperOre: 0,
+            coal: 0,
+            rareMins: 0,
+            // Tier 2 — Smelted
+            ironBar: 0,
+            copperBar: 0,
+            refinedFuel: 0,
+            // Tier 3 — Assembled
+            steelPlate: 0,
+            copperWire: 0,
+            // Tier 4 — Manufactured
+            circuitBoard: 0,
+            insulatedWire: 0,
+            fuelCell: 0
         };
         this.updateInterval = null;
     }
@@ -275,13 +278,20 @@ class WarehouseApp extends App {
 
     loadSaveData(data) {
         if (data.capacityUpgrades) {
-            // Migration: convert old resource names to new names
-            const migrationMap = { ore: 'oreA', metal: 'barA' };
+            // Migration: convert old resource names to new names (chains: ore→oreA→ironOre)
+            const migrationMap = {
+                ore: 'ironOre', metal: 'ironBar',
+                oreA: 'ironOre', oreB: 'copperOre',
+                barA: 'ironBar', barB: 'copperBar',
+                componentA: 'steelPlate', componentB: 'copperWire',
+                componentC: 'circuitBoard',
+                productA: null, productB: null
+            };
             const migrated = {};
 
             Object.entries(data.capacityUpgrades).forEach(([type, level]) => {
-                const newType = migrationMap[type] || type;
-                if (RESOURCES[newType]) {
+                const newType = migrationMap.hasOwnProperty(type) ? migrationMap[type] : type;
+                if (newType && RESOURCES[newType]) {
                     migrated[newType] = (migrated[newType] || 0) + level;
                 }
             });

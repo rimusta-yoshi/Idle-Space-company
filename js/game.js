@@ -94,6 +94,7 @@ class Game {
 
         // Update UI
         this.sidebar.updateResources();
+        this.sidebar.updatePower(this.powerSupply, this.powerDemand);
         this.sidebar.updateBuildingPalette(this.buildingCounts);
 
         // Debug: Log every 300 frames (~5 seconds)
@@ -284,6 +285,60 @@ class Game {
             if (!changed) break;
         }
 
+        // ── Power balance ──────────────────────────────────────────────────
+        // Sum supply from generators and max-demand from all other buildings.
+        // If supply < demand, cap all non-generator node efficiencies at the ratio.
+
+        // Reset power throttle flag on every node before recalculating
+        this.canvas.nodes.forEach(node => { node.powerThrottled = false; });
+
+        let totalPowerSupply = 0;
+        let totalPowerDemand = 0;
+
+        this.canvas.nodes.forEach(node => {
+            const def = node.buildingDef;
+            if (def.autoSell) return;
+            if ((node.actualOutputRate || {}).power) {
+                totalPowerSupply += node.actualOutputRate.power;
+            }
+            if (def.powerDemand && def.id !== 'powerGenerator') {
+                // Demand at max throughput (level only) — stable, avoids oscillation
+                totalPowerDemand += def.powerDemand * node.level;
+            }
+        });
+
+        const powerRatio = totalPowerDemand > 0.001
+            ? (totalPowerSupply > 0 ? Math.min(1, totalPowerSupply / totalPowerDemand) : 0)
+            : 1;
+
+        this.powerSupply = totalPowerSupply;
+        this.powerDemand = totalPowerDemand;
+        this.powerRatio = powerRatio;
+
+        if (powerRatio < 0.9999) {
+            this.canvas.nodes.forEach(node => {
+                const def = node.buildingDef;
+                // Skip: auto-sell nodes, power generators, and buildings with no power demand
+                // (extractors have no powerDemand — throttling them creates a circular dependency
+                //  with power generators that need their output)
+                if (def.autoSell || !def.powerDemand || def.id === 'powerGenerator') return;
+                const currentEff = node.efficiency || 0;
+                const newEff = Math.min(currentEff, powerRatio);
+                // Only flag as power-throttled when power is the actual binding constraint
+                if (powerRatio < currentEff) node.powerThrottled = true;
+                if (Math.abs(newEff - (node.efficiency || 0)) > 0.0001) {
+                    node.efficiency = newEff;
+                    const outputs = def.usesRecipes
+                        ? (node.activeRecipe?.outputs || {})
+                        : (def.production || {});
+                    node.actualOutputRate = {};
+                    Object.entries(outputs).forEach(([res, rate]) => {
+                        node.actualOutputRate[res] = rate * node.level * newEff;
+                    });
+                }
+            });
+        }
+
         // ── Update per-connection flow rates (for arrow labels) ──────────────
         this.canvas.connections.forEach(conn => {
             const fromNode = conn.fromNode;
@@ -349,10 +404,13 @@ class Game {
                 : (def.consumption || {});
 
             Object.entries(outputs).forEach(([res, rate]) => {
+                if (res === 'power') return; // Grid resource — not stockpiled
+                if (!this.resources.resources[res]) return;
                 const cur = this.resources.resources[res].production;
                 this.resources.setProduction(res, cur + rate * node.level * eff);
             });
             Object.entries(inputs).forEach(([res, rate]) => {
+                if (!this.resources.resources[res]) return;
                 const cur = this.resources.resources[res].production;
                 this.resources.setProduction(res, cur - rate * node.level * eff);
             });
@@ -467,6 +525,58 @@ class Game {
         });
     }
 
+    // Migrate placeholder resource keys (oreA/barA etc.) to real names
+    _migrateResourceKeys(data) {
+        const resKeyMap = {
+            oreA: 'ironOre', oreB: 'copperOre',
+            barA: 'ironBar', barB: 'copperBar',
+            componentA: 'steelPlate', componentB: 'copperWire',
+            componentC: 'circuitBoard',
+            productA: null, productB: null  // null = delete
+        };
+
+        if (data.resources) {
+            Object.entries(resKeyMap).forEach(([oldKey, newKey]) => {
+                if (data.resources[oldKey] !== undefined) {
+                    if (newKey) data.resources[newKey] = data.resources[oldKey];
+                    delete data.resources[oldKey];
+                }
+            });
+        }
+
+        if (data.canvas?.connections) {
+            data.canvas.connections.forEach(conn => {
+                const mapped = resKeyMap[conn.resourceType];
+                if (mapped === null) {
+                    conn._deleteConn = true;
+                } else if (mapped) {
+                    conn.resourceType = mapped;
+                }
+            });
+            data.canvas.connections = data.canvas.connections.filter(c => !c._deleteConn);
+        }
+    }
+
+    // Migrate old recipe IDs to new names
+    _migrateRecipeIds(data) {
+        if (!data.canvas?.nodes) return;
+        const recipeMap = {
+            wire: 'copper_wire',
+            circuit: 'circuit_board',
+            engine: null,
+            computer: null
+        };
+        data.canvas.nodes.forEach(node => {
+            if (!node.assignedRecipeId) return;
+            const mapped = recipeMap[node.assignedRecipeId];
+            if (mapped === null) {
+                node.assignedRecipeId = null;
+            } else if (mapped) {
+                node.assignedRecipeId = mapped;
+            }
+        });
+    }
+
     // Load game
     load(providedData = null) {
         try {
@@ -483,9 +593,11 @@ class Game {
             // Apply all migrations in sequence
             this._migrateMarketBuildings(data);
             this._migrateBuildingTypes(data);
-            this._migrateResourceTypes(data);
+            this._migrateResourceTypes(data);       // ore → oreA
             this._migrateBuildingCounts(data);
-            this._migrateConnectionResources(data);
+            this._migrateConnectionResources(data); // ore → oreA in connections
+            this._migrateResourceKeys(data);        // oreA → ironOre etc.
+            this._migrateRecipeIds(data);           // wire → copper_wire etc.
 
             // Load state
             if (data.resources)      this.resources.loadSaveData(data.resources);

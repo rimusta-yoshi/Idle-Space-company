@@ -17,7 +17,10 @@ class SidebarManager {
     // Build a palette card for a building type (one card per building, regardless of recipes)
     _makeBuildingCard(building) {
         const recipeCount = building.usesRecipes ? getRecipesForBuilding(building.id).length : 0;
-        const subtitle = recipeCount > 0 ? `${recipeCount} RECIPES` : building.autoSell ? 'AUTO SELL' : 'FIXED OUTPUT';
+        const subtitle = recipeCount > 0 ? `${recipeCount} RECIPES`
+            : building.autoSell ? 'AUTO SELL'
+            : building.category === 'infrastructure' ? 'GENERATOR'
+            : 'EXTRACTOR';
 
         const card = document.createElement('div');
         card.className = 'palette-card';
@@ -25,11 +28,29 @@ class SidebarManager {
         card.setAttribute('data-building', building.id);
         card.setAttribute('data-search-name', building.name.toUpperCase());
 
+        // For fixed-output buildings, build a production preview row
+        let outputsHtml = '';
+        if (!building.usesRecipes && !building.autoSell && building.production) {
+            const parts = Object.entries(building.production).map(([resKey, rate]) => {
+                const resDef = (typeof RESOURCES !== 'undefined') ? RESOURCES[resKey] : null;
+                const resName = resDef ? resDef.name.toUpperCase() : resKey.toUpperCase();
+                const resIcon = resDef ? resDef.icon : 'circle';
+                return `<span class="palette-output-item">` +
+                    `<span class="material-symbols-outlined palette-icon">${resIcon}</span>` +
+                    `${resName} <span class="palette-output-rate">+${formatRatePerMin(rate)}</span>` +
+                    `</span>`;
+            });
+            if (parts.length) {
+                outputsHtml = `<div class="palette-card-outputs">${parts.join('')}</div>`;
+            }
+        }
+
         card.innerHTML = `
             <div class="palette-card-header">
-                <span class="palette-card-name"><span class="material-symbols-outlined palette-icon">${building.icon}</span>${building.name.toUpperCase()}</span>
+                <span class="palette-card-name">${building.name.toUpperCase()}</span>
                 <span class="palette-card-type">${subtitle}</span>
             </div>
+            ${outputsHtml}
             <div class="palette-card-cost" data-cost=""></div>`;
 
         return card;
@@ -75,6 +96,21 @@ class SidebarManager {
             const sign = ratePerMin >= 0 ? '+' : '';
             pnlEl.textContent = `${sign}${formatNumber(Math.abs(ratePerMin))}/MIN`;
             pnlEl.className = 'credits-pnl ' + (ratePerMin > 0 ? 'positive' : ratePerMin < 0 ? 'negative' : 'neutral');
+        }
+    }
+
+    // Update power balance display in the sidebar
+    updatePower(supply = 0, demand = 0) {
+        const supplyPerMin = supply * 60;
+        const supplyEl = this.rootElement.querySelector('#power-supply');
+        if (supplyEl) supplyEl.textContent = formatNumber(supplyPerMin);
+
+        const pnlEl = this.rootElement.querySelector('#power-pnl');
+        if (pnlEl) {
+            const deltaPerMin = (supply - demand) * 60;
+            const sign = deltaPerMin >= 0 ? '+' : '';
+            pnlEl.textContent = `${sign}${formatNumber(Math.abs(deltaPerMin))}/MIN`;
+            pnlEl.className = 'power-pnl ' + (deltaPerMin > 0.1 ? 'positive' : deltaPerMin < -0.1 ? 'negative' : 'neutral');
         }
     }
 
