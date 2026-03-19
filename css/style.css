@@ -1703,6 +1703,24 @@ footer p {
     margin-right: 4px;
 }
 
+.wh-planet-label {
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    color: #7a6a4a;
+    letter-spacing: 0.1em;
+}
+
+.wh-empty {
+    text-align: center;
+    color: #555555;
+    font-style: italic;
+    padding: 24px 12px;
+}
+
+.wh-near-full {
+    color: #cc4422 !important;
+}
+
 .resource-amount {
     font-family: 'VT323', 'Courier New', monospace;
 }

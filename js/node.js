@@ -31,6 +31,11 @@ class FactoryNode {
         this.efficiency = 1.0;         // Derived each tick — fraction of max capacity (0–1)
         this.powerThrottled = false;   // Derived each tick — true when power grid deficit is the throttle cause
         this.actualOutputRate = {};    // Derived each tick — {resource: rate/s}
+
+        // Storage node fields (isStorage buildings only)
+        this.inventory = 0;
+        this.inventoryCapacity = (this.buildingDef.isStorage ? (this.buildingDef.baseCapacity || 500) : 0);
+        this.storedResourceType = null;
         this.activeRecipe = null;      // Derived each tick — connections validate assignedRecipe
         this.assignedRecipe = null;    // Persisted user-set recipe for usesRecipes buildings
         this.autoSellResource = null;  // Derived each tick — resource being sold by autoSell buildings
@@ -55,6 +60,18 @@ class FactoryNode {
     // Returns the primary output info for the header
     getNodeTitle() {
         const def = this.buildingDef;
+
+        if (def.isStorage) {
+            if (this.storedResourceType) {
+                const resDef = RESOURCES[this.storedResourceType];
+                return {
+                    icon: resDef?.icon || 'inventory_2',
+                    name: resDef?.name.toUpperCase() || this.storedResourceType.toUpperCase(),
+                    ratePerSec: null
+                };
+            }
+            return { icon: 'inventory_2', name: 'STORAGE', ratePerSec: null };
+        }
 
         if (def.autoSell) {
             const resDef = RESOURCES[this.autoSellResource];
@@ -92,6 +109,11 @@ class FactoryNode {
 
     calcHeight() {
         const def = this.buildingDef;
+
+        if (def.isStorage) {
+            return HEADER_H + 32 + PAD_B; // fill bar (8) + gap (4) + amount text (14) + padding
+        }
+
         let inputRows;
 
         if (def.autoSell) {
@@ -109,7 +131,15 @@ class FactoryNode {
     }
 
     calcWidth() {
+        const def = this.buildingDef;
         const title = this.getNodeTitle();
+
+        if (def.isStorage) {
+            // Storage nodes: fixed width based on name only — no rate column
+            const nameW = measureTextWidth(title.name, 15, 'VT323');
+            return Math.max(MIN_NODE_W, Math.ceil(8 + MS_ICON_W + nameW + 30));
+        }
+
         const maxRateStr = title.ratePerSec ? formatRatePerMin(title.ratePerSec * this.level) : '—';
         // Reserve space for worst-case throttled format "actual/max" — both sides roughly equal width
         const rateStr = title.ratePerSec ? `${maxRateStr}/${maxRateStr}` : '—';
@@ -120,7 +150,6 @@ class FactoryNode {
         const headerW = 8 + MS_ICON_W + nameW + 14 + rateW + 10;
 
         // Input rows: [8px pad] [MS icon 22px] [label VT323 13px] [8px pad]
-        const def = this.buildingDef;
         const recipe = this.activeRecipe || this.assignedRecipe;
         const inputs = recipe ? recipe.inputs : (def.usesRecipes ? {} : (def.consumption || {}));
 
@@ -139,6 +168,10 @@ class FactoryNode {
     // Returns the output resource colour for tier stripe and status accents
     _getOutputColor() {
         const def = this.buildingDef;
+
+        if (def.isStorage && this.storedResourceType) {
+            return RESOURCES[this.storedResourceType]?.color || '#d4a832';
+        }
 
         if (def.autoSell) {
             return RESOURCES['credits']?.color || '#e8c840';
@@ -317,6 +350,37 @@ class FactoryNode {
         const rateW = measureTextWidth(rateStr, 15, 'VT323');
         this.headerRate.x(w - rateW - 18);
 
+        // ── Storage node body: fill bar + amount text ──────────────────────
+        if (def.isStorage) {
+            const cap = this.inventoryCapacity || 1;
+            const pct = Math.min(1, this.inventory / cap);
+            const barInnerW = w - 20;
+            const barY = HEADER_H + 6;
+
+            const barBg = new Konva.Rect({
+                x: 10, y: barY,
+                width: barInnerW, height: 8,
+                fill: '#111820', cornerRadius: 2, listening: false
+            });
+            const fillColor = pct > 0.9 ? '#cc4422' : pct > 0.05 ? '#4a8a4a' : '#2a3040';
+            const barFill = new Konva.Rect({
+                x: 10, y: barY,
+                width: Math.max(0, barInnerW * pct), height: 8,
+                fill: fillColor, cornerRadius: 2, listening: false
+            });
+            const amtText = new Konva.Text({
+                x: 10, y: barY + 12,
+                text: this.storedResourceType
+                    ? `${formatNumber(this.inventory)} / ${formatNumber(cap)}`
+                    : 'NO CONNECTION',
+                fontSize: 12, fontFamily: 'VT323, Courier New',
+                fill: '#9a8b72', width: barInnerW, listening: false
+            });
+
+            this.ioShapes.push(barBg, barFill, amtText);
+            this.group.add(barBg, barFill, amtText);
+        }
+
         let y = HEADER_H + 4;
         let hasInputRows = false;
 
@@ -348,7 +412,9 @@ class FactoryNode {
             y += ROW_H;
         };
 
-        if (def.autoSell) {
+        if (def.isStorage) {
+            // No input rows — body is the fill bar added above
+        } else if (def.autoSell) {
             if (this.autoSellResource) {
                 addInputRow(this.autoSellResource, 1.0);
             }
@@ -396,6 +462,28 @@ class FactoryNode {
         this.buildIOShapes();
 
         const def = this.buildingDef;
+
+        // Storage nodes: colour by fill level, no efficiency concept
+        if (def.isStorage) {
+            const pct = this.inventoryCapacity > 0 ? this.inventory / this.inventoryCapacity : 0;
+            this.rect.fill(def.color);
+            this.rect.strokeWidth(1.5);
+            if (!this.storedResourceType) {
+                this.rect.stroke('#333344');
+                this.statusPip.fill('#2a2010');
+            } else if (pct > 0.9) {
+                this.rect.stroke('#cc4422');
+                this.statusPip.fill('#cc4422');
+            } else if (pct > 0.05) {
+                this.rect.stroke('#4a8a4a');
+                this.statusPip.fill('#4a8a4a');
+            } else {
+                this.rect.stroke('#a07818');
+                this.statusPip.fill('#c8a020');
+            }
+            this.headerName.fill('#e8d5b0');
+            return;
+        }
 
         const eff = this.efficiency ?? 1.0;
 
@@ -445,6 +533,9 @@ class FactoryNode {
 
     upgradeLevel() {
         this.level++;
+        if (this.buildingDef.isStorage) {
+            this.inventoryCapacity = (this.buildingDef.baseCapacity || 500) * this.level;
+        }
         this.updateDisplay();
     }
 
@@ -467,7 +558,7 @@ class FactoryNode {
     }
 
     getSaveData() {
-        return {
+        const data = {
             id: this.id,
             buildingType: this.buildingType,
             x: this.x,
@@ -477,6 +568,11 @@ class FactoryNode {
             outputs: this.outputs,
             assignedRecipeId: this.assignedRecipe ? this.assignedRecipe.id : null
         };
+        if (this.buildingDef.isStorage) {
+            data.inventory = this.inventory;
+            data.storedResourceType = this.storedResourceType;
+        }
+        return data;
     }
 
     static loadFromSaveData(data) {
@@ -489,6 +585,11 @@ class FactoryNode {
         if (data.assignedRecipeId) {
             const recipes = getRecipesForBuilding(data.buildingType);
             node.assignedRecipe = recipes.find(r => r.id === data.assignedRecipeId) || null;
+        }
+        if (node.buildingDef.isStorage) {
+            node.inventory = data.inventory || 0;
+            node.storedResourceType = data.storedResourceType || null;
+            node.inventoryCapacity = (node.buildingDef.baseCapacity || 500) * node.level;
         }
 
         if (!node.buildingDef) {

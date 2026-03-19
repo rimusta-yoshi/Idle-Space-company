@@ -451,212 +451,24 @@
     <!-- Warehouse app content template -->
     <template id="warehouse-app-template">
         <div class="warehouse-container">
-            <!-- Header with traffic lights -->
             <div class="warehouse-header">
                 <h2>INVENTORY CONTROL SYSTEM</h2>
-                <div class="status-lights">
-                    <div class="status-light green"></div>
-                    <div class="status-light yellow"></div>
-                    <div class="status-light red"></div>
-                </div>
+                <span class="wh-planet-label">SECTOR ALPHA-1</span>
             </div>
-
-            <!-- Resource table -->
             <table class="warehouse-table">
                 <thead>
                     <tr>
-                        <th>STATUS</th>
+                        <th></th>
                         <th>RESOURCE</th>
-                        <th>TOTAL</th>
-                        <th>OUTPUT</th>
-                        <th>DEMAND</th>
-                        <th>+/-</th>
-                        <th>ACTIONS</th>
+                        <th>STORED</th>
+                        <th>INFLOW</th>
+                        <th>NET</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <!-- TIER 1 - Raw Extractables -->
-                    <tr class="resource-row" data-resource="ironOre">
-                        <td><div id="wh-ironOre-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">hexagon</span> Iron Ore</td>
-                        <td id="wh-ironOre-total" class="resource-amount">0 / 5000</td>
-                        <td id="wh-ironOre-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-ironOre-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-ironOre-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="ironOre">
-                                Upgrade (100 cr)
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="resource-row" data-resource="copperOre">
-                        <td><div id="wh-copperOre-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">hexagon</span> Copper Ore</td>
-                        <td id="wh-copperOre-total" class="resource-amount">0 / 5000</td>
-                        <td id="wh-copperOre-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-copperOre-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-copperOre-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="copperOre">
-                                Upgrade (120 cr)
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="resource-row" data-resource="coal">
-                        <td><div id="wh-coal-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">local_fire_department</span> Coal</td>
-                        <td id="wh-coal-total" class="resource-amount">0 / 5000</td>
-                        <td id="wh-coal-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-coal-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-coal-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="coal">
-                                Upgrade (100 cr)
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="resource-row" data-resource="rareMins">
-                        <td><div id="wh-rareMins-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">diamond</span> Rare Minerals</td>
-                        <td id="wh-rareMins-total" class="resource-amount">0 / 1000</td>
-                        <td id="wh-rareMins-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-rareMins-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-rareMins-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="rareMins">
-                                Upgrade (300 cr)
-                            </button>
-                        </td>
-                    </tr>
-
-                    <!-- TIER 2 - Smelted -->
-                    <tr class="resource-row" data-resource="ironBar">
-                        <td><div id="wh-ironBar-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">view_timeline</span> Iron Bar</td>
-                        <td id="wh-ironBar-total" class="resource-amount">0 / 2000</td>
-                        <td id="wh-ironBar-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-ironBar-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-ironBar-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="ironBar">
-                                Upgrade (200 cr)
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="resource-row" data-resource="copperBar">
-                        <td><div id="wh-copperBar-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">view_timeline</span> Copper Bar</td>
-                        <td id="wh-copperBar-total" class="resource-amount">0 / 2000</td>
-                        <td id="wh-copperBar-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-copperBar-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-copperBar-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="copperBar">
-                                Upgrade (250 cr)
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="resource-row" data-resource="refinedFuel">
-                        <td><div id="wh-refinedFuel-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">local_gas_station</span> Refined Fuel</td>
-                        <td id="wh-refinedFuel-total" class="resource-amount">0 / 2000</td>
-                        <td id="wh-refinedFuel-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-refinedFuel-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-refinedFuel-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="refinedFuel">
-                                Upgrade (300 cr)
-                            </button>
-                        </td>
-                    </tr>
-
-                    <!-- TIER 3 - Assembled -->
-                    <tr class="resource-row" data-resource="steelPlate">
-                        <td><div id="wh-steelPlate-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">layers</span> Steel Plate</td>
-                        <td id="wh-steelPlate-total" class="resource-amount">0 / 1000</td>
-                        <td id="wh-steelPlate-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-steelPlate-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-steelPlate-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="steelPlate">
-                                Upgrade (500 cr)
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="resource-row" data-resource="copperWire">
-                        <td><div id="wh-copperWire-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">cable</span> Copper Wire</td>
-                        <td id="wh-copperWire-total" class="resource-amount">0 / 1000</td>
-                        <td id="wh-copperWire-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-copperWire-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-copperWire-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="copperWire">
-                                Upgrade (400 cr)
-                            </button>
-                        </td>
-                    </tr>
-
-                    <!-- TIER 4 - Manufactured -->
-                    <tr class="resource-row" data-resource="circuitBoard">
-                        <td><div id="wh-circuitBoard-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">memory</span> Circuit Board</td>
-                        <td id="wh-circuitBoard-total" class="resource-amount">0 / 500</td>
-                        <td id="wh-circuitBoard-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-circuitBoard-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-circuitBoard-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="circuitBoard">
-                                Upgrade (800 cr)
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="resource-row" data-resource="insulatedWire">
-                        <td><div id="wh-insulatedWire-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">cable</span> Insulated Wire</td>
-                        <td id="wh-insulatedWire-total" class="resource-amount">0 / 500</td>
-                        <td id="wh-insulatedWire-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-insulatedWire-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-insulatedWire-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="insulatedWire">
-                                Upgrade (1200 cr)
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="resource-row" data-resource="fuelCell">
-                        <td><div id="wh-fuelCell-indicator" class="status-indicator green"></div></td>
-                        <td class="resource-name"><span class="material-symbols-outlined wh-icon">battery_charging_full</span> Fuel Cell</td>
-                        <td id="wh-fuelCell-total" class="resource-amount">0 / 500</td>
-                        <td id="wh-fuelCell-output" class="output-rate">+0.0/s</td>
-                        <td id="wh-fuelCell-demand" class="demand-rate">0.0/s</td>
-                        <td id="wh-fuelCell-net" class="net-rate">+0.0/s</td>
-                        <td>
-                            <button class="upgrade-capacity-btn" data-resource="fuelCell">
-                                Upgrade (1000 cr)
-                            </button>
-                        </td>
-                    </tr>
+                <tbody class="warehouse-tbody">
+                    <!-- Rows generated dynamically from storage nodes on the canvas -->
                 </tbody>
             </table>
-
-            <!-- Pagination (for future expansion) -->
-            <div class="warehouse-footer">
-                <div class="pagination">
-                    <button class="page-btn active">1</button>
-                    <button class="page-btn" disabled>2</button>
-                    <button class="page-btn" disabled>3</button>
-                </div>
-            </div>
         </div>
     </template>
 

@@ -110,9 +110,9 @@ class Game {
     // Update game state
     update(deltaTime) {
         // Calculate production rates based on placed buildings
-        this.calculateProduction();
+        this.calculateProduction(deltaTime);
 
-        // Update resources based on production
+        // Update credits from production rates (only credits use setProduction now)
         this.resources.updateProduction(deltaTime);
 
         // Update node displays
@@ -196,17 +196,25 @@ class Game {
     // Each node's efficiency (0–1) is determined by the actual flow arriving through its
     // input connections, not the global resource pool. This allows partial throughput
     // when supply is less than demand, rather than binary stall/produce.
-    calculateProduction() {
-        // Reset all global production rates to 0
-        Object.keys(this.resources.resources).forEach(type => {
-            this.resources.setProduction(type, 0);
-        });
+    calculateProduction(deltaTime = 0) {
+        // Reset credits production rate only — non-credit resources live in storage nodes
+        this.resources.setProduction('credits', 0);
 
         // ── Pass 0: resolve recipes and seed per-node flow state ────────────
         this.canvas.nodes.forEach(node => {
             const def = node.buildingDef;
             if (!def) throw new Error(`Node ${node.id} has no buildingDef!`);
             if (def.autoSell) return;
+
+            // Storage nodes: act as unlimited source if they have inventory, zero if empty
+            if (def.isStorage) {
+                node.efficiency = 1.0;
+                node.actualOutputRate = {};
+                if (node.storedResourceType && node.inventory > 0) {
+                    node.actualOutputRate[node.storedResourceType] = 9999;
+                }
+                return;
+            }
 
             this.resolveActiveRecipe(node);
 
@@ -241,6 +249,7 @@ class Game {
             this.canvas.nodes.forEach(node => {
                 const def = node.buildingDef;
                 if (def.autoSell) return;
+                if (def.isStorage) return; // Already seeded — act as source, not converged
 
                 const inputs = def.usesRecipes
                     ? (node.activeRecipe?.inputs || {})
@@ -321,7 +330,7 @@ class Game {
                 // Skip: auto-sell nodes, power generators, and buildings with no power demand
                 // (extractors have no powerDemand — throttling them creates a circular dependency
                 //  with power generators that need their output)
-                if (def.autoSell || !def.powerDemand || def.id === 'powerGenerator') return;
+                if (def.autoSell || def.isStorage || !def.powerDemand || def.id === 'powerGenerator') return;
                 const currentEff = node.efficiency || 0;
                 const newEff = Math.min(currentEff, powerRatio);
                 // Only flag as power-throttled when power is the actual binding constraint
@@ -342,79 +351,185 @@ class Game {
         // ── Update per-connection flow rates (for arrow labels) ──────────────
         this.canvas.connections.forEach(conn => {
             const fromNode = conn.fromNode;
-            const fromRate = (fromNode.actualOutputRate || {})[conn.resourceType] || 0;
-            const splitCount = this.canvas.connections.filter(c =>
-                c.fromNode.id === fromNode.id && c.resourceType === conn.resourceType
-            ).length;
-            conn.flowRate = fromRate / Math.max(1, splitCount);
+            if (fromNode.buildingDef?.isStorage) {
+                // Storage output: actual flow = what the downstream building actually consumes
+                const toNode = conn.toNode;
+                const toDef = toNode.buildingDef;
+                const toInputs = toDef.usesRecipes
+                    ? (toNode.activeRecipe?.inputs || {})
+                    : (toDef.consumption || {});
+                const toRate = (toInputs[conn.resourceType] || 0) * toNode.level;
+                const splitCount = this.canvas.connections.filter(c =>
+                    c.toNode.id === toNode.id && c.resourceType === conn.resourceType
+                ).length;
+                conn.flowRate = (toNode.efficiency || 0) * toRate / Math.max(1, splitCount);
+            } else {
+                const fromRate = (fromNode.actualOutputRate || {})[conn.resourceType] || 0;
+                const splitCount = this.canvas.connections.filter(c =>
+                    c.fromNode.id === fromNode.id && c.resourceType === conn.resourceType
+                ).length;
+                conn.flowRate = fromRate / Math.max(1, splitCount);
+            }
             conn.updateLabel();
         });
 
-        // ── Apply node flows to global resource pool ─────────────────────────
+        // ── Storage node inventory tick ───────────────────────────────────────
+        // Inflow = actual flow arriving via input connections
+        // Outflow = actual consumption by downstream buildings drawing from this storage
+        // Pre-build split-count maps once to avoid O(C²) per-node filtering
+        const fromSplitCount = new Map(); // key: `${fromNodeId}:${res}` → count
+        const toSplitCount = new Map();   // key: `${toNodeId}:${res}` → count
+        this.canvas.connections.forEach(conn => {
+            const fk = `${conn.fromNode.id}:${conn.resourceType}`;
+            fromSplitCount.set(fk, (fromSplitCount.get(fk) || 0) + 1);
+            const tk = `${conn.toNode.id}:${conn.resourceType}`;
+            toSplitCount.set(tk, (toSplitCount.get(tk) || 0) + 1);
+        });
+
+        this.canvas.nodes.forEach(node => {
+            if (!node.buildingDef?.isStorage || !node.storedResourceType) return;
+
+            let inflow = 0;
+            this.canvas.connections.forEach(conn => {
+                if (conn.toNode.id !== node.id) return;
+                const fromNode = conn.fromNode;
+                const res = conn.resourceType;
+                const fromRate = (fromNode.actualOutputRate || {})[res] || 0;
+                const splitCount = fromSplitCount.get(`${fromNode.id}:${res}`) || 1;
+                inflow += fromRate / splitCount;
+            });
+
+            let outflow = 0;
+            this.canvas.connections.forEach(conn => {
+                if (conn.fromNode.id !== node.id) return;
+                const toNode = conn.toNode;
+                const toDef = toNode.buildingDef;
+                const toInputs = toDef.usesRecipes
+                    ? (toNode.activeRecipe?.inputs || {})
+                    : (toDef.consumption || {});
+                let toRate;
+                if (toDef.autoSell) {
+                    // autoSell consumption isn't in def.consumption — use rate stored last tick
+                    toRate = toNode.autoSellConsumeRate || 0;
+                } else {
+                    toRate = (toInputs[conn.resourceType] || 0) * toNode.level;
+                }
+                const splitCount = toSplitCount.get(`${toNode.id}:${conn.resourceType}`) || 1;
+                outflow += toDef.autoSell ? toRate / splitCount : (toNode.efficiency || 0) * toRate / splitCount;
+            });
+
+            // Store rates on node so warehouse app can read them directly
+            node.inflowRate = inflow;
+            node.outflowRate = outflow;
+
+            if (deltaTime > 0) {
+                const cap = node.inventoryCapacity || 1;
+                node.inventory = Math.max(0, Math.min(cap, node.inventory + (inflow - outflow) * deltaTime));
+            }
+        });
+
+        // ── Credits from export terminals ─────────────────────────────────────
         this.canvas.nodes.forEach(node => {
             const def = node.buildingDef;
+            if (!def.autoSell) return;
 
-            // Auto-sell: consume the flow arriving from upstream, sell for credits
-            if (def.autoSell) {
-                const inputResources = this.getNodeInputResourceTypes(node);
-                const connectedResource = Object.keys(inputResources)[0] || null;
-                node.autoSellResource = connectedResource;
+            const inputResources = this.getNodeInputResourceTypes(node);
+            const connectedResource = Object.keys(inputResources)[0] || null;
+            node.autoSellResource = connectedResource;
 
-                if (connectedResource) {
-                    let available = 0;
-                    this.canvas.connections.forEach(conn => {
-                        if (conn.toNode.id !== node.id || conn.resourceType !== connectedResource) return;
-                        const fromNode = conn.fromNode;
-                        const fromRate = (fromNode.actualOutputRate || {})[connectedResource] || 0;
-                        const splitCount = this.canvas.connections.filter(c =>
-                            c.fromNode.id === fromNode.id && c.resourceType === connectedResource
-                        ).length;
-                        available += fromRate / Math.max(1, splitCount);
-                    });
+            if (connectedResource) {
+                let available = 0;
+                this.canvas.connections.forEach(conn => {
+                    if (conn.toNode.id !== node.id || conn.resourceType !== connectedResource) return;
+                    const fromNode = conn.fromNode;
+                    const fromRate = (fromNode.actualOutputRate || {})[connectedResource] || 0;
+                    const splitCount = this.canvas.connections.filter(c =>
+                        c.fromNode.id === fromNode.id && c.resourceType === connectedResource
+                    ).length;
+                    available += fromRate / Math.max(1, splitCount);
+                });
 
-                    const maxRate = 1.0 * node.level;
-                    const consumeRate = Math.min(maxRate, available);
-                    const resDef = RESOURCES[connectedResource];
-                    const sellRate = (resDef?.sellPrice || 0) * 0.70;
+                const maxRate = 1.0 * node.level;
+                const consumeRate = Math.min(maxRate, available);
+                const resDef = RESOURCES[connectedResource];
+                const sellRate = (resDef?.sellPrice || 0) * 0.70;
 
-                    node.efficiency = maxRate > 0 ? consumeRate / maxRate : 0;
-                    node.stalled = consumeRate === 0;
+                node.autoSellConsumeRate = consumeRate;
+                node.efficiency = maxRate > 0 ? consumeRate / maxRate : 0;
+                node.stalled = consumeRate === 0;
 
-                    if (consumeRate > 0) {
-                        const cur = r => this.resources.resources[r].production;
-                        this.resources.setProduction(connectedResource, cur(connectedResource) - consumeRate);
-                        this.resources.setProduction('credits', cur('credits') + sellRate * consumeRate);
-                    }
-                } else {
-                    node.efficiency = 0;
-                    node.stalled = true;
+                if (consumeRate > 0) {
+                    const cur = this.resources.resources['credits'].production;
+                    this.resources.setProduction('credits', cur + sellRate * consumeRate);
                 }
-                return;
+            } else {
+                node.autoSellConsumeRate = 0;
+                node.efficiency = 0;
+                node.stalled = true;
             }
-
-            // Standard nodes: apply scaled production and consumption rates
-            const eff = node.efficiency || 0;
-            node.stalled = eff < 0.01;
-
-            const outputs = def.usesRecipes
-                ? (node.activeRecipe?.outputs || {})
-                : (def.production || {});
-            const inputs = def.usesRecipes
-                ? (node.activeRecipe?.inputs || {})
-                : (def.consumption || {});
-
-            Object.entries(outputs).forEach(([res, rate]) => {
-                if (res === 'power') return; // Grid resource — not stockpiled
-                if (!this.resources.resources[res]) return;
-                const cur = this.resources.resources[res].production;
-                this.resources.setProduction(res, cur + rate * node.level * eff);
-            });
-            Object.entries(inputs).forEach(([res, rate]) => {
-                if (!this.resources.resources[res]) return;
-                const cur = this.resources.resources[res].production;
-                this.resources.setProduction(res, cur - rate * node.level * eff);
-            });
         });
+
+        // ── Non-credit nodes: stalled flag only (no global pool) ─────────────
+        this.canvas.nodes.forEach(node => {
+            const def = node.buildingDef;
+            if (def.autoSell || def.isStorage) return;
+            node.stalled = (node.efficiency || 0) < 0.01;
+        });
+
+        // ── Sync ResourceManager totals from storage nodes (for canAfford display) ──
+        const storageAgg = {};
+        this.canvas.nodes.forEach(node => {
+            if (!node.buildingDef?.isStorage || !node.storedResourceType) return;
+            storageAgg[node.storedResourceType] = (storageAgg[node.storedResourceType] || 0) + node.inventory;
+        });
+        Object.keys(this.resources.resources).forEach(type => {
+            if (type === 'credits') return;
+            const res = this.resources.resources[type];
+            this.resources.resources[type] = { ...res, current: storageAgg[type] || 0 };
+        });
+    }
+
+    // Deduct non-credit resources directly from storage node inventories (FIFO)
+    _deductFromStorage(resourceType, amount) {
+        let remaining = amount;
+        for (const node of this.canvas.nodes) {
+            if (!node.buildingDef?.isStorage) continue;
+            if (node.storedResourceType !== resourceType) continue;
+            const take = Math.min(node.inventory, remaining);
+            node.inventory -= take;
+            remaining -= take;
+            if (remaining <= 0) break;
+        }
+        return remaining <= 0;
+    }
+
+    // Check affordability using storage inventories for non-credit costs
+    canAfford(costs) {
+        if (!costs) return true;
+        return Object.entries(costs).every(([type, amount]) => {
+            if (type === 'credits') return this.resources.get('credits') >= amount;
+            // Non-credit: sum across all storage nodes
+            let total = 0;
+            this.canvas.nodes.forEach(node => {
+                if (node.buildingDef?.isStorage && node.storedResourceType === type) {
+                    total += node.inventory;
+                }
+            });
+            return total >= amount;
+        });
+    }
+
+    // Spend costs: credits from ResourceManager, materials from storage nodes
+    spendCosts(costs) {
+        if (!this.canAfford(costs)) return false;
+        Object.entries(costs).forEach(([type, amount]) => {
+            if (type === 'credits') {
+                this.resources.remove('credits', amount);
+            } else {
+                this._deductFromStorage(type, amount);
+            }
+        });
+        return true;
     }
 
     // Handle building dropped on canvas
@@ -422,8 +537,8 @@ class Game {
         const count = this.buildingCounts[buildingType] || 0;
         const cost = calculateBuildingCost(buildingType, count);
 
-        // Check if can afford
-        if (!this.resources.canAfford(cost)) {
+        // Check if can afford (credits from ResourceManager, materials from storage nodes)
+        if (!this.canAfford(cost)) {
             const costText = Object.entries(cost)
                 .map(([resource, amount]) => `${formatNumber(amount)} ${resource}`)
                 .join(', ');
@@ -433,7 +548,7 @@ class Game {
         }
 
         // Spend resources
-        this.resources.spend(cost);
+        this.spendCosts(cost);
 
         // Convert screen coordinates to world coordinates (accounting for pan/zoom)
         const worldPos = this.canvas.screenToWorld(screenX, screenY);

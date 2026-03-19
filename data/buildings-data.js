@@ -115,6 +115,23 @@ const BUILDINGS = {
         usesRecipes: true
     },
 
+    // ===== STORAGE NODE (Infrastructure) =====
+
+    storageNode: {
+        id: 'storageNode',
+        name: 'Storage',
+        description: 'Stores a single resource type. Route surplus here to buffer production chains.',
+        category: 'infrastructure',
+        tier: 1,
+        baseCost: { credits: 50 },
+        costMultiplier: 1.3,
+        color: '#0a1520',
+        icon: 'inventory_2',
+        unlocked: true,
+        isStorage: true,
+        baseCapacity: 500   // Capacity per level
+    },
+
     // ===== POWER GENERATOR (Infrastructure) =====
 
     powerGenerator: {

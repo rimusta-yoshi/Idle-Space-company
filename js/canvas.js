@@ -541,6 +541,12 @@ class CanvasManager {
         fromNode.outputs = [...fromNode.outputs, toNode.id];
         toNode.inputs = [...toNode.inputs, fromNode.id];
 
+        // Storage node: lock in resource type on first connection
+        if (toNode.buildingDef.isStorage && !toNode.storedResourceType) {
+            toNode.storedResourceType = resourceType;
+            toNode.updateDisplay();
+        }
+
         // Auto-assign recipe if the destination is an unassigned recipe building
         // and the connected inputs now uniquely resolve to one recipe
         if (toNode.buildingDef.usesRecipes && !toNode.assignedRecipe) {
@@ -581,9 +587,14 @@ class CanvasManager {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
 
+        // Resolve what fromNode produces
         let producedResources;
-        if (fromDef.usesRecipes) {
-            if (!fromNode.assignedRecipe) return false; // Must assign recipe before connecting
+        if (fromDef.isStorage) {
+            // Storage outputs its stored resource type (must already be set)
+            if (!fromNode.storedResourceType) return false;
+            producedResources = [fromNode.storedResourceType];
+        } else if (fromDef.usesRecipes) {
+            if (!fromNode.assignedRecipe) return false;
             producedResources = Object.keys(fromNode.assignedRecipe.outputs);
         } else {
             if (!fromDef.production || Object.keys(fromDef.production).length === 0) return false;
@@ -592,14 +603,21 @@ class CanvasManager {
 
         if (producedResources.length === 0) return false;
 
+        // Storage node as destination: accepts any non-credits, non-power resource
+        // but only the same type if already committed
+        if (toDef.isStorage) {
+            const produced = producedResources.find(r => r !== 'credits' && r !== 'power');
+            if (!produced) return false;
+            if (toNode.storedResourceType && toNode.storedResourceType !== produced) return false;
+            return true;
+        }
+
         if (toDef.autoSell) {
-            // Export terminal accepts any non-credits resource
             return producedResources.some(r => r !== 'credits');
         }
 
         if (toDef.usesRecipes) {
             if (!toNode.assignedRecipe) {
-                // Allow connection if any recipe for this building accepts what fromNode produces
                 const allRecipes = getRecipesForBuilding(toNode.buildingType);
                 return allRecipes.some(r => producedResources.some(p => Object.keys(r.inputs).includes(p)));
             }
@@ -614,12 +632,20 @@ class CanvasManager {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
 
+        // Resolve what fromNode produces
         let producedResources;
-        if (fromDef.usesRecipes) {
+        if (fromDef.isStorage) {
+            if (!fromNode.storedResourceType) return null;
+            producedResources = [fromNode.storedResourceType];
+        } else if (fromDef.usesRecipes) {
             if (!fromNode.assignedRecipe) return null;
             producedResources = Object.keys(fromNode.assignedRecipe.outputs);
         } else {
             producedResources = Object.keys(fromDef.production || {});
+        }
+
+        if (toDef.isStorage) {
+            return producedResources.find(r => r !== 'credits' && r !== 'power') || null;
         }
 
         if (toDef.autoSell) {
@@ -628,7 +654,6 @@ class CanvasManager {
 
         if (toDef.usesRecipes) {
             if (!toNode.assignedRecipe) {
-                // Find the first resource produced that any recipe for this building accepts
                 const allRecipes = getRecipesForBuilding(toNode.buildingType);
                 for (const recipe of allRecipes) {
                     const match = producedResources.find(p => Object.keys(recipe.inputs).includes(p));
@@ -661,6 +686,17 @@ class CanvasManager {
 
             connection.removeFromLayer();
             this.connections = this.connections.filter(c => c.id !== connectionId);
+
+            // If a storage node loses all inputs, clear its committed resource type
+            if (toNode.buildingDef?.isStorage) {
+                const stillHasInputs = this.connections.some(c => c.toNode.id === toNode.id);
+                if (!stillHasInputs) {
+                    toNode.storedResourceType = null;
+                    toNode.inventory = 0;
+                    toNode.updateDisplay();
+                }
+            }
+
             this.layer.draw();
             log(`Connection deleted: ${connectionId}`);
         }
