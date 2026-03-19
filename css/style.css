@@ -1696,6 +1696,13 @@ footer p {
     font-size: 14px;
 }
 
+.wh-icon {
+    font-size: 14px;
+    vertical-align: middle;
+    color: #c49a2a;
+    margin-right: 4px;
+}
+
 .resource-amount {
     font-family: 'VT323', 'Courier New', monospace;
 }

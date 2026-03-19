@@ -106,26 +106,27 @@ class WarehouseApp extends App {
                 if (percentage > 90) hasNearFull = true;
             }
 
-            // OUTPUT column
+            // OUTPUT column — actual rate from flow model
             const outputEl = root.querySelector(`#wh-${type}-output`);
             if (outputEl) {
                 const production = this.calculateTotalProduction(type);
-                outputEl.textContent = production > 0 ? `+${formatRate(production)}` : '0/s';
-                outputEl.style.color = production > 0 ? '#4a8a4a' : '#555555';
+                outputEl.textContent = production > 0.001 ? `+${formatRatePerMin(production)}` : '—';
+                outputEl.style.color = production > 0.001 ? '#4a8a4a' : '#555555';
             }
 
-            // DEMAND column
+            // DEMAND column — actual rate (efficiency-adjusted)
             const demandEl = root.querySelector(`#wh-${type}-demand`);
             if (demandEl) {
                 const demand = this.calculateTotalDemand(type);
-                demandEl.textContent = demand > 0 ? formatRate(demand) : '0/s';
-                demandEl.style.color = demand > 0 ? '#a07818' : '#555555';
+                demandEl.textContent = demand > 0.001 ? formatRatePerMin(demand) : '—';
+                demandEl.style.color = demand > 0.001 ? '#a07818' : '#555555';
             }
 
-            // NET column
+            // NET column — actual net from resource manager (already efficiency-adjusted)
             const netEl = root.querySelector(`#wh-${type}-net`);
             if (netEl) {
-                netEl.textContent = (net >= 0 ? '+' : '') + formatRate(net);
+                const sign = net >= 0 ? '+' : '';
+                netEl.textContent = `${sign}${formatRatePerMin(net)}`;
                 netEl.style.color = this._netColor(net);
                 if (net < -0.01) hasDeficit = true;
             }
@@ -162,59 +163,29 @@ class WarehouseApp extends App {
     }
 
     calculateTotalProduction(resourceType) {
-        let production = 0;
         const gameInstance = window.gameInstance;
+        if (!gameInstance?.canvas?.nodes) return 0;
 
-        if (!gameInstance || !gameInstance.canvas || !gameInstance.canvas.nodes) {
-            return 0;
-        }
-
-        gameInstance.canvas.nodes.forEach(node => {
-            const def = node.buildingDef;
-
-            // Recipe-based building: use active recipe outputs
-            if (def.usesRecipes) {
-                if (node.activeRecipe && node.activeRecipe.outputs[resourceType]) {
-                    production += node.activeRecipe.outputs[resourceType] * node.level;
-                }
-                return;
-            }
-
-            // Standard building: use static production
-            if (def.production && def.production[resourceType]) {
-                production += def.production[resourceType] * node.level;
-            }
-        });
-
-        return production;
+        // Use actualOutputRate — set by the flow model each tick, efficiency-adjusted
+        return gameInstance.canvas.nodes.reduce((sum, node) => {
+            return sum + ((node.actualOutputRate || {})[resourceType] || 0);
+        }, 0);
     }
 
     calculateTotalDemand(resourceType) {
-        let demand = 0;
         const gameInstance = window.gameInstance;
+        if (!gameInstance?.canvas?.nodes) return 0;
 
-        if (!gameInstance || !gameInstance.canvas || !gameInstance.canvas.nodes) {
-            return 0;
-        }
-
-        gameInstance.canvas.nodes.forEach(node => {
+        // Scale max demand by node efficiency to reflect what's actually being consumed
+        return gameInstance.canvas.nodes.reduce((sum, node) => {
             const def = node.buildingDef;
-
-            // Recipe-based building: use active recipe inputs
-            if (def.usesRecipes) {
-                if (node.activeRecipe && node.activeRecipe.inputs[resourceType]) {
-                    demand += node.activeRecipe.inputs[resourceType] * node.level;
-                }
-                return;
-            }
-
-            // Standard building: use static consumption
-            if (def.consumption && def.consumption[resourceType]) {
-                demand += def.consumption[resourceType] * node.level;
-            }
-        });
-
-        return demand;
+            const eff = node.efficiency ?? 1.0;
+            const inputs = def.usesRecipes
+                ? (node.activeRecipe?.inputs || {})
+                : (def.consumption || {});
+            const rate = (inputs[resourceType] || 0) * node.level * eff;
+            return sum + rate;
+        }, 0);
     }
 
     setupUpgradeButtons(root) {
