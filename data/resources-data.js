@@ -10,7 +10,7 @@ const RESOURCES = {
         icon: 'paid',
         color: '#e8c840',
         tier: 0,
-        initialAmount: 100,
+        initialAmount: 0,
         initialCapacity: Infinity,
         sellPrice: null  // Not directly sellable
     },

@@ -687,12 +687,12 @@ class CanvasManager {
             connection.removeFromLayer();
             this.connections = this.connections.filter(c => c.id !== connectionId);
 
-            // If a storage node loses all inputs, clear its committed resource type
+            // If a storage node loses all inputs and is empty, clear its committed resource type
+            // so a different resource can flow in. Preserve inventory if items remain.
             if (toNode.buildingDef?.isStorage) {
                 const stillHasInputs = this.connections.some(c => c.toNode.id === toNode.id);
-                if (!stillHasInputs) {
+                if (!stillHasInputs && (toNode.inventory || 0) <= 0) {
                     toNode.storedResourceType = null;
-                    toNode.inventory = 0;
                     toNode.updateDisplay();
                 }
             }

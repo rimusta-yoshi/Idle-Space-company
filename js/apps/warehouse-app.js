@@ -29,7 +29,10 @@ class WarehouseApp extends App {
         const gameInstance = window.gameInstance;
         if (!gameInstance?.canvas) return;
 
-        const storageNodes = gameInstance.canvas.nodes.filter(n => n.buildingDef?.isStorage);
+        // Defensive: check both the isStorage flag and the buildingType directly
+        const storageNodes = gameInstance.canvas.nodes.filter(
+            n => n.buildingDef?.isStorage || n.buildingType === 'storageNode'
+        );
         const tbody = root.querySelector('.warehouse-tbody');
         if (!tbody) return;
 
@@ -76,7 +79,7 @@ class WarehouseApp extends App {
             const net = inflow - outflow;
 
             const statusClass = !res ? 'yellow' : net > 0.01 ? 'green' : net < -0.01 ? 'red' : 'yellow';
-            const netSign = net >= 0 ? '+' : '';
+            const netSign = net >= 0 ? '+' : '-';
             const netColor = net > 0.01 ? '#4a8a4a' : net < -0.01 ? '#cc3333' : '#e8c840';
             const iconHtml = resDef
                 ? `<span class="material-symbols-outlined wh-icon">${resDef.icon}</span>`
@@ -99,7 +102,7 @@ class WarehouseApp extends App {
                 <td class="resource-name">${iconHtml} ${resName}</td>
                 <td class="resource-amount ${pct > 90 ? 'wh-near-full' : ''}">${storedText}</td>
                 <td class="output-rate" style="color:${inflow > 0.001 ? '#4a8a4a' : '#555555'}">${inflow > 0.001 ? '+' + formatRatePerMin(inflow) : '—'}</td>
-                <td class="net-rate" style="color:${netColor}">${res ? netSign + formatRatePerMin(net) : '—'}</td>
+                <td class="net-rate" style="color:${netColor}">${res ? netSign + formatRatePerMin(Math.abs(net)) : '—'}</td>
             `;
         });
 

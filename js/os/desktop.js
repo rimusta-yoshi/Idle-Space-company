@@ -26,6 +26,7 @@ class DesktopOS {
         this.registerApp('factory', FactoryApp);
         this.registerApp('market', MarketApp);
         this.registerApp('warehouse', WarehouseApp);
+        this.registerApp('franchise', FranchiseApp);
         this.registerApp('logout', LogoutApp);
 
         // Setup desktop icon clicks

@@ -42,6 +42,10 @@
                 <div class="icon">WH</div>
                 <div class="icon-label">INVENTORY</div>
             </div>
+            <div class="desktop-icon" data-app="franchise">
+                <div class="icon">ST</div>
+                <div class="icon-label">STRATUM</div>
+            </div>
             <div class="desktop-icon" data-app="logout">
                 <div class="icon">SYS</div>
                 <div class="icon-label">SYSTEM</div>
@@ -159,18 +163,30 @@
 
                     <!-- Power balance panel -->
                     <div id="power-panel">
-                        <div class="power-balance-row">
+                        <div class="power-header-row">
                             <span class="material-symbols-outlined power-icon">bolt</span>
-                            <span id="power-supply" class="power-supply">0</span>
-                            <span class="power-supply-unit">/MIN</span>
+                            <span id="power-status" class="power-status neutral">POWER</span>
                         </div>
-                        <div class="power-pnl-row">
-                            <span id="power-pnl" class="power-pnl neutral">+0/MIN</span>
+                        <div class="power-detail-row">
+                            <span class="power-label">SUPPLY</span>
+                            <span id="power-supply" class="power-supply">0/MIN</span>
+                        </div>
+                        <div class="power-detail-row">
+                            <span class="power-label">DEMAND</span>
+                            <span id="power-demand" class="power-demand">0/MIN</span>
                         </div>
                     </div>
 
                     <!-- Build palette -->
                     <div class="palette-section-header">BUILD</div>
+                    <div class="palette-tabs" id="palette-tabs">
+                        <button class="palette-tab active" data-tab="all">ALL</button>
+                        <button class="palette-tab" data-tab="extractors">EXTRACT</button>
+                        <button class="palette-tab" data-tab="smelters">SMELT</button>
+                        <button class="palette-tab" data-tab="assemblers">ASSEMBLE</button>
+                        <button class="palette-tab" data-tab="infrastructure">INFRA</button>
+                        <button class="palette-tab" data-tab="commerce">TRADE</button>
+                    </div>
                     <input type="text" id="palette-search" class="palette-search" placeholder="SEARCH..." autocomplete="off" spellcheck="false" />
                     <div id="building-list">
                         <!-- Will be dynamically populated by sidebar.js -->
@@ -225,226 +241,25 @@
     <!-- Market app content template -->
     <template id="market-app-template">
         <div class="market-container">
-            <!-- Browser-like navigation -->
-            <div class="market-nav">
-                <button data-page="store" class="nav-btn active">LISTINGS</button>
-                <button data-page="about" class="nav-btn">INFO</button>
-                <div class="url-bar">stratum://exchange.corp/commodities</div>
+            <div class="market-header">
+                <span class="market-title">STRATUM.EXCHANGE // COMMODITY PORTAL</span>
+                <span class="market-subtitle">RATES SUBJECT TO ROYALTY DEDUCTION — SECTION 12.4</span>
+                <span class="market-credits-balance">0 CR</span>
             </div>
-
-            <!-- Store page content -->
-            <div class="market-content store-page">
-                <h2>STRATUM.EXCHANGE</h2>
-                <p class="market-subtitle">OFFLOAD SURPLUS INVENTORY // RATES SUBJECT TO ROYALTY DEDUCTION</p>
-
-                <div class="resource-listings">
-                    <!-- TIER 1 - Raw Extractables -->
-                    <div class="market-listing" data-resource="ironOre">
-                        <div class="listing-icon">⛏️</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Iron Ore</div>
-                            <div class="listing-price">0.5 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-ironOre-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-ironOre-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="ironOre" data-amount="100">Sell 100</button>
-                            <button class="sell-btn" data-resource="ironOre" data-amount="1000">Sell 1000</button>
-                            <button class="sell-btn sell-all" data-resource="ironOre" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-
-                    <div class="market-listing" data-resource="copperOre">
-                        <div class="listing-icon">🪨</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Copper Ore</div>
-                            <div class="listing-price">0.8 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-copperOre-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-copperOre-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="copperOre" data-amount="100">Sell 100</button>
-                            <button class="sell-btn" data-resource="copperOre" data-amount="1000">Sell 1000</button>
-                            <button class="sell-btn sell-all" data-resource="copperOre" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-
-                    <div class="market-listing" data-resource="coal">
-                        <div class="listing-icon">🪨</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Coal</div>
-                            <div class="listing-price">0.3 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-coal-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-coal-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="coal" data-amount="100">Sell 100</button>
-                            <button class="sell-btn" data-resource="coal" data-amount="1000">Sell 1000</button>
-                            <button class="sell-btn sell-all" data-resource="coal" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-
-                    <div class="market-listing" data-resource="rareMins">
-                        <div class="listing-icon">💎</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Rare Minerals</div>
-                            <div class="listing-price">5.0 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-rareMins-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-rareMins-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="rareMins" data-amount="10">Sell 10</button>
-                            <button class="sell-btn" data-resource="rareMins" data-amount="100">Sell 100</button>
-                            <button class="sell-btn sell-all" data-resource="rareMins" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-
-                    <!-- TIER 2 - Smelted -->
-                    <div class="market-listing" data-resource="ironBar">
-                        <div class="listing-icon">🔩</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Iron Bar</div>
-                            <div class="listing-price">2.0 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-ironBar-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-ironBar-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="ironBar" data-amount="50">Sell 50</button>
-                            <button class="sell-btn" data-resource="ironBar" data-amount="500">Sell 500</button>
-                            <button class="sell-btn sell-all" data-resource="ironBar" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-
-                    <div class="market-listing" data-resource="copperBar">
-                        <div class="listing-icon">🟫</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Copper Bar</div>
-                            <div class="listing-price">3.0 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-copperBar-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-copperBar-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="copperBar" data-amount="50">Sell 50</button>
-                            <button class="sell-btn" data-resource="copperBar" data-amount="500">Sell 500</button>
-                            <button class="sell-btn sell-all" data-resource="copperBar" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-
-                    <div class="market-listing" data-resource="refinedFuel">
-                        <div class="listing-icon">⛽</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Refined Fuel</div>
-                            <div class="listing-price">4.0 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-refinedFuel-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-refinedFuel-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="refinedFuel" data-amount="50">Sell 50</button>
-                            <button class="sell-btn" data-resource="refinedFuel" data-amount="500">Sell 500</button>
-                            <button class="sell-btn sell-all" data-resource="refinedFuel" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-
-                    <!-- TIER 3 - Assembled -->
-                    <div class="market-listing" data-resource="steelPlate">
-                        <div class="listing-icon">⬜</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Steel Plate</div>
-                            <div class="listing-price">10.0 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-steelPlate-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-steelPlate-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="steelPlate" data-amount="10">Sell 10</button>
-                            <button class="sell-btn" data-resource="steelPlate" data-amount="100">Sell 100</button>
-                            <button class="sell-btn sell-all" data-resource="steelPlate" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-
-                    <div class="market-listing" data-resource="copperWire">
-                        <div class="listing-icon">〰️</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Copper Wire</div>
-                            <div class="listing-price">8.0 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-copperWire-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-copperWire-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="copperWire" data-amount="10">Sell 10</button>
-                            <button class="sell-btn" data-resource="copperWire" data-amount="100">Sell 100</button>
-                            <button class="sell-btn sell-all" data-resource="copperWire" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-
-                    <!-- TIER 4 - Manufactured -->
-                    <div class="market-listing" data-resource="circuitBoard">
-                        <div class="listing-icon">💾</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Circuit Board</div>
-                            <div class="listing-price">25.0 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-circuitBoard-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-circuitBoard-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="circuitBoard" data-amount="10">Sell 10</button>
-                            <button class="sell-btn" data-resource="circuitBoard" data-amount="100">Sell 100</button>
-                            <button class="sell-btn sell-all" data-resource="circuitBoard" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-
-                    <div class="market-listing" data-resource="insulatedWire">
-                        <div class="listing-icon">〰️</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Insulated Wire</div>
-                            <div class="listing-price">15.0 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-insulatedWire-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-insulatedWire-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="insulatedWire" data-amount="10">Sell 10</button>
-                            <button class="sell-btn" data-resource="insulatedWire" data-amount="100">Sell 100</button>
-                            <button class="sell-btn sell-all" data-resource="insulatedWire" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-
-                    <div class="market-listing" data-resource="fuelCell">
-                        <div class="listing-icon">🔋</div>
-                        <div class="listing-info">
-                            <div class="listing-name">Fuel Cell</div>
-                            <div class="listing-price">20.0 credits/unit</div>
-                            <div class="listing-inventory">Available: <span id="market-fuelCell-amount">0</span></div>
-                            <div class="listing-value">Total Value: <span id="market-fuelCell-value">0</span> credits</div>
-                        </div>
-                        <div class="listing-actions">
-                            <button class="sell-btn" data-resource="fuelCell" data-amount="10">Sell 10</button>
-                            <button class="sell-btn" data-resource="fuelCell" data-amount="100">Sell 100</button>
-                            <button class="sell-btn sell-all" data-resource="fuelCell" data-amount="all">Sell All</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="market-footer">
-                    <p>Current Credits: <span id="market-credits">0</span></p>
-                </div>
-            </div>
-
-            <!-- About page content -->
-            <div class="market-content about-page" style="display: none;">
-                <h2>ABOUT THE GALACTIC MARKET</h2>
-                <div class="about-content">
-                    <p>STRATUM.EXCHANGE is the sole approved channel for franchisee commodity liquidation. Transactions outside this portal are in breach of your franchise agreement.</p>
-                    <p>All proceeds are subject to a standard royalty deduction per Section 12.4. Stratum Group reserves the right to adjust buy rates without notice.</p>
-                    <h3>CURRENT APPROVED BUY RATES:</h3>
-                    <ul>
-                        <li><strong>TIER 1 — RAW EXTRACTION:</strong> Iron Ore 0.5 cr | Copper Ore 0.8 cr | Coal 0.3 cr | Rare Minerals 5.0 cr</li>
-                        <li><strong>TIER 2 — SMELTED:</strong> Iron Bar 2.0 cr | Copper Bar 3.0 cr | Refined Fuel 4.0 cr</li>
-                        <li><strong>TIER 3 — ASSEMBLED:</strong> Steel Plate 10 cr | Copper Wire 8 cr</li>
-                        <li><strong>TIER 4 — MANUFACTURED:</strong> Circuit Board 25 cr | Insulated Wire 15 cr | Fuel Cell 20 cr</li>
-                    </ul>
-                    <p class="disclaimer">Stratum Group is not responsible for market fluctuations, planetary instability, or existential dread.</p>
-                    <p class="future-notice">// LOGISTICS MODULE: PENDING ACTIVATION — SEE FRANCHISE TIER REQUIREMENTS</p>
-                </div>
-            </div>
+            <table class="market-table">
+                <thead>
+                    <tr>
+                        <th>RESOURCE</th>
+                        <th>IN STORAGE</th>
+                        <th>PRICE/UNIT</th>
+                        <th>TOTAL VALUE</th>
+                        <th>SELL</th>
+                    </tr>
+                </thead>
+                <tbody class="market-tbody">
+                    <!-- Populated dynamically by market-app.js -->
+                </tbody>
+            </table>
         </div>
     </template>
 
@@ -472,6 +287,55 @@
         </div>
     </template>
 
+    <template id="franchise-app-template">
+        <div class="franchise-container">
+            <div class="franchise-left">
+                <div class="franchise-tier-badge">TIER 0 — PROSPECTOR</div>
+                <div class="franchise-tier-subtitle">Franchise Initiate</div>
+
+                <div class="franchise-progress-section">
+                    <div class="franchise-progress-label">0 / 500 CREDITS EARNED</div>
+                    <div class="franchise-progress-track">
+                        <div class="franchise-progress-fill" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <div class="franchise-rewards-section">
+                    <div class="franchise-rewards-label">CURRENT TIER INCLUDES</div>
+                    <div class="franchise-rewards"></div>
+                </div>
+
+                <div class="franchise-next-rewards-section">
+                    <div class="franchise-rewards-label">NEXT TIER UNLOCKS</div>
+                    <div class="franchise-next-rewards"></div>
+                </div>
+
+                <button class="franchise-advance-btn" disabled>TIER 1 LOCKED</button>
+
+                <div class="franchise-bonus-picker" style="display:none">
+                    <div class="franchise-rewards-label">STRATUM BONUS CLAIM — SELECT EXTRACTOR</div>
+                    <div class="franchise-bonus-options"></div>
+                </div>
+            </div>
+
+            <div class="franchise-right">
+                <div class="franchise-liaison-portrait">
+                    <pre class="franchise-ascii"> ▄▄▄▄▄▄▄▄▄
+█░░░░░░░░░█
+█░▄▀░░▀▄░░█
+█░░░░▄░░░░█
+█░░▀▀▀▀░░░█
+█░▄█████▄░█
+ ▀▀▀▀▀▀▀▀▀
+ LIAISON</pre>
+                </div>
+                <div class="franchise-dialogue-box">
+                    <div class="franchise-dialogue"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+
     </div><!-- end #crt-screen -->
 
     <!-- SVG filter definitions for CRT barrel distortion (hidden) -->
@@ -492,6 +356,7 @@
     <script src="js/utils.js"></script>
     <script src="js/save-manager.js"></script>
     <script src="data/buildings-data.js"></script>
+    <script src="data/franchise-data.js"></script>
     <script src="data/resources-data.js"></script>
     <script src="js/resources.js"></script>
     <script src="js/node.js"></script>
@@ -511,6 +376,7 @@
     <script src="js/apps/factory-app.js"></script>
     <script src="js/apps/market-app.js"></script>
     <script src="js/apps/warehouse-app.js"></script>
+    <script src="js/apps/franchise-app.js"></script>
     <script src="js/apps/logout-app.js"></script>
     <script src="js/boot-screen.js"></script>
     <script src="js/main.js"></script>

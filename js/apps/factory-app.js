@@ -33,22 +33,20 @@ class FactoryApp extends App {
         window.gameInstance = this.game;
 
         // Load save data (synchronously available via SaveManager)
+        let isNewGame = true;
         if (this.saveManager) {
             const savedData = this.saveManager.getAppData('factory');
             if (savedData) {
                 this.game.load(savedData);
+                isNewGame = false;
                 log('Loaded existing factory save');
-            } else {
-                log('Starting new factory game');
             }
         } else if (this.pendingSaveData) {
-            // Fallback for backward compatibility
             this.game.load(this.pendingSaveData);
+            isNewGame = false;
             log('Loaded existing factory save');
-        } else {
-            log('Starting new factory game');
         }
-        this.pendingSaveData = null; // Clear pending data
+        this.pendingSaveData = null;
 
         this.game.start();
 
@@ -121,7 +119,8 @@ class FactoryApp extends App {
             timestamp: Date.now(),
             resources: this.game.resources.getSaveData(),
             canvas: this.game.canvas.getSaveData(),
-            buildingCounts: this.game.buildingCounts
+            buildingCounts: this.game.buildingCounts,
+            franchise: this.game.getFranchiseSaveData()
         };
     }
 

@@ -15,6 +15,13 @@ class Game {
         this.running = false;
         this.frameCount = 0; // Debug: track frames
 
+        // Franchise progression
+        this.franchise = {
+            tier: 0,
+            freeClaims: getInitialFreeClaims(),  // Remaining free building claims
+            pendingBonusExtractors: 0            // Bonus extractor claims awaiting assignment
+        };
+
         this.initialize();
     }
 
@@ -62,7 +69,7 @@ class Game {
 
         // Initial UI update
         this.sidebar.updateResources();
-        this.sidebar.updateBuildingPalette(this.buildingCounts);
+        this.sidebar.refreshPalette(this.getUnlockedBuildings(), this.buildingCounts, this.franchise);
 
         log('Game initialized');
     }
@@ -95,7 +102,7 @@ class Game {
         // Update UI
         this.sidebar.updateResources();
         this.sidebar.updatePower(this.powerSupply, this.powerDemand);
-        this.sidebar.updateBuildingPalette(this.buildingCounts);
+        this.sidebar.updateBuildingPalette(this.buildingCounts, this.franchise);
 
         // Debug: Log every 300 frames (~5 seconds)
         this.frameCount++;
@@ -535,20 +542,31 @@ class Game {
     // Handle building dropped on canvas
     onBuildingDropped(buildingType, screenX, screenY) {
         const count = this.buildingCounts[buildingType] || 0;
-        const cost = calculateBuildingCost(buildingType, count);
 
-        // Check if can afford (credits from ResourceManager, materials from storage nodes)
-        if (!this.canAfford(cost)) {
-            const costText = Object.entries(cost)
-                .map(([resource, amount]) => `${formatNumber(amount)} ${resource}`)
-                .join(', ');
-            showUserNotification(`Insufficient resources! Need: ${costText}`, 'error');
-            log(`Cannot afford ${buildingType} (need ${JSON.stringify(cost)})`);
+        // Check free claims first — claim-only buildings (extractors) can't be bought
+        const hasClaim = this.hasFreeClaim(buildingType);
+        const isClaimOnly = CLAIM_ONLY_CATEGORIES.has(BUILDINGS[buildingType]?.category);
+
+        if (isClaimOnly && !hasClaim) {
+            showUserNotification('No extractor claims remaining. Advance your STRATUM franchise tier.', 'error');
             return;
         }
 
-        // Spend resources
-        this.spendCosts(cost);
+        if (!hasClaim) {
+            // Normal cost path
+            const cost = calculateBuildingCost(buildingType, count);
+            if (!this.canAfford(cost)) {
+                const costText = Object.entries(cost)
+                    .map(([resource, amount]) => `${formatNumber(amount)} ${resource}`)
+                    .join(', ');
+                showUserNotification(`Insufficient resources! Need: ${costText}`, 'error');
+                return;
+            }
+            this.spendCosts(cost);
+        } else {
+            // Free claim path
+            this.consumeFreeClaim(buildingType);
+        }
 
         // Convert screen coordinates to world coordinates (accounting for pan/zoom)
         const worldPos = this.canvas.screenToWorld(screenX, screenY);
@@ -565,12 +583,89 @@ class Game {
 
         // Update UI
         this.sidebar.updateResources();
-        this.sidebar.updateBuildingPalette(this.buildingCounts);
+        this.sidebar.updateBuildingPalette(this.buildingCounts, this.franchise);
 
         log(`Placed ${buildingType} at world (${worldPos.x.toFixed(0)}, ${worldPos.y.toFixed(0)}) (total: ${this.buildingCounts[buildingType]})`);
     }
 
     // Save game
+    // ── Franchise helpers ────────────────────────────────────────────────────
+
+    getUnlockedBuildings() {
+        return getAllUnlockedBuildings(this.franchise.tier);
+    }
+
+    isBuildingUnlocked(buildingType) {
+        return this.getUnlockedBuildings().has(buildingType);
+    }
+
+    // Consume one free claim for a building type. Returns true if a claim was available.
+    consumeFreeClaim(buildingType) {
+        if ((this.franchise.freeClaims[buildingType] || 0) <= 0) return false;
+        this.franchise.freeClaims = {
+            ...this.franchise.freeClaims,
+            [buildingType]: this.franchise.freeClaims[buildingType] - 1
+        };
+        return true;
+    }
+
+    hasFreeClaim(buildingType) {
+        return (this.franchise.freeClaims[buildingType] || 0) > 0;
+    }
+
+    // Attempt to advance franchise tier by spending credits. Returns true if advanced.
+    tryFranchiseAdvance() {
+        const next = getNextFranchiseTier(this.franchise.tier);
+        if (!next || !next.requires) return false;
+
+        const required = next.requires.creditsSubmit;
+        const balance = this.resources.resources['credits']?.current || 0;
+        if (balance < required) return false;
+
+        // Spend the credits
+        this.resources.remove('credits', required);
+
+        this.franchise.tier = next.tier;
+        if (next.bonusExtractorClaims) {
+            this.franchise.pendingBonusExtractors += next.bonusExtractorClaims;
+        }
+        this.sidebar.refreshPalette(this.getUnlockedBuildings(), this.buildingCounts, this.franchise);
+        document.dispatchEvent(new CustomEvent('franchiseTierAdvanced', { detail: { tier: next.tier } }));
+        log(`Franchise advanced to Tier ${next.tier}`);
+        return true;
+    }
+
+    // Claim one bonus extractor of the given type (from pendingBonusExtractors pool)
+    claimBonusExtractor(buildingType) {
+        if (this.franchise.pendingBonusExtractors <= 0) return false;
+        const def = getBuildingDef(buildingType);
+        if (!def || def.category !== 'extractors') return false;
+
+        this.franchise = {
+            ...this.franchise,
+            freeClaims: {
+                ...this.franchise.freeClaims,
+                [buildingType]: (this.franchise.freeClaims[buildingType] || 0) + 1
+            },
+            pendingBonusExtractors: this.franchise.pendingBonusExtractors - 1
+        };
+
+        this.sidebar.refreshPalette(this.getUnlockedBuildings(), this.buildingCounts, this.franchise);
+        log(`Claimed bonus extractor: ${buildingType}`);
+        return true;
+    }
+
+    getFranchiseSaveData() {
+        return { ...this.franchise };
+    }
+
+    loadFranchiseSaveData(data) {
+        if (!data) return;
+        this.franchise.tier = data.tier ?? 0;
+        this.franchise.freeClaims = data.freeClaims ?? getInitialFreeClaims();
+        this.franchise.pendingBonusExtractors = data.pendingBonusExtractors ?? 0;
+    }
+
     save() {
         try {
             // Use desktop OS save system (integrated save)
@@ -718,6 +813,7 @@ class Game {
             if (data.resources)      this.resources.loadSaveData(data.resources);
             if (data.canvas)         this.canvas.loadSaveData(data.canvas);
             if (data.buildingCounts) this.buildingCounts = data.buildingCounts;
+            if (data.franchise)      this.loadFranchiseSaveData(data.franchise);
 
             this.calculateProduction();
 
@@ -727,7 +823,7 @@ class Game {
             }
 
             this.sidebar.updateResources();
-            this.sidebar.updateBuildingPalette(this.buildingCounts);
+            this.sidebar.refreshPalette(this.getUnlockedBuildings(), this.buildingCounts, this.franchise);
 
             log('Game loaded successfully');
             return true;

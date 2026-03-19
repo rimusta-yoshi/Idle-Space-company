@@ -91,16 +91,15 @@ class UpgradeManager {
         const upgradeBtn = this.rootElement.querySelector('#upgrade-btn');
 
         if (upgradeCost && upgradeBtn) {
-            upgradeBtn.textContent = 'UPGRADE';
+            const costLines = Object.entries(upgradeCost).map(([resource, amount]) => {
+                const resDef = (typeof RESOURCES !== 'undefined') ? RESOURCES[resource] : null;
+                const name = resDef ? resDef.name.toUpperCase() : resource.toUpperCase();
+                return `${formatNumber(amount)} ${name}`;
+            });
+            upgradeBtn.innerHTML = `UPGRADE &mdash; <span id="upgrade-cost">${costLines.join(' + ')}</span>`;
 
-            const costText = Object.entries(upgradeCost)
-                .map(([resource, amount]) => `${formatNumber(amount)} ${resource}`)
-                .join(', ');
-            const costElement = this.rootElement.querySelector('#upgrade-cost');
-            if (costElement) costElement.textContent = costText;
-
-            // Check if can afford
-            const canAfford = this.game.resources.canAfford(upgradeCost);
+            // Check if can afford (checks storage nodes for non-credit costs)
+            const canAfford = this.game.canAfford(upgradeCost);
             upgradeBtn.disabled = !canAfford;
 
             // Update next level production
@@ -166,16 +165,14 @@ class UpgradeManager {
         const def = node.buildingDef;
         const currentLevel = node.level;
 
-        // Max level (for now, let's say 10)
-        if (currentLevel >= 10) {
-            return null;
-        }
+        if (currentLevel >= 10) return null;
 
-        const baseCost = def.baseCost;
+        // Use upgradeBaseCost if defined, otherwise fall back to baseCost
+        const baseCost = def.upgradeBaseCost || def.baseCost;
         const upgradeCost = {};
 
         Object.entries(baseCost).forEach(([resource, amount]) => {
-            upgradeCost[resource] = Math.floor(amount * Math.pow(currentLevel, UPGRADE_COST_EXPONENT));
+            upgradeCost[resource] = Math.ceil(amount * Math.pow(currentLevel, UPGRADE_COST_EXPONENT));
         });
 
         return upgradeCost;
@@ -191,14 +188,14 @@ class UpgradeManager {
             return;
         }
 
-        // Check if can afford
-        if (!this.game.resources.canAfford(cost)) {
+        // Check if can afford (checks storage nodes for material costs)
+        if (!this.game.canAfford(cost)) {
             log('Cannot afford upgrade');
             return;
         }
 
-        // Spend resources
-        this.game.resources.spend(cost);
+        // Spend resources (deducts from storage nodes for materials)
+        this.game.spendCosts(cost);
 
         // Increase level (using encapsulated method)
         this.currentNode.upgradeLevel();
@@ -237,7 +234,7 @@ class UpgradeManager {
         }
 
         // Update UI
-        this.game.sidebar.updateBuildingPalette(this.game.buildingCounts);
+        this.game.sidebar.updateBuildingPalette(this.game.buildingCounts, this.game.franchise);
 
         // Close panel
         this.closePanel();

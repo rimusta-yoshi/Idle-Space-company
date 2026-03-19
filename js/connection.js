@@ -162,7 +162,8 @@ class Connection {
         const toNode = nodes.find(n => n.id === data.toNodeId);
 
         if (!fromNode || !toNode) {
-            throw new Error(`Failed to load connection: nodes not found (${data.fromNodeId} -> ${data.toNodeId})`);
+            log(`Skipping orphaned connection: ${data.fromNodeId} -> ${data.toNodeId}`);
+            return null;
         }
 
         const connection = new Connection(fromNode, toNode, data.resourceType);
