@@ -159,6 +159,11 @@ class BootScreen {
             desktopEl.style.display = 'block';
         }
         log('Desktop launched!');
+
+        // Trigger first-launch notification check (defined in main.js)
+        if (typeof checkFirstLaunch === 'function') {
+            setTimeout(() => checkFirstLaunch(), 1000);
+        }
     }
 
     returnToBootScreen() {

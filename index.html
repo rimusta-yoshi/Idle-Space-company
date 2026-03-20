@@ -19,8 +19,15 @@
     <!-- CRT Screen wrapper - barrel distortion applied to this -->
     <div id="crt-screen">
 
-    <!-- Boot Screen (shown first) -->
-    <div id="boot-screen" style="display: flex;">
+    <!-- Login Screen (shown first, before boot sequence) -->
+    <div id="login-screen" style="display: flex;">
+        <div class="login-content">
+            <!-- Populated by LoginScreen class -->
+        </div>
+    </div>
+
+    <!-- Boot Screen (shown after login) -->
+    <div id="boot-screen" style="display: none;">
         <div class="boot-content">
             <!-- Populated by BootScreen.getBootHTML() -->
         </div>
@@ -218,9 +225,8 @@
                         </div>
                         <hr>
                         <div class="upgrade-actions">
-                            <button id="upgrade-btn" class="btn btn-primary">
-                                UPGRADE (Cost: <span id="upgrade-cost">10 credits</span>)
-                            </button>
+                            <div id="upgrade-cost-display" class="upgrade-cost-display"></div>
+                            <button id="upgrade-btn" class="btn btn-primary">UPGRADE</button>
                             <p class="upgrade-next-level">Next level: <span id="upgrade-next-production">+2.0/s ore</span></p>
                         </div>
                         <hr>
@@ -366,6 +372,7 @@
     <script src="js/sidebar.js"></script>
     <script src="js/upgrades.js"></script>
     <script src="js/offline.js"></script>
+    <script src="js/animations.js"></script>
     <script src="js/game.js"></script>
     <!-- Load OS system files -->
     <script src="js/os/app.js"></script>
@@ -378,6 +385,7 @@
     <script src="js/apps/warehouse-app.js"></script>
     <script src="js/apps/franchise-app.js"></script>
     <script src="js/apps/logout-app.js"></script>
+    <script src="js/login-screen.js"></script>
     <script src="js/boot-screen.js"></script>
     <script src="js/main.js"></script>
 </body>

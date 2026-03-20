@@ -73,6 +73,20 @@ class FactoryNode {
             return { icon: 'inventory_2', name: 'STORAGE', ratePerSec: null };
         }
 
+        if (def.isSplitter) {
+            const outputEntries = Object.entries(this.actualOutputRate || {});
+            if (outputEntries.length > 0) {
+                const [resKey, rate] = outputEntries[0];
+                const resDef = RESOURCES[resKey];
+                return {
+                    icon: def.icon,
+                    name: resDef?.name.toUpperCase() || resKey.toUpperCase(),
+                    ratePerSec: rate / this.level  // un-apply level so buildIOShapes can reapply it
+                };
+            }
+            return { icon: def.icon, name: 'SPLITTER', ratePerSec: null };
+        }
+
         if (def.autoSell) {
             const resDef = RESOURCES[this.autoSellResource];
             const sellRate = resDef ? resDef.sellPrice * 0.70 : null;
@@ -140,7 +154,8 @@ class FactoryNode {
             return Math.max(MIN_NODE_W, Math.ceil(8 + MS_ICON_W + nameW + 30));
         }
 
-        const maxRateStr = title.ratePerSec ? formatRatePerMin(title.ratePerSec * this.level) : '—';
+        const widthMult = def.levelMultipliers ? (def.levelMultipliers[this.level - 1] ?? 1.0) : this.level;
+        const maxRateStr = title.ratePerSec ? formatRatePerMin(title.ratePerSec * widthMult) : '—';
         // Reserve space for worst-case throttled format "actual/max" — both sides roughly equal width
         const rateStr = title.ratePerSec ? `${maxRateStr}/${maxRateStr}` : '—';
 
@@ -171,6 +186,14 @@ class FactoryNode {
 
         if (def.isStorage && this.storedResourceType) {
             return RESOURCES[this.storedResourceType]?.color || '#d4a832';
+        }
+
+        if (def.isSplitter) {
+            const outputKeys = Object.keys(this.actualOutputRate || {});
+            if (outputKeys.length > 0) {
+                return RESOURCES[outputKeys[0]]?.color || '#d4a832';
+            }
+            return '#2a2010';
         }
 
         if (def.autoSell) {
@@ -319,7 +342,9 @@ class FactoryNode {
         const def = this.buildingDef;
         const title = this.getNodeTitle();
         const eff = this.efficiency ?? 1.0;
-        const maxRate = title.ratePerSec ? title.ratePerSec * this.level : null;
+        const ioDef = this.buildingDef;
+        const ioMult = ioDef.levelMultipliers ? (ioDef.levelMultipliers[this.level - 1] ?? 1.0) : this.level;
+        const maxRate = title.ratePerSec ? title.ratePerSec * ioMult : null;
 
         let rateStr;
         if (!maxRate) {
@@ -527,6 +552,7 @@ class FactoryNode {
 
     setRecipe(recipe) {
         this.assignedRecipe = recipe;
+        if (window.gameInstance) window.gameInstance.graphDirty = true;
         document.dispatchEvent(new CustomEvent('recipeChanged', { detail: { nodeId: this.id } }));
         this.updateDisplay();
     }
@@ -536,6 +562,7 @@ class FactoryNode {
         if (this.buildingDef.isStorage) {
             this.inventoryCapacity = (this.buildingDef.baseCapacity || 500) * this.level;
         }
+        if (window.gameInstance) window.gameInstance.graphDirty = true;
         this.updateDisplay();
     }
 

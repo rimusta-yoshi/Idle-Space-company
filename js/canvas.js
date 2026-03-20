@@ -372,6 +372,9 @@ class CanvasManager {
         const recipeBtn = this._actionBar.querySelector('[data-action="recipe"]');
         if (recipeBtn) recipeBtn.style.display = node.buildingDef.usesRecipes ? '' : 'none';
 
+        const upgradeBtn = this._actionBar.querySelector('[data-action="upgrade"]');
+        if (upgradeBtn) upgradeBtn.style.display = node.buildingDef.category === 'extractors' ? '' : 'none';
+
         this._positionActionBar(node);
         this._actionBar.style.display = 'flex';
     }
@@ -436,6 +439,7 @@ class CanvasManager {
             }
         });
 
+        if (window.gameInstance) window.gameInstance.graphDirty = true;
         this.layer.draw();
         log(`Node added: ${node.buildingDef.name} at (${node.x}, ${node.y})`);
     }
@@ -580,6 +584,7 @@ class CanvasManager {
             this._tryAutoAssignRecipe(toNode);
         }
 
+        if (window.gameInstance) window.gameInstance.graphDirty = true;
         this.layer.draw();
         log(`Connected ${fromNode.buildingDef.name} -> ${toNode.buildingDef.name} (${resourceType})`);
         return true;
@@ -614,12 +619,24 @@ class CanvasManager {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
 
+        // Output connection limits
+        if (!fromDef.isSplitter && fromNode.outputs.length >= 1) return false;
+        if (fromDef.isSplitter && fromNode.outputs.length >= 3) return false;
+
+        // Splitter accepts only 1 input
+        if (toDef.isSplitter && toNode.inputs.length >= 1) return false;
+
         // Resolve what fromNode produces
         let producedResources;
         if (fromDef.isStorage) {
             // Storage outputs its stored resource type (must already be set)
             if (!fromNode.storedResourceType) return false;
             producedResources = [fromNode.storedResourceType];
+        } else if (fromDef.isSplitter) {
+            // Splitter passes through the resource type from its input connection
+            const inputConn = this.connections.find(c => c.toNode.id === fromNode.id);
+            if (!inputConn) return false;
+            producedResources = [inputConn.resourceType];
         } else if (fromDef.usesRecipes) {
             if (!fromNode.assignedRecipe) return false;
             producedResources = Object.keys(fromNode.assignedRecipe.outputs);
@@ -629,6 +646,11 @@ class CanvasManager {
         }
 
         if (producedResources.length === 0) return false;
+
+        // Splitter as destination: accepts any non-credits, non-power resource
+        if (toDef.isSplitter) {
+            return producedResources.some(r => r !== 'credits' && r !== 'power');
+        }
 
         // Storage node as destination: accepts any non-credits, non-power resource
         // but only the same type if already committed
@@ -664,11 +686,19 @@ class CanvasManager {
         if (fromDef.isStorage) {
             if (!fromNode.storedResourceType) return null;
             producedResources = [fromNode.storedResourceType];
+        } else if (fromDef.isSplitter) {
+            const inputConn = this.connections.find(c => c.toNode.id === fromNode.id);
+            if (!inputConn) return null;
+            producedResources = [inputConn.resourceType];
         } else if (fromDef.usesRecipes) {
             if (!fromNode.assignedRecipe) return null;
             producedResources = Object.keys(fromNode.assignedRecipe.outputs);
         } else {
             producedResources = Object.keys(fromDef.production || {});
+        }
+
+        if (toDef.isSplitter) {
+            return producedResources.find(r => r !== 'credits' && r !== 'power') || null;
         }
 
         if (toDef.isStorage) {
@@ -713,6 +743,7 @@ class CanvasManager {
 
             connection.removeFromLayer();
             this.connections = this.connections.filter(c => c.id !== connectionId);
+            if (window.gameInstance) window.gameInstance.graphDirty = true;
 
             // If a storage node loses all inputs and is empty, clear its committed resource type
             // so a different resource can flow in. Preserve inventory if items remain.
@@ -746,6 +777,7 @@ class CanvasManager {
         if (node) {
             node.removeFromLayer();
             this.nodes = this.nodes.filter(n => n.id !== nodeId);
+            if (window.gameInstance) window.gameInstance.graphDirty = true;
             this.layer.draw();
             log(`Node removed: ${nodeId}`);
         }
@@ -758,6 +790,15 @@ class CanvasManager {
     updateNodes() {
         this.nodes.forEach(node => node.updateDisplay());
         this.layer.draw();
+    }
+
+    // Lightweight per-tick update for storage nodes only (fill bar changes every tick).
+    // Called on non-dirty ticks to avoid rebuilding every node's display 60 times/sec.
+    updateStorageDisplay() {
+        this.nodes.forEach(node => {
+            if (node.buildingDef?.isStorage) node.updateDisplay();
+        });
+        this.layer.batchDraw();
     }
 
     clear() {

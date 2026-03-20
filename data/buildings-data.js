@@ -17,7 +17,13 @@ const BUILDINGS = {
         consumption: {},
         color: '#0d1510',
         icon: 'mining',
-        unlocked: true
+        unlocked: true,
+        maxLevel: 3,
+        levelMultipliers: [1.0, 1.6, 2.5],
+        levelUpgradeCosts: [
+            { ironBar: 20, steelPlate: 5 },
+            { ironBar: 50, steelPlate: 20, circuitBoard: 5 }
+        ]
     },
 
     copperExtractor: {
@@ -33,7 +39,13 @@ const BUILDINGS = {
         consumption: {},
         color: '#1a1108',
         icon: 'mining',
-        unlocked: true
+        unlocked: true,
+        maxLevel: 3,
+        levelMultipliers: [1.0, 1.6, 2.5],
+        levelUpgradeCosts: [
+            { copperBar: 20, copperWire: 8 },
+            { copperBar: 50, copperWire: 25, circuitBoard: 5 }
+        ]
     },
 
     coalExtractor: {
@@ -49,7 +61,13 @@ const BUILDINGS = {
         consumption: {},
         color: '#0d0d0d',
         icon: 'mining',
-        unlocked: true
+        unlocked: true,
+        maxLevel: 3,
+        levelMultipliers: [1.0, 1.6, 2.5],
+        levelUpgradeCosts: [
+            { ironBar: 15, steelPlate: 5 },
+            { ironBar: 40, steelPlate: 15, circuitBoard: 5 }
+        ]
     },
 
     rareMineralExtractor: {
@@ -65,7 +83,13 @@ const BUILDINGS = {
         consumption: {},
         color: '#1a0a1a',
         icon: 'mining',
-        unlocked: true
+        unlocked: true,
+        maxLevel: 3,
+        levelMultipliers: [1.0, 1.6, 2.5],
+        levelUpgradeCosts: [
+            { ironBar: 25, steelPlate: 10, copperWire: 10 },
+            { steelPlate: 30, circuitBoard: 10, insulatedWire: 10 }
+        ]
     },
 
     // ===== SMELTER (Tier 2) =====
@@ -112,7 +136,7 @@ const BUILDINGS = {
         description: 'Manufactures advanced components (recipe auto-detected)',
         category: 'manufacturers',
         tier: 4,
-        baseCost: { steelPlate: 8, circuitBoard: 5, copperWire: 10 },
+        baseCost: { steelPlate: 10, copperWire: 12, ironBar: 8 },
         upgradeBaseCost: { steelPlate: 6, copperWire: 8 },
         costMultiplier: 1.5,
         powerDemand: 8,
@@ -120,6 +144,23 @@ const BUILDINGS = {
         icon: 'precision_manufacturing',
         unlocked: true,
         usesRecipes: true
+    },
+
+    // ===== SPLITTER (Infrastructure) =====
+
+    splitter: {
+        id: 'splitter',
+        name: 'Splitter',
+        description: 'Splits input flow equally between up to 3 outputs.',
+        category: 'infrastructure',
+        tier: 2,
+        baseCost: { ironBar: 5, copperWire: 3 },
+        upgradeBaseCost: {},
+        costMultiplier: 1.0,
+        color: '#0a1a0a',
+        icon: 'call_split',
+        unlocked: true,
+        isSplitter: true
     },
 
     // ===== STORAGE NODE (Infrastructure) =====
@@ -173,6 +214,22 @@ const BUILDINGS = {
         icon: 'outbox',
         unlocked: true,
         autoSell: true
+    },
+
+    // ===== SPACEPORT (Facilities) =====
+
+    spaceport: {
+        id: 'spaceport',
+        name: 'Spaceport',
+        description: 'Launch facility. Commission and launch ships via the Spaceport terminal.',
+        category: 'facilities',
+        tier: 4,
+        baseCost: { steelPlate: 20, circuitBoard: 10, insulatedWire: 15 },
+        upgradeBaseCost: {},
+        costMultiplier: 1.0,
+        color: '#0a1520',
+        icon: 'rocket_launch',
+        unlocked: true
     }
 };
 
@@ -220,17 +277,17 @@ const RECIPES = {
             outputs: { copperWire: 2.0 },
             icon: 'cable'
         },
+    ],
+
+    // MANUFACTURER RECIPES (Tier 4)
+    manufacturer: [
         {
             id: 'circuit_board',
             name: 'Circuit Board',
             inputs: { copperWire: 1.0, rareMins: 1.0 },
             outputs: { circuitBoard: 1.0 },
             icon: 'memory'
-        }
-    ],
-
-    // MANUFACTURER RECIPES (Tier 4)
-    manufacturer: [
+        },
         {
             id: 'insulated_wire',
             name: 'Insulated Wire',
@@ -285,6 +342,12 @@ const BUILDING_CATEGORIES = {
         description: 'Sell resources for credits',
         icon: 'outbox',
         tier: 2
+    },
+    facilities: {
+        name: 'Facilities',
+        description: 'Large-scale planetary infrastructure',
+        icon: 'rocket_launch',
+        tier: 4
     }
 };
 

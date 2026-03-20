@@ -21,6 +21,7 @@ class Connection {
         this.toNode = toNode;
         this.resourceType = resourceType; // What resource flows through this connection
         this.flowRate = 0; // Actual units/sec flowing — set by game.js each tick
+        this._dashOffset = 0; // Animated by AnimationManager
 
         this.arrow = null;
         this.labelBg = null;
@@ -42,7 +43,9 @@ class Connection {
             lineJoin: 'miter',
             tension: 0,
             opacity: 0.9,
-            hitStrokeWidth: 20  // Fat invisible hit area — much easier to click
+            hitStrokeWidth: 20,  // Fat invisible hit area — much easier to click
+            dash: [10, 6],
+            dashOffset: 0
         });
 
         // Add hover effect + grab cursor

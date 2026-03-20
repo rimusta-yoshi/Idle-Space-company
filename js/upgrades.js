@@ -52,8 +52,9 @@ class UpgradeManager {
         log('UpgradeManager initialized');
     }
 
-    // Open upgrade panel for a node
+    // Open upgrade panel for a node — extractors only
     openPanel(node) {
+        if (node.buildingDef.category !== 'extractors') return;
         this.currentNode = node;
         this.updatePanelDisplay();
         this.panel.style.display = 'flex';
@@ -90,16 +91,27 @@ class UpgradeManager {
         const upgradeCost = this.calculateUpgradeCost(node);
         const upgradeBtn = this.rootElement.querySelector('#upgrade-btn');
 
-        if (upgradeCost && upgradeBtn) {
-            const costLines = Object.entries(upgradeCost).map(([resource, amount]) => {
-                const resDef = (typeof RESOURCES !== 'undefined') ? RESOURCES[resource] : null;
-                const name = resDef ? resDef.name.toUpperCase() : resource.toUpperCase();
-                return `${formatNumber(amount)} ${name}`;
-            });
-            upgradeBtn.innerHTML = `UPGRADE &mdash; <span id="upgrade-cost">${costLines.join(' + ')}</span>`;
+        const costDisplay = this.rootElement.querySelector('#upgrade-cost-display');
 
-            // Check if can afford (checks storage nodes for non-credit costs)
+        if (upgradeCost && upgradeBtn) {
             const canAfford = this.game.canAfford(upgradeCost);
+            const costEntries = Object.entries(upgradeCost);
+
+            if (costDisplay) {
+                if (costEntries.length === 0) {
+                    costDisplay.innerHTML = '<span class="cost-free">FREE</span>';
+                } else {
+                    const costLines = costEntries.map(([resource, amount]) => {
+                        const resDef = (typeof RESOURCES !== 'undefined') ? RESOURCES[resource] : null;
+                        const name = resDef ? resDef.name.toUpperCase() : resource.toUpperCase();
+                        const cls = canAfford ? 'cost-item cost-ok' : 'cost-item cost-short';
+                        return `<span class="${cls}">${formatNumber(amount)} ${name}</span>`;
+                    });
+                    costDisplay.innerHTML = `<span class="cost-label">COST:</span> ${costLines.join('<span class="cost-sep"> + </span>')}`;
+                }
+            }
+
+            upgradeBtn.textContent = 'UPGRADE';
             upgradeBtn.disabled = !canAfford;
 
             // Update next level production
@@ -110,6 +122,7 @@ class UpgradeManager {
             // Max level reached
             upgradeBtn.disabled = true;
             upgradeBtn.textContent = 'MAX LEVEL';
+            if (costDisplay) costDisplay.innerHTML = '';
         }
     }
 
@@ -140,19 +153,18 @@ class UpgradeManager {
             return text || 'No Recipe';
         }
 
-        // Standard building display
+        // Standard building display — apply levelMultipliers for extractors
+        const mult = def.levelMultipliers ? (def.levelMultipliers[lvl - 1] ?? lvl) : lvl;
         let text = '';
         if (def.production && Object.keys(def.production).length > 0) {
             const parts = Object.entries(def.production).map(([resource, rate]) => {
-                const totalRate = rate * lvl;
-                return `+${formatRate(totalRate)} ${resource}`;
+                return `+${formatRate(rate * mult)} ${resource}`;
             });
             text += parts.join(', ');
         }
         if (def.consumption && Object.keys(def.consumption).length > 0) {
             const parts = Object.entries(def.consumption).map(([resource, rate]) => {
-                const totalRate = rate * lvl;
-                return `-${formatRate(totalRate)} ${resource}`;
+                return `-${formatRate(rate * mult)} ${resource}`;
             });
             if (text) text += ' | ';
             text += parts.join(', ');
@@ -160,22 +172,13 @@ class UpgradeManager {
         return text || 'Idle';
     }
 
-    // Calculate upgrade cost for a node
+    // Calculate upgrade cost for a node — extractors only, uses per-level cost table
     calculateUpgradeCost(node) {
         const def = node.buildingDef;
-        const currentLevel = node.level;
-
-        if (currentLevel >= 10) return null;
-
-        // Use upgradeBaseCost if defined, otherwise fall back to baseCost
-        const baseCost = def.upgradeBaseCost || def.baseCost;
-        const upgradeCost = {};
-
-        Object.entries(baseCost).forEach(([resource, amount]) => {
-            upgradeCost[resource] = Math.ceil(amount * Math.pow(currentLevel, UPGRADE_COST_EXPONENT));
-        });
-
-        return upgradeCost;
+        if (def.category !== 'extractors') return null;
+        if (!def.levelUpgradeCosts) return null;
+        if (node.level >= (def.maxLevel || 1)) return null;
+        return def.levelUpgradeCosts[node.level - 1] || null;
     }
 
     // Upgrade the current node

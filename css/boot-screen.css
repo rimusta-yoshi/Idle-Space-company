@@ -244,6 +244,212 @@
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   LOGIN SCREEN STYLING
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+#login-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #0e0c09;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    overflow: hidden;
+}
+
+/* Scanline overlay — matches boot screen */
+#login-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.18) 2px,
+        rgba(0, 0, 0, 0.18) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+}
+
+#login-screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.login-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 400px;
+    max-width: 90vw;
+    font-family: 'VT323', 'Courier New', monospace;
+    color: #e8d5b0;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+
+.login-header {
+    text-align: center;
+    width: 100%;
+    margin-bottom: 32px;
+}
+
+.login-wordmark {
+    font-size: 72px;
+    line-height: 0.9;
+    letter-spacing: 18px;
+    color: #c49a2a;
+    text-shadow:
+        0 0 20px rgba(196, 154, 42, 0.6),
+        0 0 40px rgba(196, 154, 42, 0.2);
+    margin-bottom: 2px;
+}
+
+.login-wordmark-sub {
+    font-size: 22px;
+    letter-spacing: 14px;
+    color: #8a6b1a;
+    margin-bottom: 14px;
+}
+
+.login-divider-line {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #c49a2a 20%, #c49a2a 80%, transparent);
+    margin-bottom: 10px;
+    opacity: 0.6;
+}
+
+.login-os-info {
+    font-size: 13px;
+    color: #4a8b8b;
+    letter-spacing: 1px;
+}
+
+/* ─── Form ───────────────────────────────────────────────────────────────── */
+
+.login-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.login-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.login-label {
+    font-size: 13px;
+    color: #4a8b8b;
+    letter-spacing: 2px;
+}
+
+.login-input {
+    background: #0a0908;
+    border: 1px solid #3a2e18;
+    color: #e8d5b0;
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 20px;
+    letter-spacing: 2px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.login-input:focus {
+    border-color: #8a6b1a;
+    box-shadow: 0 0 6px rgba(196, 154, 42, 0.15);
+}
+
+.login-input-readonly {
+    color: #c49a2a;
+    cursor: default;
+    opacity: 0.8;
+}
+
+.login-btn {
+    margin-top: 8px;
+    padding: 12px 0;
+    background: transparent;
+    border: 1px solid #8a6b1a;
+    color: #c49a2a;
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 22px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+    text-shadow: 0 0 8px rgba(196, 154, 42, 0.2);
+}
+
+.login-btn:hover {
+    background: rgba(196, 154, 42, 0.1);
+    border-color: #c49a2a;
+    box-shadow: 0 0 12px rgba(196, 154, 42, 0.2);
+}
+
+.login-btn:active {
+    background: rgba(196, 154, 42, 0.18);
+}
+
+/* ─── Footer area ────────────────────────────────────────────────────────── */
+
+.login-footer-area {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.login-legal {
+    font-size: 11px;
+    color: #2e2820;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+/* NOTE: Testing tool — not intended to be prominent */
+.login-reset-btn {
+    background: transparent;
+    border: none;
+    color: #3a2e18;
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    padding: 2px 6px;
+    transition: color 0.15s;
+}
+
+.login-reset-btn:hover {
+    color: #6a4a1a;
+}
+
+.login-reset-btn-confirm {
+    color: #c47a2a !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
    LOGOUT / SYSTEM APP STYLING
    ═══════════════════════════════════════════════════════════════════════════ */
 

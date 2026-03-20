@@ -14,6 +14,7 @@ class Game {
         this.lastUpdate = Date.now();
         this.running = false;
         this.frameCount = 0; // Debug: track frames
+        this.graphDirty = true; // Flow must recalculate on first tick
 
         // Franchise progression
         this.franchise = {
@@ -67,6 +68,9 @@ class Game {
             if (recipe) node.setRecipe(recipe);
         });
 
+        // Animation manager — visual-only, no game logic
+        this.animManager = new AnimationManager(this.canvas);
+
         // Initial UI update
         this.sidebar.updateResources();
         this.sidebar.refreshPalette(this.getUnlockedBuildings(), this.buildingCounts, this.franchise);
@@ -116,14 +120,25 @@ class Game {
 
     // Update game state
     update(deltaTime) {
+        // Capture dirty state before calculateProduction clears it
+        const wasGraphDirty = this.graphDirty;
+
         // Calculate production rates based on placed buildings
         this.calculateProduction(deltaTime);
 
         // Update credits from production rates (only credits use setProduction now)
         this.resources.updateProduction(deltaTime);
 
-        // Update node displays
-        this.canvas.updateNodes();
+        // Rebuild node display only when graph state changed; otherwise just refresh
+        // storage fill bars (inventory changes every tick, everything else is stable)
+        if (wasGraphDirty) {
+            this.canvas.updateNodes();
+        } else {
+            this.canvas.updateStorageDisplay();
+        }
+
+        // Visual animations — visual only, no game logic
+        this.animManager.update(deltaTime, this.canvas.nodes);
     }
 
     // Get the resource types flowing into a node from its connections
@@ -207,178 +222,232 @@ class Game {
         // Reset credits production rate only — non-credit resources live in storage nodes
         this.resources.setProduction('credits', 0);
 
-        // ── Pass 0: resolve recipes and seed per-node flow state ────────────
-        this.canvas.nodes.forEach(node => {
-            const def = node.buildingDef;
-            if (!def) throw new Error(`Node ${node.id} has no buildingDef!`);
-            if (def.autoSell) return;
+        // ── Flow calculation — only when graph topology or levels have changed ─
+        if (this.graphDirty) {
 
-            // Storage nodes: act as unlimited source if they have inventory, zero if empty
-            if (def.isStorage) {
-                node.efficiency = 1.0;
-                node.actualOutputRate = {};
-                if (node.storedResourceType && node.inventory > 0) {
-                    node.actualOutputRate[node.storedResourceType] = 9999;
-                }
-                return;
-            }
-
-            this.resolveActiveRecipe(node);
-
-            const outputs = def.usesRecipes
-                ? (node.activeRecipe?.outputs || {})
-                : (def.production || {});
-            const inputs = def.usesRecipes
-                ? (node.activeRecipe?.inputs || {})
-                : (def.consumption || {});
-
-            // Nodes with no inputs (extractors) always run at full capacity
-            if (Object.keys(inputs).length === 0) {
-                node.efficiency = 1.0;
-            } else if (def.usesRecipes && !node.activeRecipe) {
-                node.efficiency = 0; // No recipe / missing connections
-            } else {
-                node.efficiency = 0; // Will converge in iterations below
-            }
-
-            node.actualOutputRate = {};
-            Object.entries(outputs).forEach(([res, rate]) => {
-                node.actualOutputRate[res] = rate * node.level * node.efficiency;
-            });
-        });
-
-        // ── Iterative flow convergence ────────────────────────────────────────
-        // Each pass propagates actual flow one step down the chain.
-        // 10 passes handles chains far deeper than any realistic factory.
-        for (let pass = 0; pass < 10; pass++) {
-            let changed = false;
-
+            // ── Pass 0: resolve recipes and seed per-node flow state ────────────
             this.canvas.nodes.forEach(node => {
                 const def = node.buildingDef;
+                if (!def) throw new Error(`Node ${node.id} has no buildingDef!`);
                 if (def.autoSell) return;
-                if (def.isStorage) return; // Already seeded — act as source, not converged
 
+                // Storage nodes: act as unlimited source if they have inventory, zero if empty
+                if (def.isStorage) {
+                    node.efficiency = 1.0;
+                    node.actualOutputRate = {};
+                    if (node.storedResourceType && node.inventory > 0) {
+                        node.actualOutputRate[node.storedResourceType] = 9999;
+                    }
+                    return;
+                }
+
+                // Splitter: seeded to zero, converged each pass like any consumer
+                if (def.isSplitter) {
+                    node.efficiency = 0;
+                    node.actualOutputRate = {};
+                    return;
+                }
+
+                this.resolveActiveRecipe(node);
+
+                const outputs = def.usesRecipes
+                    ? (node.activeRecipe?.outputs || {})
+                    : (def.production || {});
                 const inputs = def.usesRecipes
                     ? (node.activeRecipe?.inputs || {})
                     : (def.consumption || {});
 
-                if (Object.keys(inputs).length === 0) return; // Extractor — already final
-                if (def.usesRecipes && !node.activeRecipe) return; // No recipe — stays 0
-
-                // For each required input, sum the flow arriving via connections
-                let newEfficiency = 1.0;
-                for (const [resource, required] of Object.entries(inputs)) {
-                    let available = 0;
-                    this.canvas.connections.forEach(conn => {
-                        if (conn.toNode.id !== node.id || conn.resourceType !== resource) return;
-                        const fromNode = conn.fromNode;
-                        const fromRate = (fromNode.actualOutputRate || {})[resource] || 0;
-                        // Split upstream output equally among all its downstream connections
-                        const splitCount = this.canvas.connections.filter(c =>
-                            c.fromNode.id === fromNode.id && c.resourceType === resource
-                        ).length;
-                        available += fromRate / Math.max(1, splitCount);
-                    });
-                    newEfficiency = Math.min(newEfficiency, available / (required * node.level));
+                // Nodes with no inputs (extractors) always run at full capacity
+                if (Object.keys(inputs).length === 0) {
+                    node.efficiency = 1.0;
+                } else if (def.usesRecipes && !node.activeRecipe) {
+                    node.efficiency = 0; // No recipe / missing connections
+                } else {
+                    node.efficiency = 0; // Will converge in iterations below
                 }
 
-                newEfficiency = Math.max(0, Math.min(1, newEfficiency));
-
-                if (Math.abs(newEfficiency - (node.efficiency || 0)) > 0.0001) {
-                    changed = true;
-                    node.efficiency = newEfficiency;
-
-                    const outputs = def.usesRecipes
-                        ? (node.activeRecipe?.outputs || {})
-                        : (def.production || {});
-                    node.actualOutputRate = {};
-                    Object.entries(outputs).forEach(([res, rate]) => {
-                        node.actualOutputRate[res] = rate * node.level * newEfficiency;
-                    });
-                }
+                const initMult = def.levelMultipliers
+                    ? (def.levelMultipliers[node.level - 1] ?? 1.0)
+                    : node.level;
+                node.actualOutputRate = {};
+                Object.entries(outputs).forEach(([res, rate]) => {
+                    node.actualOutputRate[res] = rate * initMult * node.efficiency;
+                });
             });
 
-            if (!changed) break;
-        }
+            // ── Iterative flow convergence ────────────────────────────────────────
+            // Each pass propagates actual flow one step down the chain.
+            // 10 passes handles chains far deeper than any realistic factory.
+            for (let pass = 0; pass < 10; pass++) {
+                let changed = false;
 
-        // ── Power balance ──────────────────────────────────────────────────
-        // Sum supply from generators and max-demand from all other buildings.
-        // If supply < demand, cap all non-generator node efficiencies at the ratio.
+                this.canvas.nodes.forEach(node => {
+                    const def = node.buildingDef;
+                    if (def.autoSell) return;
+                    if (def.isStorage) return; // Already seeded — act as source, not converged
 
-        // Reset power throttle flag on every node before recalculating
-        this.canvas.nodes.forEach(node => { node.powerThrottled = false; });
+                    // Splitter: pass-through — output = sum of arriving flow, split by downstream count
+                    if (def.isSplitter) {
+                        const newOutputRate = {};
+                        this.canvas.connections.forEach(conn => {
+                            if (conn.toNode.id !== node.id) return;
+                            const fromRate = (conn.fromNode.actualOutputRate || {})[conn.resourceType] || 0;
+                            const splitCount = this.canvas.connections.filter(c =>
+                                c.fromNode.id === conn.fromNode.id && c.resourceType === conn.resourceType
+                            ).length;
+                            newOutputRate[conn.resourceType] = (newOutputRate[conn.resourceType] || 0)
+                                + fromRate / Math.max(1, splitCount);
+                        });
+                        const newEff = Object.values(newOutputRate).some(r => r > 0) ? 1.0 : 0;
+                        const [resKey, newRate] = Object.entries(newOutputRate)[0] || [null, 0];
+                        const prevRate = resKey ? ((node.actualOutputRate || {})[resKey] || 0) : 0;
+                        if (Math.abs(newEff - (node.efficiency || 0)) > 0.0001
+                                || Math.abs(newRate - prevRate) > 0.0001) {
+                            changed = true;
+                            node.efficiency = newEff;
+                            node.actualOutputRate = newOutputRate;
+                        }
+                        return;
+                    }
 
-        let totalPowerSupply = 0;
-        let totalPowerDemand = 0;
+                    const inputs = def.usesRecipes
+                        ? (node.activeRecipe?.inputs || {})
+                        : (def.consumption || {});
 
-        this.canvas.nodes.forEach(node => {
-            const def = node.buildingDef;
-            if (def.autoSell) return;
-            if ((node.actualOutputRate || {}).power) {
-                totalPowerSupply += node.actualOutputRate.power;
+                    if (Object.keys(inputs).length === 0) return; // Extractor — already final
+                    if (def.usesRecipes && !node.activeRecipe) return; // No recipe — stays 0
+
+                    // For each required input, sum the flow arriving via connections
+                    let newEfficiency = 1.0;
+                    for (const [resource, required] of Object.entries(inputs)) {
+                        let available = 0;
+                        this.canvas.connections.forEach(conn => {
+                            if (conn.toNode.id !== node.id || conn.resourceType !== resource) return;
+                            const fromNode = conn.fromNode;
+                            const fromRate = (fromNode.actualOutputRate || {})[resource] || 0;
+                            // Split upstream output equally among all its downstream connections
+                            const splitCount = this.canvas.connections.filter(c =>
+                                c.fromNode.id === fromNode.id && c.resourceType === resource
+                            ).length;
+                            available += fromRate / Math.max(1, splitCount);
+                        });
+                        newEfficiency = Math.min(newEfficiency, available / (required * node.level));
+                    }
+
+                    newEfficiency = Math.max(0, Math.min(1, newEfficiency));
+
+                    if (Math.abs(newEfficiency - (node.efficiency || 0)) > 0.0001) {
+                        changed = true;
+                        node.efficiency = newEfficiency;
+
+                        const outputs = def.usesRecipes
+                            ? (node.activeRecipe?.outputs || {})
+                            : (def.production || {});
+                        const iterMult = def.levelMultipliers
+                            ? (def.levelMultipliers[node.level - 1] ?? 1.0)
+                            : node.level;
+                        node.actualOutputRate = {};
+                        Object.entries(outputs).forEach(([res, rate]) => {
+                            node.actualOutputRate[res] = rate * iterMult * newEfficiency;
+                        });
+                    }
+                });
+
+                if (!changed) break;
             }
-            if (def.powerDemand && def.id !== 'powerGenerator') {
-                // Demand at max throughput (level only) — stable, avoids oscillation
-                totalPowerDemand += def.powerDemand * node.level;
-            }
-        });
 
-        const powerRatio = totalPowerDemand > 0.001
-            ? (totalPowerSupply > 0 ? Math.min(1, totalPowerSupply / totalPowerDemand) : 0)
-            : 1;
+            // ── Power balance ──────────────────────────────────────────────────
+            // Sum supply from generators and max-demand from all other buildings.
+            // If supply < demand, cap all non-generator node efficiencies at the ratio.
 
-        this.powerSupply = totalPowerSupply;
-        this.powerDemand = totalPowerDemand;
-        this.powerRatio = powerRatio;
+            // Reset power throttle flag on every node before recalculating
+            this.canvas.nodes.forEach(node => { node.powerThrottled = false; });
 
-        if (powerRatio < 0.9999) {
+            let totalPowerSupply = 0;
+            let totalPowerDemand = 0;
+
             this.canvas.nodes.forEach(node => {
                 const def = node.buildingDef;
-                // Skip: auto-sell nodes, power generators, and buildings with no power demand
-                // (extractors have no powerDemand — throttling them creates a circular dependency
-                //  with power generators that need their output)
-                if (def.autoSell || def.isStorage || !def.powerDemand || def.id === 'powerGenerator') return;
-                const currentEff = node.efficiency || 0;
-                const newEff = Math.min(currentEff, powerRatio);
-                // Only flag as power-throttled when power is the actual binding constraint
-                if (powerRatio < currentEff) node.powerThrottled = true;
-                if (Math.abs(newEff - (node.efficiency || 0)) > 0.0001) {
-                    node.efficiency = newEff;
-                    const outputs = def.usesRecipes
-                        ? (node.activeRecipe?.outputs || {})
-                        : (def.production || {});
-                    node.actualOutputRate = {};
-                    Object.entries(outputs).forEach(([res, rate]) => {
-                        node.actualOutputRate[res] = rate * node.level * newEff;
-                    });
+                if (def.autoSell) return;
+                if ((node.actualOutputRate || {}).power) {
+                    totalPowerSupply += node.actualOutputRate.power;
+                }
+                if (def.powerDemand && def.id !== 'powerGenerator') {
+                    // Only draw power when fully connected (input AND output).
+                    // Partially connected or bare nodes are considered off.
+                    // Recipe buildings also require a valid detected recipe.
+                    const hasInput  = this.canvas.connections.some(c => c.toNode.id   === node.id);
+                    const hasOutput = this.canvas.connections.some(c => c.fromNode.id === node.id);
+                    const recipeOk  = !def.usesRecipes || !!node.activeRecipe;
+                    if (hasInput && hasOutput && recipeOk) {
+                        // Demand at max throughput (level only) — stable, avoids oscillation
+                        totalPowerDemand += def.powerDemand * node.level;
+                    }
                 }
             });
-        }
 
-        // ── Update per-connection flow rates (for arrow labels) ──────────────
-        this.canvas.connections.forEach(conn => {
-            const fromNode = conn.fromNode;
-            if (fromNode.buildingDef?.isStorage) {
-                // Storage output: actual flow = what the downstream building actually consumes
-                const toNode = conn.toNode;
-                const toDef = toNode.buildingDef;
-                const toInputs = toDef.usesRecipes
-                    ? (toNode.activeRecipe?.inputs || {})
-                    : (toDef.consumption || {});
-                const toRate = (toInputs[conn.resourceType] || 0) * toNode.level;
-                const splitCount = this.canvas.connections.filter(c =>
-                    c.toNode.id === toNode.id && c.resourceType === conn.resourceType
-                ).length;
-                conn.flowRate = (toNode.efficiency || 0) * toRate / Math.max(1, splitCount);
-            } else {
-                const fromRate = (fromNode.actualOutputRate || {})[conn.resourceType] || 0;
-                const splitCount = this.canvas.connections.filter(c =>
-                    c.fromNode.id === fromNode.id && c.resourceType === conn.resourceType
-                ).length;
-                conn.flowRate = fromRate / Math.max(1, splitCount);
+            const powerRatio = totalPowerDemand > 0.001
+                ? (totalPowerSupply > 0 ? Math.min(1, totalPowerSupply / totalPowerDemand) : 0)
+                : 1;
+
+            this.powerSupply = totalPowerSupply;
+            this.powerDemand = totalPowerDemand;
+            this.powerRatio = powerRatio;
+
+            if (powerRatio < 0.9999) {
+                this.canvas.nodes.forEach(node => {
+                    const def = node.buildingDef;
+                    // Skip: auto-sell nodes, power generators, and buildings with no power demand
+                    // (extractors have no powerDemand — throttling them creates a circular dependency
+                    //  with power generators that need their output)
+                    if (def.autoSell || def.isStorage || !def.powerDemand || def.id === 'powerGenerator') return;
+                    const currentEff = node.efficiency || 0;
+                    const newEff = Math.min(currentEff, powerRatio);
+                    // Only flag as power-throttled when power is the actual binding constraint
+                    if (powerRatio < currentEff) node.powerThrottled = true;
+                    if (Math.abs(newEff - (node.efficiency || 0)) > 0.0001) {
+                        node.efficiency = newEff;
+                        const outputs = def.usesRecipes
+                            ? (node.activeRecipe?.outputs || {})
+                            : (def.production || {});
+                        const powerMult = def.levelMultipliers
+                            ? (def.levelMultipliers[node.level - 1] ?? 1.0)
+                            : node.level;
+                        node.actualOutputRate = {};
+                        Object.entries(outputs).forEach(([res, rate]) => {
+                            node.actualOutputRate[res] = rate * powerMult * newEff;
+                        });
+                    }
+                });
             }
-            conn.updateLabel();
-        });
+
+            // ── Update per-connection flow rates (for arrow labels) ──────────────
+            this.canvas.connections.forEach(conn => {
+                const fromNode = conn.fromNode;
+                if (fromNode.buildingDef?.isStorage) {
+                    // Storage output: actual flow = what the downstream building actually consumes
+                    const toNode = conn.toNode;
+                    const toDef = toNode.buildingDef;
+                    const toInputs = toDef.usesRecipes
+                        ? (toNode.activeRecipe?.inputs || {})
+                        : (toDef.consumption || {});
+                    const toRate = (toInputs[conn.resourceType] || 0) * toNode.level;
+                    const splitCount = this.canvas.connections.filter(c =>
+                        c.toNode.id === toNode.id && c.resourceType === conn.resourceType
+                    ).length;
+                    conn.flowRate = (toNode.efficiency || 0) * toRate / Math.max(1, splitCount);
+                } else {
+                    const fromRate = (fromNode.actualOutputRate || {})[conn.resourceType] || 0;
+                    const splitCount = this.canvas.connections.filter(c =>
+                        c.fromNode.id === fromNode.id && c.resourceType === conn.resourceType
+                    ).length;
+                    conn.flowRate = fromRate / Math.max(1, splitCount);
+                }
+                conn.updateLabel();
+            });
+
+            this.graphDirty = false;
+        }
 
         // ── Storage node inventory tick ───────────────────────────────────────
         // Inflow = actual flow arriving via input connections
@@ -430,8 +499,10 @@ class Game {
             node.outflowRate = outflow;
 
             if (deltaTime > 0) {
+                const wasEmpty = node.inventory <= 0;
                 const cap = node.inventoryCapacity || 1;
                 node.inventory = Math.max(0, Math.min(cap, node.inventory + (inflow - outflow) * deltaTime));
+                if (wasEmpty !== (node.inventory <= 0)) this.graphDirty = true;
             }
         });
 

@@ -58,16 +58,35 @@ const FRANCHISE_TIERS = [
         unlockedBuildings: [
             'manufacturer',
             'exportTerminal',
-            'rareMineralExtractor'
+            'rareMineralExtractor',
+            'splitter'
         ],
         bonusExtractorClaims: 2,
+        starterKit: { manufacturer: 1 },
+        rewards: 'Manufacturer (1× unit included), Export Terminal (auto-sell), Rare Mineral Extractor access. Two additional extractor claims.',
+        nextRewards: 'Spaceport access. One additional extractor claim.',
+        liaisons: [
+            'Tier 2 status granted. Your equipment package includes one manufacturer unit.',
+            'The Export Terminal sells goods automatically at 70% market rate.',
+            'Submit 25,000 credits to STRATUM to apply for Tier 3 status.'
+        ]
+    },
+    {
+        tier: 3,
+        name: 'PIONEER',
+        subtitle: 'Franchise Pioneer',
+        requires: { creditsSubmit: 25000 },
+        unlockedBuildings: [
+            'spaceport'
+        ],
+        bonusExtractorClaims: 1,
         starterKit: {},
-        rewards: 'Manufacturer, Export Terminal (auto-sell), Rare Mineral Extractor access. Two additional extractor claims.',
+        rewards: 'Spaceport access. One additional extractor claim.',
         nextRewards: null,
         liaisons: [
-            'Tier 2 status granted. STRATUM is impressed with your output.',
-            'The Export Terminal sells goods automatically at 70% market rate.',
-            'You have reached the current maximum franchise tier. Expand your operation.'
+            'Tier 3 approved. Launch facility license is under review — standard processing time is twelve to sixteen weeks.',
+            'The Spaceport terminal handles ship commissions. You are responsible for all launch clearance fees.',
+            'Operate within STRATUM guidelines. We are watching the launchpad activity closely.'
         ]
     }
 ];
@@ -80,7 +99,6 @@ const BONUS_EXTRACTOR_OPTIONS = [
     { type: 'ironExtractor',        label: 'Iron Extractor',         icon: 'mining' },
     { type: 'copperExtractor',      label: 'Copper Extractor',       icon: 'mining' },
     { type: 'coalExtractor',        label: 'Coal Extractor',         icon: 'mining' },
-    { type: 'rareMineralExtractor', label: 'Rare Min. Extractor',    icon: 'diamond' }
 ];
 
 // ASCII portrait for the STRATUM liaison

@@ -122,7 +122,12 @@ class SidebarManager {
         if (!credits) return;
 
         const balanceEl = this.rootElement.querySelector('#credits-amount');
-        if (balanceEl) balanceEl.textContent = formatNumber(credits.current);
+        if (balanceEl) {
+            // Lerp display value toward actual — smooth count-up instead of snap
+            this._creditsDisplay = (this._creditsDisplay ?? credits.current);
+            this._creditsDisplay += (credits.current - this._creditsDisplay) * 0.15;
+            balanceEl.textContent = formatNumber(Math.round(this._creditsDisplay));
+        }
 
         const pnlEl = this.rootElement.querySelector('#credits-pnl');
         if (pnlEl) {

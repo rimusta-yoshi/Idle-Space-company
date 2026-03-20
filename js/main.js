@@ -14,21 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error('CRITICAL: Konva library not loaded');
     }
 
-    log('DOM loaded, starting Boot Screen...');
+    log('DOM loaded, starting Login Screen...');
 
-    // Create and initialize boot screen
-    window.bootScreen = new BootScreen();
-    window.bootScreen.initialize();
+    // Show login screen — boot sequence fires after operator authenticates
+    const loginScreen = new LoginScreen();
+    loginScreen.initialize();
 
-    // Check for first-launch notification (after desktop boots)
-    // This will be called by BootScreen after desktop launches
-    setTimeout(() => {
-        if (window.desktop) {
-            checkFirstLaunch();
-        }
-    }, 1000);
-
-    log('Boot Screen ready! Click START to begin.');
+    log('Login Screen ready.');
 });
 
 // Handle page unload (save before closing)
