@@ -41,14 +41,16 @@ class Connection {
             lineCap: 'square',
             lineJoin: 'miter',
             tension: 0,
-            opacity: 0.9
+            opacity: 0.9,
+            hitStrokeWidth: 20  // Fat invisible hit area — much easier to click
         });
 
-        // Add hover effect
+        // Add hover effect + grab cursor
         this.arrow.on('mouseenter', () => {
             this.arrow.stroke('#e8c840');
             this.arrow.fill('#e8c840');
             this.arrow.strokeWidth(3);
+            this.arrow.getStage()?.container().style.setProperty('cursor', 'grab');
             this.arrow.getLayer()?.draw();
         });
 
@@ -56,7 +58,19 @@ class Connection {
             this.arrow.stroke('#c49a2a');
             this.arrow.fill('#c49a2a');
             this.arrow.strokeWidth(2);
+            this.arrow.getStage()?.container().style.removeProperty('cursor');
             this.arrow.getLayer()?.draw();
+        });
+
+        // Left-click drag → grab to detach/re-route
+        this.arrow.on('mousedown', (e) => {
+            if (e.evt.button !== 0) return;
+            e.cancelBubble = true;
+            const stage = this.arrow.getStage();
+            const pos = stage?.getPointerPosition();
+            document.dispatchEvent(new CustomEvent('connectionGrabStart', {
+                detail: { connectionId: this.id, startX: pos?.x ?? 0, startY: pos?.y ?? 0 }
+            }));
         });
 
         // Flow rate label — positioned at arrow midpoint, non-interactive

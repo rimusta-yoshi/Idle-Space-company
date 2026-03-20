@@ -11,7 +11,8 @@ class CanvasManager {
         this.connections = []; // Array of Connection objects
 
         // Connection drag state
-        this.connectDrag = null; // { fromNode, line } while dragging
+        this.connectDrag = null;    // { fromNode, line } while dragging a new connection
+        this.pendingGrab = null;    // { connectionId, startX, startY } while holding an arrow but not yet dragging
 
         // Node action bar state
         this.actionBarNode = null; // node whose action bar is currently shown
@@ -91,25 +92,27 @@ class CanvasManager {
     }
 
     drawGrid() {
-        const gridSize = 50;
+        const gridMinor = 25;
+        const gridMajor = 100;
         const gridColor = '#3c2c0c';
-        const gridOpacity = 0.3;
 
-        for (let x = 0; x <= this.canvasWidth; x += gridSize) {
+        for (let x = 0; x <= this.canvasWidth; x += gridMinor) {
+            const isMajor = x % gridMajor === 0;
             this.backgroundLayer.add(new Konva.Line({
                 points: [x, 0, x, this.canvasHeight],
                 stroke: gridColor,
                 strokeWidth: 1,
-                opacity: gridOpacity
+                opacity: isMajor ? 0.35 : 0.15
             }));
         }
 
-        for (let y = 0; y <= this.canvasHeight; y += gridSize) {
+        for (let y = 0; y <= this.canvasHeight; y += gridMinor) {
+            const isMajor = y % gridMajor === 0;
             this.backgroundLayer.add(new Konva.Line({
                 points: [0, y, this.canvasWidth, y],
                 stroke: gridColor,
                 strokeWidth: 1,
-                opacity: gridOpacity
+                opacity: isMajor ? 0.35 : 0.15
             }));
         }
 
@@ -176,6 +179,22 @@ class CanvasManager {
         });
 
         this.stage.on('mousemove', (e) => {
+            // Pending grab: user held down on a connection — activate if they drag far enough
+            if (this.pendingGrab && !this.connectDrag) {
+                const pointer = this.stage.getPointerPosition();
+                const dx = pointer.x - this.pendingGrab.startX;
+                const dy = pointer.y - this.pendingGrab.startY;
+                if (dx * dx + dy * dy > 36) { // 6px threshold
+                    const conn = this.connections.find(c => c.id === this.pendingGrab.connectionId);
+                    if (conn) {
+                        const fromNode = conn.fromNode;
+                        this.deleteConnection(conn.id);
+                        this.startConnectionDrag(fromNode);
+                    }
+                    this.pendingGrab = null;
+                }
+            }
+
             // Update connection drag line if active
             if (this.connectDrag) {
                 this.updateConnectionDrag(e);
@@ -198,6 +217,7 @@ class CanvasManager {
         });
 
         this.stage.on('mouseup', (e) => {
+            this.pendingGrab = null;
             if (this.isPanning) {
                 this.isPanning = false;
                 container.style.cursor = spacePressed ? 'grab' : 'default';
@@ -209,6 +229,7 @@ class CanvasManager {
 
         // Safety net: cancel drag if mouse released outside the stage container
         this._onWindowMouseUp = (e) => {
+            this.pendingGrab = null;
             if (this.connectDrag && e.button === 0 && !container.contains(e.target)) {
                 this.cancelConnectionDrag();
             }
@@ -268,6 +289,11 @@ class CanvasManager {
 
         document.addEventListener('deleteConnection', (e) => {
             this.deleteConnection(e.detail.connectionId);
+        });
+
+        document.addEventListener('connectionGrabStart', (e) => {
+            const { connectionId, startX, startY } = e.detail;
+            this.pendingGrab = { connectionId, startX, startY };
         });
 
         document.addEventListener('recipeChanged', (e) => {
@@ -504,6 +530,7 @@ class CanvasManager {
         fromNode.group.draggable(true);
         fromNode.hidePorts();
         this.connectDrag = null;
+        this.stage?.container().style.removeProperty('cursor');
         this.layer.draw();
     }
 
