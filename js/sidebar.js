@@ -206,6 +206,10 @@ class SidebarManager {
                     const entries = Object.entries(cost || {});
                     if (entries.length === 0) {
                         costEl.innerHTML = `<span class="cost-free">FREE</span>`;
+                    } else if (entries.length === 1 && entries[0][0] === 'credits') {
+                        // Credit-cost building: show "N CR" + STRATUM™ label
+                        costEl.innerHTML = `<span class="cost-credits">${formatNumber(entries[0][1])} CR</span>` +
+                            `<span class="cost-stratum-label">STRATUM™</span>`;
                     } else {
                         costEl.innerHTML = entries
                             .map(([res, amt]) => {

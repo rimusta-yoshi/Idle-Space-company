@@ -257,7 +257,8 @@ class Game {
         if (def.isStorage || def.autoSell) return true;
 
         const hasOutput = this.canvas.connections.some(c => c.fromNode.id === node.id);
-        if (!hasOutput) return false;
+        const outputsToPool = def.production && def.production.power;
+        if (!hasOutput && !outputsToPool) return false;
 
         if (def.isSplitter) return true; // Only needs an output; input flow determines throughput
 
@@ -695,16 +696,16 @@ class Game {
         return remaining < amount; // true if at least some was added
     }
 
-    // Remove a node from the canvas, refunding build cost materials if not a starter kit node
+    // Remove a node from the canvas, refunding credit cost if not a starter kit node
     _handleNodeRemove(node) {
         if (!node) return;
 
-        // Refund build cost for non-starter-kit nodes
+        // Refund creditCost for non-starter-kit nodes
         if (!node.isStarterKit) {
-            const cost = node.buildingDef?.baseCost || {};
-            Object.entries(cost).forEach(([type, amount]) => {
-                this._addToStorage(type, amount);
-            });
+            const creditCost = node.buildingDef?.creditCost;
+            if (creditCost) {
+                this.resources.add('credits', creditCost);
+            }
         }
 
         // Update building count
@@ -713,6 +714,17 @@ class Game {
             this.buildingCounts = {
                 ...this.buildingCounts,
                 [buildingType]: this.buildingCounts[buildingType] - 1
+            };
+        }
+
+        // Refund extractor claim so it can be re-placed
+        if (node.buildingDef?.category === 'extractors') {
+            this.franchise = {
+                ...this.franchise,
+                freeClaims: {
+                    ...this.franchise.freeClaims,
+                    [buildingType]: (this.franchise.freeClaims[buildingType] || 0) + 1
+                }
             };
         }
 
@@ -854,6 +866,7 @@ class Game {
         if (next.bonusExtractorClaims) {
             this.franchise.pendingBonusExtractors += next.bonusExtractorClaims;
         }
+
         this.sidebar.refreshPalette(this.getUnlockedBuildings(), this.buildingCounts, this.franchise);
         document.dispatchEvent(new CustomEvent('franchiseTierAdvanced', { detail: { tier: next.tier } }));
 

@@ -48,6 +48,11 @@ class FactoryApp extends App {
         }
         this.pendingSaveData = null;
 
+        // New game: give starting credits (STRATUM provisional advance)
+        if (isNewGame) {
+            this.game.resources.add('credits', 150);
+        }
+
         // Fire welcome comms message on first ever boot
         if (isNewGame && window.commsManager) {
             window.commsManager.unlockMessage('welcome');

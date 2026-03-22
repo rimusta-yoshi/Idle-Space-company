@@ -40,11 +40,11 @@ const FRANCHISE_TIERS = [
         ],
         bonusExtractorClaims: 1,
         starterKit: {},
-        rewards: 'Assembler access. One additional extractor claim of your choice.',
+        rewards: 'Assembler access. One additional extractor claim.',
         nextRewards: 'Manufacturer and Export Terminal (automated selling). Two additional extractor claims.',
         liaisons: [
-            'Tier 1 approved. You may now operate assembly equipment.',
-            'The assembler combines bars into components. Higher margin goods fetch better rates.',
+            'Tier 1 approved. Assembler license is now active.',
+            'You may now purchase and operate assembly equipment via the STRATUM™ shop.',
             'Submit 5,000 credits to STRATUM to apply for Tier 2 status.'
         ]
     },
@@ -60,12 +60,12 @@ const FRANCHISE_TIERS = [
             'splitter'
         ],
         bonusExtractorClaims: 2,
-        starterKit: { manufacturer: 1 },
-        rewards: 'Manufacturer (1× unit included), Export Terminal (auto-sell), Rare Mineral Extractor access. Two additional extractor claims.',
+        starterKit: {},
+        rewards: 'Manufacturer and Export Terminal access (purchase via STRATUM™ shop). Rare Mineral Extractor access. Two additional extractor claims.',
         nextRewards: 'Spaceport access. One additional extractor claim.',
         liaisons: [
-            'Tier 2 status granted. Your equipment package includes one manufacturer unit.',
-            'The Export Terminal sells goods automatically at 70% market rate.',
+            'Tier 2 status granted. Manufacturer and Export Terminal licenses are now active.',
+            'Purchase equipment via the STRATUM™ shop.',
             'Submit 25,000 credits to STRATUM to apply for Tier 3 status.'
         ]
     },
@@ -82,8 +82,8 @@ const FRANCHISE_TIERS = [
         rewards: 'Spaceport access. One additional extractor claim.',
         nextRewards: null,
         liaisons: [
-            'Tier 3 approved. Launch facility license is under review — standard processing time is twelve to sixteen weeks.',
-            'The Spaceport terminal handles ship commissions. You are responsible for all launch clearance fees.',
+            'Tier 3 approved. Spaceport access granted.',
+            'Launch facility license is under review — standard processing time is twelve to sixteen weeks.',
             'Operate within STRATUM guidelines. We are watching the launchpad activity closely.'
         ]
     }

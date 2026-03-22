@@ -100,7 +100,8 @@ const BUILDINGS = {
         description: 'Smelts ores into refined bars (recipe auto-detected)',
         category: 'smelters',
         tier: 2,
-        baseCost: { ironBar: 10 },
+        baseCost: {},
+        creditCost: 250,
         upgradeBaseCost: { ironBar: 8 },
         costMultiplier: 1.15,
         powerDemand: 3,
@@ -118,7 +119,8 @@ const BUILDINGS = {
         description: 'Assembles components from bars (recipe auto-detected)',
         category: 'assemblers',
         tier: 3,
-        baseCost: { ironBar: 12, copperBar: 8 },
+        baseCost: {},
+        creditCost: 800,
         upgradeBaseCost: { ironBar: 10, copperBar: 6 },
         costMultiplier: 1.5,
         powerDemand: 5,
@@ -136,7 +138,8 @@ const BUILDINGS = {
         description: 'Manufactures advanced components (recipe auto-detected)',
         category: 'manufacturers',
         tier: 4,
-        baseCost: { steelPlate: 10, copperWire: 12, ironBar: 8 },
+        baseCost: {},
+        creditCost: 3500,
         upgradeBaseCost: { steelPlate: 6, copperWire: 8 },
         costMultiplier: 1.5,
         powerDemand: 8,
@@ -154,7 +157,8 @@ const BUILDINGS = {
         description: 'Splits input flow equally between up to 3 outputs.',
         category: 'infrastructure',
         tier: 2,
-        baseCost: { ironBar: 5, copperWire: 3 },
+        baseCost: {},
+        creditCost: 150,
         upgradeBaseCost: {},
         costMultiplier: 1.0,
         color: '#0a1a0a',
@@ -171,7 +175,8 @@ const BUILDINGS = {
         description: 'Stores a single resource type. Route surplus here to buffer production chains.',
         category: 'infrastructure',
         tier: 1,
-        baseCost: { ironBar: 5 },
+        baseCost: {},
+        creditCost: 75,
         upgradeBaseCost: { ironBar: 4 },
         costMultiplier: 1.3,
         color: '#0a1520',
@@ -189,7 +194,8 @@ const BUILDINGS = {
         description: 'Generates a modest amount of power passively. No fuel required.',
         category: 'power',
         tier: 0,
-        baseCost: { ironBar: 4 },
+        baseCost: {},
+        creditCost: 100,
         upgradeBaseCost: {},
         costMultiplier: 1.0,
         production: { power: 80 },
@@ -209,7 +215,8 @@ const BUILDINGS = {
         description: 'Burns coal to generate power for all buildings',
         category: 'infrastructure',
         tier: 1,
-        baseCost: { ironBar: 8 },
+        baseCost: {},
+        creditCost: 350,
         upgradeBaseCost: { ironBar: 6 },
         costMultiplier: 1.5,
         production: { power: 5.0 },
@@ -227,7 +234,8 @@ const BUILDINGS = {
         description: 'Sells connected resources for credits (70% market rate)',
         category: 'commerce',
         tier: 2,
-        baseCost: { ironBar: 5, copperBar: 5 },
+        baseCost: {},
+        creditCost: 2000,
         upgradeBaseCost: { ironBar: 4, copperBar: 4 },
         costMultiplier: 1.5,
         color: '#141008',
@@ -244,7 +252,8 @@ const BUILDINGS = {
         description: 'Launch facility. Commission and launch ships via the Spaceport terminal.',
         category: 'facilities',
         tier: 4,
-        baseCost: { steelPlate: 20, circuitBoard: 10, insulatedWire: 15 },
+        baseCost: {},
+        creditCost: 15000,
         upgradeBaseCost: {},
         costMultiplier: 1.0,
         color: '#0a1520',
@@ -386,6 +395,11 @@ function getBuildingDef(buildingId) {
 function calculateBuildingCost(buildingId, currentCount) {
     const def = BUILDINGS[buildingId];
     if (!def) return null;
+
+    // Credit-cost buildings: flat price, no scaling
+    if (def.creditCost) {
+        return { credits: def.creditCost };
+    }
 
     const costs = {};
     Object.entries(def.baseCost).forEach(([resource, amount]) => {
