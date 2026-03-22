@@ -19,6 +19,9 @@ class DesktopOS {
     initialize() {
         log('Desktop OS initializing...');
 
+        // Load unlocked app state from save before anything else
+        this.unlockedApps = this.saveManager.getUnlockedApps();
+
         // Initialize taskbar
         this.taskbar = new Taskbar(this);
 
@@ -27,7 +30,23 @@ class DesktopOS {
         this.registerApp('market', MarketApp);
         this.registerApp('warehouse', WarehouseApp);
         this.registerApp('franchise', FranchiseApp);
+        this.registerApp('spaceport', SpaceportApp);
         this.registerApp('logout', LogoutApp);
+        this.registerApp('comms', CommsApp);
+
+        // Wire the always-visible comms taskbar icon
+        const commsBtn = document.getElementById('comms-taskbar-btn');
+        if (commsBtn) {
+            commsBtn.addEventListener('click', () => this.launchApp('comms'));
+        }
+
+        // Apply initial desktop icon visibility
+        this.applyAppVisibility();
+
+        // Listen for in-game unlock events
+        document.addEventListener('unlockApp', (e) => {
+            this.unlockApp(e.detail.appId);
+        });
 
         // Setup desktop icon clicks
         this.setupDesktopIcons();
@@ -85,6 +104,37 @@ class DesktopOS {
         });
     }
 
+    // Show/hide desktop icons based on current unlock state
+    applyAppVisibility() {
+        const locked = ['warehouse', 'market', 'spaceport'];
+        locked.forEach(appId => {
+            const icon = document.querySelector(`.desktop-icon[data-app="${appId}"]`);
+            if (!icon) return;
+            icon.style.display = this.unlockedApps[appId] ? '' : 'none';
+        });
+    }
+
+    // Unlock an app: show its desktop icon and update save
+    unlockApp(appId) {
+        if (this.unlockedApps[appId]) return; // already unlocked
+
+        this.unlockedApps = { ...this.unlockedApps, [appId]: true };
+
+        // Show desktop icon
+        const icon = document.querySelector(`.desktop-icon[data-app="${appId}"]`);
+        if (icon) icon.style.display = '';
+
+        // Invalidate app menu so it rebuilds with the new entry next open
+        if (this.taskbar.appMenuElement) {
+            this.taskbar.appMenuElement.remove();
+            this.taskbar.appMenuElement = null;
+        }
+
+        appToast.show(appId);
+        this.throttledSave();
+        log(`App unlocked: ${appId}`);
+    }
+
     save() {
         // Check if saving is enabled (can be disabled during logout)
         if (!this.savingEnabled) {
@@ -97,7 +147,8 @@ class DesktopOS {
 
         const saveData = {
             windows: this.windowManager.getSaveData(),
-            appData: this.appData
+            appData: this.appData,
+            unlockedApps: this.unlockedApps
         };
 
         const success = this.saveManager.save(saveData);
@@ -134,6 +185,11 @@ class DesktopOS {
             if (savedAppData) {
                 this.appData = savedAppData;
                 log('Loaded persistent app data for:', Object.keys(this.appData).join(', '));
+            }
+
+            // Initialize comms manager with saved message state
+            if (window.commsManager) {
+                window.commsManager.loadSaveData(this.appData.comms);
             }
 
             // Restore windows

@@ -181,6 +181,26 @@ const BUILDINGS = {
         baseCapacity: 500   // Capacity per level
     },
 
+    // ===== WIND TURBINE (Power) =====
+
+    windTurbine: {
+        id: 'windTurbine',
+        name: 'Wind Turbine',
+        description: 'Generates a modest amount of power passively. No fuel required.',
+        category: 'power',
+        tier: 0,
+        baseCost: { ironBar: 4 },
+        upgradeBaseCost: {},
+        costMultiplier: 1.0,
+        production: { power: 80 },
+        consumption: {},
+        powerDemand: 0,
+        color: '#0a1a0a',
+        icon: 'air',
+        unlocked: true,
+        noConnections: true
+    },
+
     // ===== POWER GENERATOR (Infrastructure) =====
 
     powerGenerator: {
@@ -330,6 +350,12 @@ const BUILDING_CATEGORIES = {
         description: 'Manufacture advanced components',
         icon: 'precision_manufacturing',
         tier: 4
+    },
+    power: {
+        name: 'Power',
+        description: 'Passive and fuel-based power generation',
+        icon: 'air',
+        tier: 0
     },
     infrastructure: {
         name: 'Infrastructure',

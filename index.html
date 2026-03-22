@@ -41,13 +41,21 @@
                 <div class="icon">OP</div>
                 <div class="icon-label">OPERATIONS</div>
             </div>
-            <div class="desktop-icon" data-app="market">
+            <div class="desktop-icon" data-app="market" style="display:none">
                 <div class="icon">EX</div>
                 <div class="icon-label">EXCHANGE</div>
             </div>
-            <div class="desktop-icon" data-app="warehouse">
+            <div class="desktop-icon" data-app="warehouse" style="display:none">
                 <div class="icon">WH</div>
                 <div class="icon-label">INVENTORY</div>
+            </div>
+            <div class="desktop-icon" data-app="spaceport" style="display:none">
+                <div class="icon">SP</div>
+                <div class="icon-label">SPACEPORT</div>
+            </div>
+            <div class="desktop-icon" data-app="comms">
+                <div class="icon">CM</div>
+                <div class="icon-label">COMMS</div>
             </div>
             <div class="desktop-icon" data-app="franchise">
                 <div class="icon">ST</div>
@@ -73,6 +81,10 @@
                 <!-- Running app icons -->
             </div>
             <div class="taskbar-tray">
+                <div class="comms-taskbar-icon" id="comms-taskbar-btn" title="STRATUM COMMS">
+                    CM
+                    <span class="comms-taskbar-badge" style="display:none">0</span>
+                </div>
                 <span id="system-clock">00:00</span>
             </div>
         </div>
@@ -246,26 +258,36 @@
 
     <!-- Market app content template -->
     <template id="market-app-template">
-        <div class="market-container">
-            <div class="market-header">
-                <span class="market-title">STRATUM.EXCHANGE // COMMODITY PORTAL</span>
-                <span class="market-subtitle">RATES SUBJECT TO ROYALTY DEDUCTION — SECTION 12.4</span>
-                <span class="market-credits-balance">0 CR</span>
+        <div class="trader-container">
+            <div class="trader-header">
+                <span class="trader-title">STRATUM.EXCHANGE // TRADER TERMINAL</span>
+                <span class="trader-subtitle">LIVE COMMODITY OFFERS — PRICES FLUCTUATE PER VESSEL</span>
+                <span class="trader-credits-balance">0 CR</span>
             </div>
-            <table class="market-table">
-                <thead>
-                    <tr>
-                        <th>RESOURCE</th>
-                        <th>IN STORAGE</th>
-                        <th>PRICE/UNIT</th>
-                        <th>TOTAL VALUE</th>
-                        <th>SELL</th>
-                    </tr>
-                </thead>
-                <tbody class="market-tbody">
-                    <!-- Populated dynamically by market-app.js -->
-                </tbody>
-            </table>
+            <div class="trader-tabs">
+                <button class="trader-tab active" data-tab="buy">BUYING</button>
+                <button class="trader-tab" data-tab="sell">SELLING</button>
+            </div>
+            <div class="trader-body">
+                <div class="trader-table-area">
+                    <table class="trader-table">
+                        <thead>
+                            <tr>
+                                <th>RESOURCE</th>
+                                <th>QTY</th>
+                                <th>PRICE</th>
+                                <th>TIME</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody class="trader-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="trader-sidebar">
+                    <div class="trader-feed-header">ACTIVITY LOG</div>
+                    <div class="trader-feed-list"></div>
+                </div>
+            </div>
         </div>
     </template>
 
@@ -342,6 +364,21 @@
         </div>
     </template>
 
+    <!-- Comms app content template -->
+    <template id="comms-app-template">
+        <div class="comms-container">
+            <div class="comms-sidebar">
+                <div class="comms-sidebar-header">INBOX</div>
+                <div class="comms-message-list"></div>
+            </div>
+            <div class="comms-body-pane">
+                <div class="comms-message-body">
+                    <div class="comms-body-placeholder">SELECT A MESSAGE</div>
+                </div>
+            </div>
+        </div>
+    </template>
+
     </div><!-- end #crt-screen -->
 
     <!-- SVG filter definitions for CRT barrel distortion (hidden) -->
@@ -364,6 +401,7 @@
     <script src="data/buildings-data.js"></script>
     <script src="data/franchise-data.js"></script>
     <script src="data/resources-data.js"></script>
+    <script src="data/market-data.js"></script>
     <script src="js/resources.js"></script>
     <script src="js/node.js"></script>
     <script src="js/connection.js"></script>
@@ -373,18 +411,22 @@
     <script src="js/upgrades.js"></script>
     <script src="js/offline.js"></script>
     <script src="js/animations.js"></script>
+    <script src="js/trader-manager.js"></script>
     <script src="js/game.js"></script>
     <!-- Load OS system files -->
     <script src="js/os/app.js"></script>
     <script src="js/os/os-window.js"></script>
     <script src="js/os/window-manager.js"></script>
     <script src="js/os/taskbar.js"></script>
+    <script src="js/os/app-toast.js"></script>
     <script src="js/os/desktop.js"></script>
     <script src="js/apps/factory-app.js"></script>
     <script src="js/apps/market-app.js"></script>
     <script src="js/apps/warehouse-app.js"></script>
     <script src="js/apps/franchise-app.js"></script>
+    <script src="js/apps/spaceport-app.js"></script>
     <script src="js/apps/logout-app.js"></script>
+    <script src="js/apps/comms-app.js"></script>
     <script src="js/login-screen.js"></script>
     <script src="js/boot-screen.js"></script>
     <script src="js/main.js"></script>

@@ -13,22 +13,20 @@ const FRANCHISE_TIERS = [
             'coalExtractor',
             'smelter',
             'storageNode',
-            'powerGenerator'
+            'powerGenerator',
+            'windTurbine'
         ],
         // Free building claims granted at start — claim counts per type
         starterKit: {
-            ironExtractor:   1,
-            copperExtractor: 1,
-            coalExtractor:   1,
-            powerGenerator:  1,
-            smelter:         2,
-            storageNode:     2
+            ironExtractor: 1,
+            storageNode:   1,
+            windTurbine:   2
         },
-        rewards: 'Starter equipment package: 1× Iron Extractor, 1× Copper Extractor, 1× Coal Extractor, 1× Power Generator, 2× Smelters, 2× Storage.',
+        rewards: 'Starter equipment package: 1× Iron Extractor, 1× Storage, 2× Wind Turbines.',
         nextRewards: 'Assembler access. One additional extractor of your choice.',
         liaisons: [
             'Welcome to STRATUM GROUP, franchise operator. Your starter equipment is ready in the build panel.',
-            'Smelt your ore into bars. Sell them manually at the commodity portal to earn credits.',
+            'Extract iron ore and sell it manually at the commodity portal to earn credits.',
             'Submit 500 credits to STRATUM to apply for Tier 1 franchise status.'
         ]
     },

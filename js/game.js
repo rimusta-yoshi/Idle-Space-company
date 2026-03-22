@@ -15,6 +15,13 @@ class Game {
         this.running = false;
         this.frameCount = 0; // Debug: track frames
         this.graphDirty = true; // Flow must recalculate on first tick
+        this._marketUnlockFired = false; // Guard: only dispatch market unlock once per session
+        this._firstOreCommsFired = false; // Guard: comms first ore message
+        this._credits100Fired = false;    // Guard: comms credits 100 milestone
+        this._credits250Fired = false;    // Guard: comms credits 250 milestone
+
+        // Trader system
+        this.traderManager = new TraderManager();
 
         // Franchise progression
         this.franchise = {
@@ -52,6 +59,16 @@ class Game {
         document.addEventListener('deleteNodeRequest', (e) => {
             this.upgrades.currentNode = e.detail.node;
             this.upgrades.deleteNode();
+        });
+
+        // Listen for remove requests from node action bar (with optional material refund)
+        document.addEventListener('removeNodeRequest', (e) => {
+            this._handleNodeRemove(e.detail.node);
+        });
+
+        // Listen for first sale (fired by trader-manager)
+        document.addEventListener('firstSaleCompleted', () => {
+            if (window.commsManager) window.commsManager.unlockMessage('first_sale');
         });
 
         // Listen for recipe picker open requests (from action bar)
@@ -139,6 +156,25 @@ class Game {
 
         // Visual animations — visual only, no game logic
         this.animManager.update(deltaTime, this.canvas.nodes);
+
+        // Trader system: count down timers, refill empty slots
+        this.traderManager.tick(deltaTime, this.franchise.tier);
+
+        // Check credit milestone comms messages
+        this._checkCreditsMilestones();
+    }
+
+    _checkCreditsMilestones() {
+        if (this._credits100Fired && this._credits250Fired) return;
+        const credits = this.resources.get('credits');
+        if (!this._credits100Fired && credits >= 100) {
+            this._credits100Fired = true;
+            if (window.commsManager) window.commsManager.unlockMessage('credits_100');
+        }
+        if (!this._credits250Fired && credits >= 250) {
+            this._credits250Fired = true;
+            if (window.commsManager) window.commsManager.unlockMessage('credits_250');
+        }
     }
 
     // Get the resource types flowing into a node from its connections
@@ -214,6 +250,30 @@ class Game {
         return true;
     }
 
+    // Returns true if a node has all the connections it needs to actively produce.
+    // Returns false if it should be in standby (has some connections but can't produce yet).
+    isNodeFullyConnected(node) {
+        const def = node.buildingDef;
+        if (def.isStorage || def.autoSell) return true;
+
+        const hasOutput = this.canvas.connections.some(c => c.fromNode.id === node.id);
+        if (!hasOutput) return false;
+
+        if (def.isSplitter) return true; // Only needs an output; input flow determines throughput
+
+        if (def.usesRecipes) {
+            if (!node.assignedRecipe) return false;
+            return Object.keys(node.assignedRecipe.inputs).every(resource =>
+                this.canvas.connections.some(c => c.toNode.id === node.id && c.resourceType === resource)
+            );
+        }
+
+        const inputs = def.consumption || {};
+        return Object.keys(inputs).every(resource =>
+            this.canvas.connections.some(c => c.toNode.id === node.id && c.resourceType === resource)
+        );
+    }
+
     // Calculate production rates from all nodes using connection-based flow propagation.
     // Each node's efficiency (0–1) is determined by the actual flow arriving through its
     // input connections, not the global resource pool. This allows partial throughput
@@ -224,6 +284,9 @@ class Game {
 
         // ── Flow calculation — only when graph topology or levels have changed ─
         if (this.graphDirty) {
+
+            // Reset derived per-node flags before recalculating
+            this.canvas.nodes.forEach(node => { node.standby = false; });
 
             // ── Pass 0: resolve recipes and seed per-node flow state ────────────
             this.canvas.nodes.forEach(node => {
@@ -249,6 +312,17 @@ class Game {
                 }
 
                 this.resolveActiveRecipe(node);
+
+                // Standby: has at least one connection but not all required connections present
+                const hasAnyConn = this.canvas.connections.some(
+                    c => c.fromNode.id === node.id || c.toNode.id === node.id
+                );
+                if (hasAnyConn && !this.isNodeFullyConnected(node)) {
+                    node.standby = true;
+                    node.efficiency = 0;
+                    node.actualOutputRate = {};
+                    return;
+                }
 
                 const outputs = def.usesRecipes
                     ? (node.activeRecipe?.outputs || {})
@@ -285,6 +359,7 @@ class Game {
                     const def = node.buildingDef;
                     if (def.autoSell) return;
                     if (def.isStorage) return; // Already seeded — act as source, not converged
+                    if (node.standby) return;  // Standby — not fully connected, stays at 0
 
                     // Splitter: pass-through — output = sum of arriving flow, split by downstream count
                     if (def.isSplitter) {
@@ -503,6 +578,18 @@ class Game {
                 const cap = node.inventoryCapacity || 1;
                 node.inventory = Math.max(0, Math.min(cap, node.inventory + (inflow - outflow) * deltaTime));
                 if (wasEmpty !== (node.inventory <= 0)) this.graphDirty = true;
+
+                // Fire market unlock on first resource entering any storage node
+                if (!this._marketUnlockFired && wasEmpty && node.inventory > 0) {
+                    this._marketUnlockFired = true;
+                    document.dispatchEvent(new CustomEvent('unlockApp', { detail: { appId: 'market' } }));
+                }
+
+                // Fire first ore comms message
+                if (!this._firstOreCommsFired && wasEmpty && node.inventory > 0) {
+                    this._firstOreCommsFired = true;
+                    if (window.commsManager) window.commsManager.unlockMessage('first_ore');
+                }
             }
         });
 
@@ -581,6 +668,61 @@ class Game {
         return remaining <= 0;
     }
 
+    // Add resources to storage nodes (FIFO across matching nodes, then empty nodes)
+    _addToStorage(resourceType, amount) {
+        let remaining = amount;
+
+        // Fill existing nodes holding this resource type first
+        for (const node of this.canvas.nodes) {
+            if (!node.buildingDef?.isStorage || node.storedResourceType !== resourceType) continue;
+            const space = Math.max(0, node.inventoryCapacity - node.inventory);
+            const add = Math.min(remaining, space);
+            node.inventory += add;
+            remaining -= add;
+            if (remaining <= 0) return true;
+        }
+
+        // Spill into empty storage nodes
+        for (const node of this.canvas.nodes) {
+            if (!node.buildingDef?.isStorage || node.storedResourceType) continue;
+            node.storedResourceType = resourceType;
+            const add = Math.min(remaining, node.inventoryCapacity);
+            node.inventory = add;
+            remaining -= add;
+            if (remaining <= 0) return true;
+        }
+
+        return remaining < amount; // true if at least some was added
+    }
+
+    // Remove a node from the canvas, refunding build cost materials if not a starter kit node
+    _handleNodeRemove(node) {
+        if (!node) return;
+
+        // Refund build cost for non-starter-kit nodes
+        if (!node.isStarterKit) {
+            const cost = node.buildingDef?.baseCost || {};
+            Object.entries(cost).forEach(([type, amount]) => {
+                this._addToStorage(type, amount);
+            });
+        }
+
+        // Update building count
+        const buildingType = node.buildingType;
+        if ((this.buildingCounts[buildingType] || 0) > 0) {
+            this.buildingCounts = {
+                ...this.buildingCounts,
+                [buildingType]: this.buildingCounts[buildingType] - 1
+            };
+        }
+
+        // Remove node (also removes all connected edges and marks graph dirty)
+        this.canvas.removeNode(node.id);
+
+        // Update UI
+        this.sidebar.updateBuildingPalette(this.buildingCounts, this.franchise);
+    }
+
     // Check affordability using storage inventories for non-credit costs
     canAfford(costs) {
         if (!costs) return true;
@@ -623,6 +765,7 @@ class Game {
             return;
         }
 
+        let usedFreeClaim = false;
         if (!hasClaim) {
             // Normal cost path
             const cost = calculateBuildingCost(buildingType, count);
@@ -637,6 +780,7 @@ class Game {
         } else {
             // Free claim path
             this.consumeFreeClaim(buildingType);
+            usedFreeClaim = true;
         }
 
         // Convert screen coordinates to world coordinates (accounting for pan/zoom)
@@ -644,6 +788,7 @@ class Game {
 
         // Create and place node
         const node = new FactoryNode(buildingType, worldPos.x, worldPos.y);
+        if (usedFreeClaim) node.isStarterKit = true;
         this.canvas.addNode(node);
 
         // Update count (immutable update)
@@ -655,6 +800,15 @@ class Game {
         // Update UI
         this.sidebar.updateResources();
         this.sidebar.updateBuildingPalette(this.buildingCounts, this.franchise);
+
+        // Fire app unlock events based on what was just placed
+        const def = BUILDINGS[buildingType];
+        if (def?.isStorage) {
+            document.dispatchEvent(new CustomEvent('unlockApp', { detail: { appId: 'warehouse' } }));
+        }
+        if (buildingType === 'spaceport') {
+            document.dispatchEvent(new CustomEvent('unlockApp', { detail: { appId: 'spaceport' } }));
+        }
 
         log(`Placed ${buildingType} at world (${worldPos.x.toFixed(0)}, ${worldPos.y.toFixed(0)}) (total: ${this.buildingCounts[buildingType]})`);
     }
@@ -702,6 +856,11 @@ class Game {
         }
         this.sidebar.refreshPalette(this.getUnlockedBuildings(), this.buildingCounts, this.franchise);
         document.dispatchEvent(new CustomEvent('franchiseTierAdvanced', { detail: { tier: next.tier } }));
+
+        // Fire tier comms message
+        if (next.tier === 1 && window.commsManager) {
+            window.commsManager.unlockMessage('tier_1');
+        }
         log(`Franchise advanced to Tier ${next.tier}`);
         return true;
     }
@@ -885,6 +1044,7 @@ class Game {
             if (data.canvas)         this.canvas.loadSaveData(data.canvas);
             if (data.buildingCounts) this.buildingCounts = data.buildingCounts;
             if (data.franchise)      this.loadFranchiseSaveData(data.franchise);
+            if (data.traders)        this.traderManager.loadSaveData(data.traders);
 
             this.calculateProduction();
 

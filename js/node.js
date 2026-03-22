@@ -30,6 +30,7 @@ class FactoryNode {
         this.stalled = false;
         this.efficiency = 1.0;         // Derived each tick — fraction of max capacity (0–1)
         this.powerThrottled = false;   // Derived each tick — true when power grid deficit is the throttle cause
+        this.standby = false;          // Derived each tick — true when partially connected (has connections but can't produce)
         this.actualOutputRate = {};    // Derived each tick — {resource: rate/s}
 
         // Storage node fields (isStorage buildings only)
@@ -39,6 +40,7 @@ class FactoryNode {
         this.activeRecipe = null;      // Derived each tick — connections validate assignedRecipe
         this.assignedRecipe = null;    // Persisted user-set recipe for usesRecipes buildings
         this.autoSellResource = null;  // Derived each tick — resource being sold by autoSell buildings
+        this.isStarterKit = false;     // True when placed using a free franchise claim
         this.isDraggingConnection = false;
         this.nodeWidth = MIN_NODE_W;   // Calculated dynamically in buildIOShapes
 
@@ -471,6 +473,7 @@ class FactoryNode {
     }
 
     showPorts() {
+        if (this.buildingDef.noConnections) return;
         this.outputPort.visible(true);
         this.inputPort.visible(true);
         this.group.getLayer()?.batchDraw();
@@ -507,6 +510,16 @@ class FactoryNode {
                 this.statusPip.fill('#c8a020');
             }
             this.headerName.fill('#e8d5b0');
+            return;
+        }
+
+        if (this.standby) {
+            // Standby: has connections but not fully connected — waiting for the missing link
+            this.rect.fill(def.color);
+            this.rect.stroke('#555555');
+            this.rect.strokeWidth(1.5);
+            this.headerName.fill('#888880');
+            this.statusPip.fill('#999999');
             return;
         }
 
@@ -593,7 +606,8 @@ class FactoryNode {
             level: this.level,
             inputs: this.inputs,
             outputs: this.outputs,
-            assignedRecipeId: this.assignedRecipe ? this.assignedRecipe.id : null
+            assignedRecipeId: this.assignedRecipe ? this.assignedRecipe.id : null,
+            isStarterKit: this.isStarterKit || false
         };
         if (this.buildingDef.isStorage) {
             data.inventory = this.inventory;
@@ -608,6 +622,7 @@ class FactoryNode {
         node.level = data.level || 1;
         node.inputs = data.inputs || [];
         node.outputs = data.outputs || [];
+        node.isStarterKit = data.isStarterKit || false;
 
         if (data.assignedRecipeId) {
             const recipes = getRecipesForBuilding(data.buildingType);

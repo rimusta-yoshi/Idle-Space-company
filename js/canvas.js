@@ -333,7 +333,7 @@ class CanvasManager {
             <span class="node-action-label"></span>
             <button class="node-action-btn node-action-btn--recipe" data-action="recipe" style="display:none">RECIPE</button>
             <button class="node-action-btn" data-action="upgrade">UPGRADE</button>
-            <button class="node-action-btn node-action-btn--danger" data-action="delete">DELETE</button>
+            <button class="node-action-btn node-action-btn--danger" data-action="remove">REMOVE</button>
         `;
 
         bar.addEventListener('click', (e) => {
@@ -349,11 +349,14 @@ class CanvasManager {
                 document.dispatchEvent(new CustomEvent('openUpgradePanel', {
                     detail: { node: this.actionBarNode }
                 }));
-            } else if (action === 'delete') {
-                document.dispatchEvent(new CustomEvent('deleteNodeRequest', {
-                    detail: { node: this.actionBarNode }
-                }));
-                this.hideActionBar();
+            } else if (action === 'remove') {
+                const node = this.actionBarNode;
+                if (window.confirm('Remove this building?')) {
+                    document.dispatchEvent(new CustomEvent('removeNodeRequest', {
+                        detail: { node }
+                    }));
+                    this.hideActionBar();
+                }
             }
         });
 
@@ -618,6 +621,9 @@ class CanvasManager {
     areNodesCompatible(fromNode, toNode) {
         const fromDef = fromNode.buildingDef;
         const toDef = toNode.buildingDef;
+
+        // Buildings with no connection ports cannot participate in any connection
+        if (fromDef.noConnections || toDef.noConnections) return false;
 
         // Output connection limits
         if (!fromDef.isSplitter && fromNode.outputs.length >= 1) return false;

@@ -2004,6 +2004,61 @@ footer p {
     color: #40c8a8;
 }
 
+/* App Unlock Toast */
+.app-toast {
+    position: fixed;
+    bottom: 55px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px;
+    background: #0d0b07;
+    border: 2px solid #c49a2a;
+    color: #e8d5b0;
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 16px;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateX(calc(100% + 30px));
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    box-shadow: 0 0 12px rgba(196, 154, 42, 0.25), inset 0 0 20px rgba(0,0,0,0.5);
+    min-width: 280px;
+    max-width: 380px;
+}
+
+.app-toast.app-toast-visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.app-toast-icon {
+    font-size: 22px;
+    color: #c49a2a;
+    background: rgba(196, 154, 42, 0.1);
+    border: 1px solid #8a6b1a;
+    padding: 4px 8px;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+}
+
+.app-toast-title {
+    color: #c49a2a;
+    font-size: 16px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+.app-toast-message {
+    color: #8a6b1a;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
 /* Offline Progress Modal */
 .offline-progress-modal {
     position: fixed;
@@ -2108,6 +2163,205 @@ footer p {
     to {
         opacity: 1;
     }
+}
+
+/* ── STRATUM Comms App ────────────────────────────────────────────── */
+
+.comms-container {
+    display: flex;
+    height: 100%;
+    font-family: 'VT323', 'Courier New', monospace;
+    background: #0a0905;
+    color: #c49a2a;
+    overflow: hidden;
+}
+
+.comms-sidebar {
+    width: 280px;
+    min-width: 180px;
+    border-right: 1px solid #3a2e18;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.comms-sidebar-header {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #8a6b1a;
+    border-bottom: 1px solid #3a2e18;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.comms-message-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.comms-empty {
+    padding: 20px 12px;
+    color: #4a3a10;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.comms-message-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid #1e1a10;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.comms-message-item:hover {
+    background: #16120a;
+}
+
+.comms-message-item.selected {
+    background: #1e180a;
+    border-left: 2px solid #c49a2a;
+}
+
+.comms-message-item.unread .comms-msg-sender {
+    color: #e8bc3a;
+}
+
+.comms-message-item.unread .comms-msg-subject {
+    color: #c49a2a;
+    font-weight: bold;
+}
+
+.comms-message-item.unread::before {
+    content: '● ';
+    color: #e8bc3a;
+    font-size: 10px;
+}
+
+.comms-msg-sender {
+    font-size: 13px;
+    color: #8a6b1a;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.comms-msg-subject {
+    font-size: 15px;
+    color: #a08020;
+    margin: 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.comms-msg-time {
+    font-size: 12px;
+    color: #4a3a10;
+}
+
+/* Right pane */
+.comms-body-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.comms-message-body {
+    flex: 1;
+    padding: 20px 24px;
+    overflow-y: auto;
+}
+
+.comms-body-placeholder {
+    color: #3a2e18;
+    font-size: 18px;
+    letter-spacing: 3px;
+    margin-top: 40px;
+    text-align: center;
+}
+
+.comms-body-header {
+    margin-bottom: 16px;
+}
+
+.comms-body-subject {
+    font-size: 20px;
+    color: #e8bc3a;
+    letter-spacing: 1px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+}
+
+.comms-body-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+}
+
+.comms-body-sender {
+    color: #8a6b1a;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.comms-body-time {
+    color: #4a3a10;
+}
+
+.comms-body-divider {
+    height: 1px;
+    background: #2a2010;
+    margin: 12px 0;
+}
+
+.comms-body-text {
+    font-size: 16px;
+    color: #b08828;
+    line-height: 1.5;
+    letter-spacing: 0.5px;
+    white-space: pre-wrap;
+}
+
+/* Taskbar comms icon */
+.comms-taskbar-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    height: 100%;
+    cursor: pointer;
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 16px;
+    color: #c49a2a;
+    letter-spacing: 1px;
+    border-right: 1px solid #2a2010;
+    user-select: none;
+    transition: background 0.1s;
+}
+
+.comms-taskbar-icon:hover {
+    background: #1e180a;
+}
+
+.comms-taskbar-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #c49a2a;
+    color: #0a0905;
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+    min-width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+    font-weight: bold;
+    line-height: 1;
 }
 
 @keyframes slideDown {
@@ -2581,4 +2835,338 @@ footer p {
     font-style: italic;
     font-size: 13px;
     text-align: center;
+}
+
+/* ── Trader App ──────────────────────────────────────────────────────────── */
+
+.trader-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #0d0c10;
+    font-family: 'VT323', monospace;
+    color: #e8d5b0;
+    overflow: hidden;
+}
+
+.trader-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 14px 7px;
+    border-bottom: 1px solid #1a1810;
+    flex-shrink: 0;
+}
+
+.trader-title {
+    font-size: 14px;
+    color: #c49a2a;
+    letter-spacing: 1px;
+}
+
+.trader-subtitle {
+    font-size: 11px;
+    color: #3a2a1a;
+    flex: 1;
+}
+
+.trader-credits-balance {
+    font-size: 16px;
+    color: #c49a2a;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────────────────── */
+
+.trader-tabs {
+    display: flex;
+    flex-direction: row;
+    border-bottom: 1px solid #1a1810;
+    flex-shrink: 0;
+}
+
+.trader-tab {
+    background: transparent;
+    border: none;
+    border-right: 1px solid #1a1810;
+    color: #5a4a3a;
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 5px 18px;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+}
+
+.trader-tab:hover {
+    color: #a09070;
+    background: #120f08;
+}
+
+.trader-tab.active {
+    color: #c49a2a;
+    background: #0f0d08;
+    border-bottom: 2px solid #c49a2a;
+    margin-bottom: -1px;
+}
+
+/* ── Body layout: table area + sidebar ───────────────────────────────────── */
+
+.trader-body {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    overflow: hidden;
+}
+
+.trader-table-area {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ── Trader Table ─────────────────────────────────────────────────────────── */
+
+.trader-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.trader-table thead th {
+    padding: 6px 12px;
+    text-align: left;
+    font-size: 10px;
+    color: #4a3a2a;
+    letter-spacing: 2px;
+    border-bottom: 1px solid #1a1810;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    background: #0d0c10;
+}
+
+.trader-table thead th:last-child {
+    width: 1%;
+}
+
+.trader-row td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #120d08;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.trader-row--urgent td {
+    background: #130808;
+}
+
+.tr-vessel {
+    color: #7a6a50;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+
+.tr-resource {
+    color: #e8d5b0;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.tr-qty {
+    color: #a09070;
+    text-align: right;
+}
+
+.tr-price {
+    color: #c49a2a;
+    text-align: right;
+}
+
+.tr-time {
+    color: #7a6a50;
+    text-align: right;
+    letter-spacing: 1px;
+}
+
+.trader-row--urgent .tr-time {
+    color: #c04a2a;
+    animation: trader-row-blink 1s step-end infinite;
+}
+
+@keyframes trader-row-blink {
+    50% { opacity: 0.4; }
+}
+
+.tr-action {
+    text-align: right;
+    padding-right: 10px;
+}
+
+.tr-action-btn {
+    background: #100e08;
+    border: 1px solid #2a2010;
+    color: #c49a2a;
+    font-family: 'VT323', monospace;
+    font-size: 12px;
+    padding: 2px 10px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    transition: background 0.12s, border-color 0.12s;
+}
+
+.tr-action-btn:hover {
+    border-color: #c49a2a;
+    background: #1a1500;
+}
+
+/* ── Expanded row inline trade controls ──────────────────────────────────── */
+
+.tr-action--expanded {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.tr-qty-input {
+    background: #0a0a0d;
+    border: 1px solid #2a2010;
+    color: #e8d5b0;
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    padding: 2px 6px;
+    width: 56px;
+}
+
+.tr-qty-input:focus {
+    outline: none;
+    border-color: #c49a2a;
+}
+
+.tr-max-btn {
+    background: #100e08;
+    border: 1px solid #2a2010;
+    color: #7a6a50;
+    font-family: 'VT323', monospace;
+    font-size: 12px;
+    padding: 2px 8px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.tr-max-btn:hover {
+    border-color: #c49a2a;
+    color: #c49a2a;
+}
+
+.tr-confirm-btn {
+    background: #071307;
+    border: 1px solid #1a3a1a;
+    color: #5aaa5a;
+    font-family: 'VT323', monospace;
+    font-size: 12px;
+    padding: 2px 10px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    white-space: nowrap;
+}
+
+.tr-confirm-btn:hover {
+    border-color: #5aaa5a;
+    background: #0a1a0a;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+
+.trader-empty-row {
+    padding: 24px 16px;
+    color: #3a2a1a;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+/* ── Right Sidebar — Activity Log ─────────────────────────────────────────── */
+
+.trader-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    border-left: 1px solid #1a1810;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.trader-feed-header {
+    padding: 5px 12px;
+    font-size: 10px;
+    color: #4a3a2a;
+    letter-spacing: 2px;
+    border-bottom: 1px solid #140d08;
+    flex-shrink: 0;
+}
+
+.trader-feed-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 4px 0;
+}
+
+.trader-feed-entry {
+    padding: 3px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.trader-feed-entry--arrive {
+    color: #6a8060;
+}
+
+.trader-feed-entry--trade {
+    color: #c49a2a;
+}
+
+.trader-feed-entry--depart {
+    color: #4a3a2a;
+}
+
+.trader-feed-time {
+    color: #3a2a20;
+    margin-right: 4px;
+    font-size: 11px;
+}
+
+.trader-feed-empty {
+    padding: 12px;
+    color: #3a2a20;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Price % badge */
+.tr-pct-high {
+    color: #5aaa5a;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+.tr-pct-low {
+    color: #aa4a4a;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+/* Loading row (offer not yet generated) */
+.trader-row--loading td {
+    opacity: 0.35;
+}
+
+.tr-no-offer {
+    color: #3a2a20;
+    font-size: 12px;
+    letter-spacing: 2px;
 }

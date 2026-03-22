@@ -32,12 +32,13 @@ class Taskbar {
             return;
         }
 
-        // Create menu if it doesn't exist
-        if (!this.appMenuElement) {
-            this.createAppMenu();
+        // Always rebuild so unlock state is current
+        if (this.appMenuElement) {
+            this.appMenuElement.remove();
+            this.appMenuElement = null;
         }
 
-        // Show menu
+        this.createAppMenu();
         this.appMenuElement.style.display = 'block';
     }
 
@@ -45,16 +46,22 @@ class Taskbar {
         this.appMenuElement = document.createElement('div');
         this.appMenuElement.className = 'app-menu';
 
-        // List of available apps
-        const apps = [
-            { id: 'factory', name: 'FRANCHISE OPERATIONS TERMINAL', icon: 'OP' },
-            { id: 'warehouse', name: 'INVENTORY CONTROL SYSTEM', icon: 'WH' },
-            { id: 'market', name: 'STRATUM.EXCHANGE', icon: 'EX' },
-            { id: 'logout', name: 'SESSION MANAGEMENT', icon: 'SYS' }
+        const unlocked = this.desktop.unlockedApps || {};
+
+        // All possible apps; alwaysVisible ones are always shown
+        const allApps = [
+            { id: 'factory',   name: 'FRANCHISE OPERATIONS TERMINAL', icon: 'OP',  alwaysVisible: true },
+            { id: 'franchise', name: 'STRATUM PORTAL',                 icon: 'ST',  alwaysVisible: true },
+            { id: 'warehouse', name: 'INVENTORY CONTROL SYSTEM',       icon: 'WH' },
+            { id: 'market',    name: 'STRATUM.EXCHANGE',                icon: 'EX' },
+            { id: 'spaceport', name: 'SPACEPORT TERMINAL',             icon: 'SP' },
+            { id: 'logout',    name: 'SESSION MANAGEMENT',             icon: 'SYS', alwaysVisible: true }
         ];
 
+        const visibleApps = allApps.filter(app => app.alwaysVisible || unlocked[app.id]);
+
         // Create menu items
-        apps.forEach(app => {
+        visibleApps.forEach(app => {
             const item = document.createElement('div');
             item.className = 'app-menu-item';
             item.innerHTML = `<span class="app-menu-icon">${app.icon}</span> ${app.name}`;

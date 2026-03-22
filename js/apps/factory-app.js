@@ -48,6 +48,11 @@ class FactoryApp extends App {
         }
         this.pendingSaveData = null;
 
+        // Fire welcome comms message on first ever boot
+        if (isNewGame && window.commsManager) {
+            window.commsManager.unlockMessage('welcome');
+        }
+
         this.game.start();
 
         // Setup resize observer for canvas
@@ -120,7 +125,8 @@ class FactoryApp extends App {
             resources: this.game.resources.getSaveData(),
             canvas: this.game.canvas.getSaveData(),
             buildingCounts: this.game.buildingCounts,
-            franchise: this.game.getFranchiseSaveData()
+            franchise: this.game.getFranchiseSaveData(),
+            traders: this.game.traderManager.getSaveData()
         };
     }
 
