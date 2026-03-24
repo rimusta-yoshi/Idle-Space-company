@@ -80,10 +80,11 @@ class FactoryNode {
             if (outputEntries.length > 0) {
                 const [resKey, rate] = outputEntries[0];
                 const resDef = RESOURCES[resKey];
+                const numOutputs = Math.max(1, this.outputs.length);
                 return {
                     icon: def.icon,
                     name: resDef?.name.toUpperCase() || resKey.toUpperCase(),
-                    ratePerSec: rate / this.level  // un-apply level so buildIOShapes can reapply it
+                    ratePerSec: rate / this.level / numOutputs  // per-output rate; buildIOShapes re-applies level
                 };
             }
             return { icon: def.icon, name: 'SPLITTER', ratePerSec: null };

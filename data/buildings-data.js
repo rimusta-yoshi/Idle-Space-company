@@ -2,15 +2,17 @@
 // Data-driven building configuration
 
 const BUILDINGS = {
-    // ===== EXTRACTORS (Tier 1) =====
+    // ===== EXTRACTORS =====
 
     ironExtractor: {
         id: 'ironExtractor',
         name: 'Iron Extractor',
         description: 'Extracts raw iron ore from the planet surface',
         category: 'extractors',
-        tier: 1,
+        tier: 0,
         baseCost: {},
+        creditCost: 400,
+        levelCosts: [400, 800, 1400, 2200],
         upgradeBaseCost: { ironBar: 5 },
         costMultiplier: 1.15,
         production: { ironOre: 1.0 },
@@ -18,11 +20,12 @@ const BUILDINGS = {
         color: '#0d1510',
         icon: 'mining',
         unlocked: true,
-        maxLevel: 3,
-        levelMultipliers: [1.0, 1.6, 2.5],
+        maxLevel: 4,
+        levelMultipliers: [1.0, 2.0, 4.0, 8.0],
         levelUpgradeCosts: [
             { ironBar: 20, steelPlate: 5 },
-            { ironBar: 50, steelPlate: 20, circuitBoard: 5 }
+            { ironBar: 50, steelPlate: 20, circuitBoard: 5 },
+            { steelPlate: 40, circuitBoard: 15, insulatedWire: 10 }
         ]
     },
 
@@ -31,8 +34,10 @@ const BUILDINGS = {
         name: 'Copper Extractor',
         description: 'Extracts raw copper ore from the planet surface',
         category: 'extractors',
-        tier: 1,
+        tier: 0,
         baseCost: {},
+        creditCost: 300,
+        levelCosts: [300, 600, 1100, 1800],
         upgradeBaseCost: { copperBar: 5 },
         costMultiplier: 1.15,
         production: { copperOre: 1.0 },
@@ -40,11 +45,12 @@ const BUILDINGS = {
         color: '#1a1108',
         icon: 'mining',
         unlocked: true,
-        maxLevel: 3,
-        levelMultipliers: [1.0, 1.6, 2.5],
+        maxLevel: 4,
+        levelMultipliers: [1.0, 2.0, 4.0, 8.0],
         levelUpgradeCosts: [
             { copperBar: 20, copperWire: 8 },
-            { copperBar: 50, copperWire: 25, circuitBoard: 5 }
+            { copperBar: 50, copperWire: 25, circuitBoard: 5 },
+            { copperWire: 40, circuitBoard: 15, insulatedWire: 10 }
         ]
     },
 
@@ -53,8 +59,10 @@ const BUILDINGS = {
         name: 'Coal Extractor',
         description: 'Extracts coal — burns for power or refines into fuel',
         category: 'extractors',
-        tier: 1,
+        tier: 0,
         baseCost: {},
+        creditCost: 400,
+        levelCosts: [400, 800, 1400, 2200],
         upgradeBaseCost: { ironBar: 4 },
         costMultiplier: 1.15,
         production: { coal: 1.0 },
@@ -62,11 +70,12 @@ const BUILDINGS = {
         color: '#0d0d0d',
         icon: 'mining',
         unlocked: true,
-        maxLevel: 3,
-        levelMultipliers: [1.0, 1.6, 2.5],
+        maxLevel: 4,
+        levelMultipliers: [1.0, 2.0, 4.0, 8.0],
         levelUpgradeCosts: [
             { ironBar: 15, steelPlate: 5 },
-            { ironBar: 40, steelPlate: 15, circuitBoard: 5 }
+            { ironBar: 40, steelPlate: 15, circuitBoard: 5 },
+            { steelPlate: 30, circuitBoard: 15, insulatedWire: 8 }
         ]
     },
 
@@ -75,20 +84,23 @@ const BUILDINGS = {
         name: 'Rare Min. Extractor',
         description: 'Extracts scarce rare minerals — critical for circuit boards',
         category: 'extractors',
-        tier: 1,
+        tier: 2,
         baseCost: {},
+        creditCost: 1200,
+        levelCosts: [1200, 2400, 4000, 6000],
         upgradeBaseCost: { ironBar: 6, copperBar: 4 },
         costMultiplier: 1.2,
-        production: { rareMins: 0.5 },
+        production: { rareMins: 1.0 },
         consumption: {},
         color: '#1a0a1a',
         icon: 'mining',
         unlocked: true,
-        maxLevel: 3,
-        levelMultipliers: [1.0, 1.6, 2.5],
+        maxLevel: 4,
+        levelMultipliers: [1.0, 2.0, 4.0, 8.0],
         levelUpgradeCosts: [
             { ironBar: 25, steelPlate: 10, copperWire: 10 },
-            { steelPlate: 30, circuitBoard: 10, insulatedWire: 10 }
+            { steelPlate: 30, circuitBoard: 10, insulatedWire: 10 },
+            { steelPlate: 50, circuitBoard: 25, insulatedWire: 20 }
         ]
     },
 
@@ -306,6 +318,20 @@ const RECIPES = {
             outputs: { copperWire: 2.0 },
             icon: 'cable'
         },
+        {
+            id: 'basic_frame',
+            name: 'Basic Frame',
+            inputs: { steelPlate: 1.0, copperWire: 1.0 },
+            outputs: { basicFrame: 1.0 },
+            icon: 'grid_on'
+        },
+        {
+            id: 'hull_plating',
+            name: 'Hull Plating',
+            inputs: { basicFrame: 2.0 },
+            outputs: { hullPlating: 1.0 },
+            icon: 'shield'
+        },
     ],
 
     // MANUFACTURER RECIPES (Tier 4)
@@ -330,6 +356,34 @@ const RECIPES = {
             inputs: { refinedFuel: 1.0, ironBar: 1.0 },
             outputs: { fuelCell: 1.0 },
             icon: 'battery_charging_full'
+        },
+        {
+            id: 'fuel_tank',
+            name: 'Fuel Tank',
+            inputs: { steelPlate: 2.0, refinedFuel: 1.0 },
+            outputs: { fuelTank: 1.0 },
+            icon: 'propane_tank'
+        },
+        {
+            id: 'wiring_harness',
+            name: 'Wiring Harness',
+            inputs: { insulatedWire: 3.0 },
+            outputs: { wiringHarness: 1.0 },
+            icon: 'cable'
+        },
+        {
+            id: 'nav_core',
+            name: 'Navigation Core',
+            inputs: { circuitBoard: 2.0 },
+            outputs: { navCore: 1.0 },
+            icon: 'explore'
+        },
+        {
+            id: 'engine_assembly',
+            name: 'Engine Assembly',
+            inputs: { steelPlate: 2.0, circuitBoard: 1.0, fuelCell: 2.0 },
+            outputs: { engineAssembly: 1.0 },
+            icon: 'rocket'
         }
     ]
 };
@@ -392,9 +446,16 @@ function getBuildingDef(buildingId) {
 }
 
 // Helper function to calculate current building cost
-function calculateBuildingCost(buildingId, currentCount) {
+// purchaseCount: how many of this building have already been purchased (for extractor stepped pricing)
+function calculateBuildingCost(buildingId, currentCount, purchaseCount = 0) {
     const def = BUILDINGS[buildingId];
     if (!def) return null;
+
+    // Extractor stepped pricing: index into levelCosts by purchase count
+    if (def.levelCosts) {
+        const idx = Math.min(purchaseCount, def.levelCosts.length - 1);
+        return { credits: def.levelCosts[idx] };
+    }
 
     // Credit-cost buildings: flat price, no scaling
     if (def.creditCost) {

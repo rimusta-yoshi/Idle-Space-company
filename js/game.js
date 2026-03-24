@@ -27,7 +27,12 @@ class Game {
         this.franchise = {
             tier: 0,
             freeClaims: getInitialFreeClaims(),  // Remaining free building claims
-            pendingBonusExtractors: 0            // Bonus extractor claims awaiting assignment
+            extractorPurchaseCounts: {           // Paid purchase count per extractor type (not counting starter kit)
+                ironExtractor: 0,
+                copperExtractor: 0,
+                coalExtractor: 0,
+                rareMineralExtractor: 0
+            }
         };
 
         this.initialize();
@@ -367,12 +372,35 @@ class Game {
                         const newOutputRate = {};
                         this.canvas.connections.forEach(conn => {
                             if (conn.toNode.id !== node.id) return;
-                            const fromRate = (conn.fromNode.actualOutputRate || {})[conn.resourceType] || 0;
-                            const splitCount = this.canvas.connections.filter(c =>
-                                c.fromNode.id === conn.fromNode.id && c.resourceType === conn.resourceType
-                            ).length;
-                            newOutputRate[conn.resourceType] = (newOutputRate[conn.resourceType] || 0)
-                                + fromRate / Math.max(1, splitCount);
+                            const res = conn.resourceType;
+                            const fromNode = conn.fromNode;
+
+                            let arriving;
+                            if (fromNode.buildingDef?.isStorage) {
+                                // Storage uses a sentinel (9999) — compute actual downstream demand instead
+                                // so the splitter's actualOutputRate reflects real throughput, not the sentinel.
+                                arriving = 0;
+                                this.canvas.connections.forEach(out => {
+                                    if (out.fromNode.id !== node.id || out.resourceType !== res) return;
+                                    const toNode = out.toNode;
+                                    const toDef = toNode.buildingDef;
+                                    const toInputs = toDef.usesRecipes
+                                        ? (toNode.activeRecipe?.inputs || {})
+                                        : (toDef.consumption || {});
+                                    const demand = (toInputs[res] || 0) * toNode.level;
+                                    const inCount = this.canvas.connections.filter(c =>
+                                        c.toNode.id === toNode.id && c.resourceType === res
+                                    ).length;
+                                    arriving += demand / Math.max(1, inCount);
+                                });
+                            } else {
+                                const outCount = this.canvas.connections.filter(c =>
+                                    c.fromNode.id === fromNode.id && c.resourceType === res
+                                ).length;
+                                arriving = ((fromNode.actualOutputRate || {})[res] || 0) / Math.max(1, outCount);
+                            }
+
+                            newOutputRate[res] = (newOutputRate[res] || 0) + arriving;
                         });
                         const newEff = Object.values(newOutputRate).some(r => r > 0) ? 1.0 : 0;
                         const [resKey, newRate] = Object.entries(newOutputRate)[0] || [null, 0];
@@ -700,31 +728,37 @@ class Game {
     _handleNodeRemove(node) {
         if (!node) return;
 
-        // Refund creditCost for non-starter-kit nodes
+        const buildingType = node.buildingType;
+        const def = node.buildingDef;
+        const isExtractor = def?.category === 'extractors';
+
+        // Refund for non-starter-kit nodes
         if (!node.isStarterKit) {
-            const creditCost = node.buildingDef?.creditCost;
-            if (creditCost) {
-                this.resources.add('credits', creditCost);
+            if (isExtractor && def.levelCosts) {
+                // Refund last purchase price and decrement purchase count
+                const purchaseCount = this.franchise.extractorPurchaseCounts[buildingType] || 0;
+                if (purchaseCount > 0) {
+                    const refundIdx = purchaseCount - 1;
+                    const refundAmt = def.levelCosts[Math.min(refundIdx, def.levelCosts.length - 1)];
+                    this.resources.add('credits', refundAmt);
+                    this.franchise = {
+                        ...this.franchise,
+                        extractorPurchaseCounts: {
+                            ...this.franchise.extractorPurchaseCounts,
+                            [buildingType]: purchaseCount - 1
+                        }
+                    };
+                }
+            } else if (def?.creditCost) {
+                this.resources.add('credits', def.creditCost);
             }
         }
 
         // Update building count
-        const buildingType = node.buildingType;
         if ((this.buildingCounts[buildingType] || 0) > 0) {
             this.buildingCounts = {
                 ...this.buildingCounts,
                 [buildingType]: this.buildingCounts[buildingType] - 1
-            };
-        }
-
-        // Refund extractor claim so it can be re-placed
-        if (node.buildingDef?.category === 'extractors') {
-            this.franchise = {
-                ...this.franchise,
-                freeClaims: {
-                    ...this.franchise.freeClaims,
-                    [buildingType]: (this.franchise.freeClaims[buildingType] || 0) + 1
-                }
             };
         }
 
@@ -767,20 +801,29 @@ class Game {
     // Handle building dropped on canvas
     onBuildingDropped(buildingType, screenX, screenY) {
         const count = this.buildingCounts[buildingType] || 0;
+        const def = BUILDINGS[buildingType];
+        const isExtractor = def?.category === 'extractors';
 
-        // Check free claims first — claim-only buildings (extractors) can't be bought
-        const hasClaim = this.hasFreeClaim(buildingType);
-        const isClaimOnly = CLAIM_ONLY_CATEGORIES.has(BUILDINGS[buildingType]?.category);
-
-        if (isClaimOnly && !hasClaim) {
-            showUserNotification('No extractor claims remaining. Advance your STRATUM franchise tier.', 'error');
-            return;
+        // Enforce planet node cap for extractors
+        if (isExtractor) {
+            const cap = PLANET_NODE_CAPS[buildingType];
+            if (cap !== undefined && count >= cap) {
+                showUserNotification('Node limit reached for this extractor type on this planet.', 'error');
+                return;
+            }
         }
 
+        const hasClaim = this.hasFreeClaim(buildingType);
+
         let usedFreeClaim = false;
-        if (!hasClaim) {
-            // Normal cost path
-            const cost = calculateBuildingCost(buildingType, count);
+        if (hasClaim) {
+            // Free claim path (starter kit)
+            this.consumeFreeClaim(buildingType);
+            usedFreeClaim = true;
+        } else {
+            // Normal cost path — extractors use stepped pricing
+            const purchaseCount = this.franchise.extractorPurchaseCounts[buildingType] || 0;
+            const cost = calculateBuildingCost(buildingType, count, purchaseCount);
             if (!this.canAfford(cost)) {
                 const costText = Object.entries(cost)
                     .map(([resource, amount]) => `${formatNumber(amount)} ${resource}`)
@@ -789,10 +832,15 @@ class Game {
                 return;
             }
             this.spendCosts(cost);
-        } else {
-            // Free claim path
-            this.consumeFreeClaim(buildingType);
-            usedFreeClaim = true;
+            if (isExtractor) {
+                this.franchise = {
+                    ...this.franchise,
+                    extractorPurchaseCounts: {
+                        ...this.franchise.extractorPurchaseCounts,
+                        [buildingType]: purchaseCount + 1
+                    }
+                };
+            }
         }
 
         // Convert screen coordinates to world coordinates (accounting for pan/zoom)
@@ -814,7 +862,6 @@ class Game {
         this.sidebar.updateBuildingPalette(this.buildingCounts, this.franchise);
 
         // Fire app unlock events based on what was just placed
-        const def = BUILDINGS[buildingType];
         if (def?.isStorage) {
             document.dispatchEvent(new CustomEvent('unlockApp', { detail: { appId: 'warehouse' } }));
         }
@@ -863,9 +910,6 @@ class Game {
         this.resources.remove('credits', required);
 
         this.franchise.tier = next.tier;
-        if (next.bonusExtractorClaims) {
-            this.franchise.pendingBonusExtractors += next.bonusExtractorClaims;
-        }
 
         this.sidebar.refreshPalette(this.getUnlockedBuildings(), this.buildingCounts, this.franchise);
         document.dispatchEvent(new CustomEvent('franchiseTierAdvanced', { detail: { tier: next.tier } }));
@@ -878,26 +922,6 @@ class Game {
         return true;
     }
 
-    // Claim one bonus extractor of the given type (from pendingBonusExtractors pool)
-    claimBonusExtractor(buildingType) {
-        if (this.franchise.pendingBonusExtractors <= 0) return false;
-        const def = getBuildingDef(buildingType);
-        if (!def || def.category !== 'extractors') return false;
-
-        this.franchise = {
-            ...this.franchise,
-            freeClaims: {
-                ...this.franchise.freeClaims,
-                [buildingType]: (this.franchise.freeClaims[buildingType] || 0) + 1
-            },
-            pendingBonusExtractors: this.franchise.pendingBonusExtractors - 1
-        };
-
-        this.sidebar.refreshPalette(this.getUnlockedBuildings(), this.buildingCounts, this.franchise);
-        log(`Claimed bonus extractor: ${buildingType}`);
-        return true;
-    }
-
     getFranchiseSaveData() {
         return { ...this.franchise };
     }
@@ -906,7 +930,12 @@ class Game {
         if (!data) return;
         this.franchise.tier = data.tier ?? 0;
         this.franchise.freeClaims = data.freeClaims ?? getInitialFreeClaims();
-        this.franchise.pendingBonusExtractors = data.pendingBonusExtractors ?? 0;
+        this.franchise.extractorPurchaseCounts = data.extractorPurchaseCounts ?? {
+            ironExtractor: 0,
+            copperExtractor: 0,
+            coalExtractor: 0,
+            rareMineralExtractor: 0
+        };
     }
 
     save() {

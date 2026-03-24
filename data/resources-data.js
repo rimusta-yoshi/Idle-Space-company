@@ -129,6 +129,32 @@ const RESOURCES = {
         sellPrice: 8.0
     },
 
+    // ── Tier 3.5 — Assembled Components ──────────────────────────────────
+
+    basicFrame: {
+        id: 'basicFrame',
+        name: 'Basic Frame',
+        description: 'Structural frame assembled from steel and copper wire',
+        icon: 'grid_on',
+        color: '#b0b8c8',
+        tier: 3,
+        initialAmount: 0,
+        initialCapacity: 500,
+        sellPrice: 25.0
+    },
+
+    hullPlating: {
+        id: 'hullPlating',
+        name: 'Hull Plating',
+        description: 'Armoured hull panels for spacecraft construction',
+        icon: 'shield',
+        color: '#8899aa',
+        tier: 3,
+        initialAmount: 0,
+        initialCapacity: 500,
+        sellPrice: 55.0
+    },
+
     // ── Tier 4 — Manufactured ─────────────────────────────────────────────
 
     circuitBoard: {
@@ -165,6 +191,56 @@ const RESOURCES = {
         initialAmount: 0,
         initialCapacity: 500,
         sellPrice: 20.0
+    },
+
+    // ── Tier 5 — Ship Parts ────────────────────────────────────────────────
+
+    fuelTank: {
+        id: 'fuelTank',
+        name: 'Fuel Tank',
+        description: 'High-pressure fuel storage tank for spacecraft',
+        icon: 'propane_tank',
+        color: '#c0a060',
+        tier: 5,
+        initialAmount: 0,
+        initialCapacity: 200,
+        sellPrice: 80.0
+    },
+
+    wiringHarness: {
+        id: 'wiringHarness',
+        name: 'Wiring Harness',
+        description: 'Bundled insulated wiring system for spacecraft electronics',
+        icon: 'cable',
+        color: '#d4c020',
+        tier: 5,
+        initialAmount: 0,
+        initialCapacity: 200,
+        sellPrice: 120.0
+    },
+
+    navCore: {
+        id: 'navCore',
+        name: 'Navigation Core',
+        description: 'Advanced navigation computer built from precision circuit boards',
+        icon: 'explore',
+        color: '#40a0c0',
+        tier: 5,
+        initialAmount: 0,
+        initialCapacity: 200,
+        sellPrice: 200.0
+    },
+
+    engineAssembly: {
+        id: 'engineAssembly',
+        name: 'Engine Assembly',
+        description: 'Complete ship engine — the hardest convergence point in production',
+        icon: 'rocket',
+        color: '#e04020',
+        tier: 5,
+        initialAmount: 0,
+        initialCapacity: 100,
+        sellPrice: 400.0
     }
 };
 

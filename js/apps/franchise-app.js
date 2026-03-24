@@ -38,14 +38,14 @@ class FranchiseApp extends App {
         const game = window.gameInstance;
         if (!game) return;
 
-        const { tier, pendingBonusExtractors } = game.franchise;
+        const { tier } = game.franchise;
         const creditBalance = game.resources.resources['credits']?.current || 0;
         const tierDef = getFranchiseTier(tier);
         const nextTierDef = getNextFranchiseTier(tier);
         const required = nextTierDef?.requires?.creditsSubmit || 0;
 
         // Cheap change detection
-        const renderKey = `${tier}|${Math.floor(creditBalance)}|${pendingBonusExtractors}`;
+        const renderKey = `${tier}|${Math.floor(creditBalance)}`;
         if (renderKey === this._lastRender) return;
         this._lastRender = renderKey;
 
@@ -101,40 +101,6 @@ class FranchiseApp extends App {
             if (nextRewardsEl) nextRewardsEl.textContent = `TIER ${nextTierDef.tier}: ${tierDef.nextRewards}`;
         } else {
             if (nextRewardsSection) nextRewardsSection.style.display = 'none';
-        }
-
-        // Bonus extractor picker
-        const pickerSection = root.querySelector('.franchise-bonus-picker');
-        if (pickerSection) {
-            if (pendingBonusExtractors > 0) {
-                pickerSection.style.display = '';
-                const label = pickerSection.querySelector('.franchise-rewards-label');
-                if (label) {
-                    label.textContent = pendingBonusExtractors === 1
-                        ? 'STRATUM BONUS CLAIM — SELECT EXTRACTOR'
-                        : `STRATUM BONUS CLAIMS — SELECT EXTRACTOR (${pendingBonusExtractors} REMAINING)`;
-                }
-                const optionsEl = pickerSection.querySelector('.franchise-bonus-options');
-                if (optionsEl) {
-                    optionsEl.innerHTML = '';
-                    const unlockedBuildings = game.getUnlockedBuildings();
-                    BONUS_EXTRACTOR_OPTIONS
-                        .filter(opt => unlockedBuildings.has(opt.type))
-                        .forEach(opt => {
-                            const btn = document.createElement('button');
-                            btn.className = 'franchise-bonus-btn';
-                            btn.textContent = opt.label.toUpperCase();
-                            btn.addEventListener('click', () => {
-                                game.claimBonusExtractor(opt.type);
-                                this._lastRender = '';
-                                this.updateDisplay(root);
-                            });
-                            optionsEl.appendChild(btn);
-                        });
-                }
-            } else {
-                pickerSection.style.display = 'none';
-            }
         }
 
         // Liaison dialogue — progress-driven line

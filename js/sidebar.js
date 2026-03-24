@@ -169,14 +169,30 @@ class SidebarManager {
     updateBuildingPalette(buildingCounts, franchise = null) {
         const cards = this.rootElement.querySelectorAll('.palette-card');
         const freeClaims = franchise?.freeClaims || {};
+        const extractorPurchaseCounts = franchise?.extractorPurchaseCounts || {};
         const starterKit = getFranchiseTier(0).starterKit;
 
         cards.forEach(card => {
             const buildingType = card.getAttribute('data-building');
+            const def = BUILDINGS[buildingType];
             const claimsLeft = freeClaims[buildingType] || 0;
             const claimsTotal = starterKit[buildingType] || 0;
-            const isClaimOnly = CLAIM_ONLY_CATEGORIES.has(BUILDINGS[buildingType]?.category);
+            const isExtractor = def?.category === 'extractors';
             const costEl = card.querySelector('.palette-card-cost');
+            const count = buildingCounts[buildingType] || 0;
+
+            // Check planet node cap for extractors
+            if (isExtractor && typeof PLANET_NODE_CAPS !== 'undefined') {
+                const cap = PLANET_NODE_CAPS[buildingType];
+                if (cap !== undefined && count >= cap) {
+                    card.classList.add('locked', 'claim-exhausted');
+                    card.style.cursor = 'not-allowed';
+                    if (costEl) {
+                        costEl.innerHTML = `<span class="claim-exhausted-msg">NODE LIMIT REACHED</span>`;
+                    }
+                    return;
+                }
+            }
 
             if (claimsLeft > 0) {
                 // Has free claims — show FREE X/Y badge
@@ -185,17 +201,10 @@ class SidebarManager {
                 if (costEl) {
                     costEl.innerHTML = `<span class="free-claim-badge">FREE ${claimsLeft}/${claimsTotal}</span>`;
                 }
-            } else if (isClaimOnly) {
-                // Extractor with no claims left — show locked state
-                card.classList.add('locked', 'claim-exhausted');
-                card.style.cursor = 'not-allowed';
-                if (costEl) {
-                    costEl.innerHTML = `<span class="claim-exhausted-msg">STRATUM TIER REWARD</span>`;
-                }
             } else {
-                // Normal cost check
-                const count = buildingCounts[buildingType] || 0;
-                const cost = calculateBuildingCost(buildingType, count);
+                // Normal cost check — extractors use stepped pricing
+                const purchaseCount = isExtractor ? (extractorPurchaseCounts[buildingType] || 0) : 0;
+                const cost = calculateBuildingCost(buildingType, count, purchaseCount);
                 const canAfford = this.resourceManager.canAfford(cost);
 
                 card.classList.remove('claim-exhausted');

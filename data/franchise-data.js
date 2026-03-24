@@ -22,11 +22,11 @@ const FRANCHISE_TIERS = [
             storageNode:   1,
             windTurbine:   2
         },
-        rewards: 'Starter equipment package: 1× Iron Extractor, 1× Storage, 2× Wind Turbines.',
-        nextRewards: 'Assembler access. One additional extractor of your choice.',
+        rewards: 'Starter equipment package: 1× Iron Extractor, 1× Storage, 2× Wind Turbines. Additional extractors purchaseable from the build panel.',
+        nextRewards: 'Assembler access.',
         liaisons: [
             'Welcome to STRATUM GROUP, franchise operator. Your starter equipment is ready in the build panel.',
-            'Extract iron ore and sell it manually at the commodity portal to earn credits.',
+            'Purchase additional extractors directly from the build panel using credits.',
             'Submit 500 credits to STRATUM to apply for Tier 1 franchise status.'
         ]
     },
@@ -38,10 +38,9 @@ const FRANCHISE_TIERS = [
         unlockedBuildings: [
             'assembler'
         ],
-        bonusExtractorClaims: 1,
         starterKit: {},
-        rewards: 'Assembler access. One additional extractor claim.',
-        nextRewards: 'Manufacturer and Export Terminal (automated selling). Two additional extractor claims.',
+        rewards: 'Assembler access.',
+        nextRewards: 'Manufacturer and Export Terminal (automated selling). Rare Mineral Extractor access.',
         liaisons: [
             'Tier 1 approved. Assembler license is now active.',
             'You may now purchase and operate assembly equipment via the STRATUM™ shop.',
@@ -59,13 +58,12 @@ const FRANCHISE_TIERS = [
             'rareMineralExtractor',
             'splitter'
         ],
-        bonusExtractorClaims: 2,
         starterKit: {},
-        rewards: 'Manufacturer and Export Terminal access (purchase via STRATUM™ shop). Rare Mineral Extractor access. Two additional extractor claims.',
-        nextRewards: 'Spaceport access. One additional extractor claim.',
+        rewards: 'Manufacturer and Export Terminal access (purchase via STRATUM™ shop). Rare Mineral Extractor now available.',
+        nextRewards: 'Spaceport access.',
         liaisons: [
             'Tier 2 status granted. Manufacturer and Export Terminal licenses are now active.',
-            'Purchase equipment via the STRATUM™ shop.',
+            'Rare Mineral Extractor is now available in the build panel.',
             'Submit 25,000 credits to STRATUM to apply for Tier 3 status.'
         ]
     },
@@ -77,9 +75,8 @@ const FRANCHISE_TIERS = [
         unlockedBuildings: [
             'spaceport'
         ],
-        bonusExtractorClaims: 1,
         starterKit: {},
-        rewards: 'Spaceport access. One additional extractor claim.',
+        rewards: 'Spaceport access.',
         nextRewards: null,
         liaisons: [
             'Tier 3 approved. Spaceport access granted.',
@@ -89,15 +86,13 @@ const FRANCHISE_TIERS = [
     }
 ];
 
-// Which building categories are claim-only (can't be bought, only claimed via franchise)
-const CLAIM_ONLY_CATEGORIES = new Set(['extractors']);
-
-// Extractors available as bonus picks at Tier 1+ advancement
-const BONUS_EXTRACTOR_OPTIONS = [
-    { type: 'ironExtractor',        label: 'Iron Extractor',         icon: 'mining' },
-    { type: 'copperExtractor',      label: 'Copper Extractor',       icon: 'mining' },
-    { type: 'coalExtractor',        label: 'Coal Extractor',         icon: 'mining' },
-];
+// Planet node caps — maximum extractors of each type on Planet 1
+const PLANET_NODE_CAPS = {
+    ironExtractor:        5,
+    copperExtractor:      7,
+    coalExtractor:        2,
+    rareMineralExtractor: 1
+};
 
 // ASCII portrait for the STRATUM liaison
 const LIAISON_ASCII = `

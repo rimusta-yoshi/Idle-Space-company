@@ -13,14 +13,20 @@ const MARKET_BASE_PRICES = {
     rareMins:    60,
     circuitBoard:120,
     insulatedWire:80,
-    fuelCell:    90
+    fuelCell:    90,
+    basicFrame:  65,
+    hullPlating: 140,
+    fuelTank:    120,
+    wiringHarness:200,
+    navCore:     350,
+    engineAssembly:600
 };
 
 // Resources unlocked per franchise tier (cumulative — each tier adds to the pool)
 const TRADER_TIER_RESOURCES = {
     0: ['ironOre', 'copperOre', 'coal', 'ironBar', 'copperBar', 'refinedFuel'],
-    1: ['steelPlate', 'copperWire'],
-    2: ['rareMins', 'circuitBoard', 'insulatedWire', 'fuelCell'],
+    1: ['steelPlate', 'copperWire', 'basicFrame', 'hullPlating'],
+    2: ['rareMins', 'circuitBoard', 'insulatedWire', 'fuelCell', 'fuelTank', 'wiringHarness', 'navCore', 'engineAssembly'],
 };
 
 // Probability weights — raw materials appear more frequently than processed goods
@@ -29,6 +35,7 @@ const RESOURCE_WEIGHTS = {
     ironBar: 20, copperBar: 20, refinedFuel: 15,
     steelPlate: 15, copperWire: 15,
     rareMins: 10, circuitBoard: 8, insulatedWire: 8, fuelCell: 8,
+    basicFrame: 6, hullPlating: 5, fuelTank: 5, wiringHarness: 4, navCore: 3, engineAssembly: 2,
 };
 
 const SHIP_NAMES = [
