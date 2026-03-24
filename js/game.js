@@ -20,8 +20,8 @@ class Game {
         this._credits100Fired = false;    // Guard: comms credits 100 milestone
         this._credits250Fired = false;    // Guard: comms credits 250 milestone
 
-        // Trader system
-        this.traderManager = new TraderManager();
+        // Market rate system
+        this.marketManager = new MarketManager();
 
         // Franchise progression
         this.franchise = {
@@ -71,7 +71,7 @@ class Game {
             this._handleNodeRemove(e.detail.node);
         });
 
-        // Listen for first sale (fired by trader-manager)
+        // Listen for first sale (fired by market-manager)
         document.addEventListener('firstSaleCompleted', () => {
             if (window.commsManager) window.commsManager.unlockMessage('first_sale');
         });
@@ -162,8 +162,8 @@ class Game {
         // Visual animations — visual only, no game logic
         this.animManager.update(deltaTime, this.canvas.nodes);
 
-        // Trader system: count down timers, refill empty slots
-        this.traderManager.tick(deltaTime, this.franchise.tier);
+        // Market rate system: count down timers, refresh prices on expiry
+        this.marketManager.tick(deltaTime);
 
         // Check credit milestone comms messages
         this._checkCreditsMilestones();
@@ -866,9 +866,6 @@ class Game {
         this.sidebar.updateBuildingPalette(this.buildingCounts, this.franchise);
 
         // Fire app unlock events based on what was just placed
-        if (def?.isStorage) {
-            document.dispatchEvent(new CustomEvent('unlockApp', { detail: { appId: 'warehouse' } }));
-        }
         if (buildingType === 'spaceport') {
             document.dispatchEvent(new CustomEvent('unlockApp', { detail: { appId: 'spaceport' } }));
         }
@@ -1090,7 +1087,7 @@ class Game {
             if (data.canvas)         this.canvas.loadSaveData(data.canvas);
             if (data.buildingCounts) this.buildingCounts = data.buildingCounts;
             if (data.franchise)      this.loadFranchiseSaveData(data.franchise);
-            if (data.traders)        this.traderManager.loadSaveData(data.traders);
+            if (data.market)         this.marketManager.loadSaveData(data.market);
 
             this.calculateProduction();
 

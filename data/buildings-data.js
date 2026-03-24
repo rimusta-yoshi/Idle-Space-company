@@ -225,7 +225,7 @@ const BUILDINGS = {
         id: 'powerGenerator',
         name: 'Power Generator',
         description: 'Burns coal to generate power for all buildings',
-        category: 'infrastructure',
+        category: 'power',
         tier: 1,
         baseCost: {},
         creditCost: 350,

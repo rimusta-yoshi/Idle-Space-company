@@ -28,7 +28,6 @@ class DesktopOS {
         // Register available apps
         this.registerApp('factory', FactoryApp);
         this.registerApp('market', MarketApp);
-        this.registerApp('warehouse', WarehouseApp);
         this.registerApp('franchise', FranchiseApp);
         this.registerApp('spaceport', SpaceportApp);
         this.registerApp('logout', LogoutApp);
@@ -106,7 +105,7 @@ class DesktopOS {
 
     // Show/hide desktop icons based on current unlock state
     applyAppVisibility() {
-        const locked = ['warehouse', 'market', 'spaceport'];
+        const locked = ['market', 'spaceport'];
         locked.forEach(appId => {
             const icon = document.querySelector(`.desktop-icon[data-app="${appId}"]`);
             if (!icon) return;

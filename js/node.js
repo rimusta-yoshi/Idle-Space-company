@@ -2,7 +2,7 @@
 // Represents a building placed on the canvas
 
 const MIN_NODE_W = 150;  // Minimum node width — actual width hugs content
-const HEADER_H = 32;
+const HEADER_H = 40;
 const ROW_H = 22;
 const PAD_B = 8;
 const MS_ICON_W = 22;    // Horizontal space reserved for a Material Symbol icon
@@ -72,7 +72,7 @@ class FactoryNode {
                     ratePerSec: null
                 };
             }
-            return { icon: 'inventory_2', name: 'STORAGE', ratePerSec: null };
+            return { icon: 'inventory_2', name: 'EMPTY', ratePerSec: null };
         }
 
         if (def.isSplitter) {
@@ -107,7 +107,7 @@ class FactoryNode {
                     ratePerSec: rate
                 };
             }
-            return { icon: def.icon, name: 'SET RECIPE', ratePerSec: null };
+            return { icon: def.icon, name: 'NO RECIPE', ratePerSec: null };
         }
 
         const outputs = Object.entries(def.production || {});
@@ -144,7 +144,12 @@ class FactoryNode {
 
         // No body section for buildings with no inputs (extractors)
         const bodyHeight = inputRows > 0 ? 1 + inputRows * ROW_H : 0;
-        return HEADER_H + bodyHeight + PAD_B;
+
+        // Extra row for "← CONNECT INPUT" hint when recipe is set but nothing connected
+        const showHint = def.usesRecipes && this.assignedRecipe && this.inputs.length === 0;
+        const hintH = showHint ? ROW_H : 0;
+
+        return HEADER_H + bodyHeight + PAD_B + hintH;
     }
 
     calcWidth() {
@@ -255,38 +260,59 @@ class FactoryNode {
             cornerRadius: [4, 4, 0, 0]
         });
 
-        // Output direction indicator (Material Symbol)
+        // Building type sub-label — small dim text at top of header (row 1)
+        this.buildingSubLabel = new Konva.Text({
+            x: 8, y: 4,
+            text: def.name.toUpperCase(),
+            fontSize: 10,
+            fontFamily: 'VT323, Courier New',
+            fill: '#5a4a30',
+            listening: false
+        });
+
+        // Output direction indicator (Material Symbol) — row 2
         this.headerIcon = new Konva.Text({
-            x: 8, y: 7,
+            x: 8, y: 22,
             text: 'transition_push',
-            fontSize: 16,
+            fontSize: 15,
             fontFamily: 'Material Symbols Outlined',
             fill: '#c49a2a'
         });
 
-        // Resource/building name — VT323 for the retro feel
+        // Resource/building name — VT323 for the retro feel, row 2
         this.headerName = new Konva.Text({
-            x: 8 + MS_ICON_W, y: 8,
+            x: 8 + MS_ICON_W, y: 23,
             text: '',
             fontSize: 15,
             fontFamily: 'VT323, Courier New',
             fill: '#e8d5b0'
         });
 
-        // Rate — right-aligned, positioned dynamically in buildIOShapes
+        // Rate — right-aligned, positioned dynamically in buildIOShapes, row 2
         this.headerRate = new Konva.Text({
-            x: w - 50, y: 8,
+            x: w - 50, y: 23,
             text: '',
             fontSize: 15,
             fontFamily: 'VT323, Courier New',
             fill: '#c49a2a'
         });
 
-        // Status pip — top-right corner, shows production state
+        // Status pip — right side of row 2
         this.statusPip = new Konva.Circle({
-            x: w - 9, y: HEADER_H / 2,
+            x: w - 9, y: Math.round(HEADER_H * 3 / 4),
             radius: 4,
             fill: '#2a2010'
+        });
+
+        // "← CONNECT INPUT" hint — shown inside body when recipe set but no inputs connected
+        this.connectInputHint = new Konva.Text({
+            x: 8, y: 0,
+            text: '\u2190 CONNECT INPUT',
+            fontSize: 10,
+            fontFamily: 'VT323, Courier New',
+            fill: '#3a3020',
+            listening: false,
+            visible: false
         });
 
         // Divider line between header and body
@@ -321,8 +347,9 @@ class FactoryNode {
 
         this.group.add(
             this.rect, this.tierStripe, this.headerBg,
-            this.headerIcon, this.headerName, this.headerRate,
+            this.buildingSubLabel, this.headerIcon, this.headerName, this.headerRate,
             this.statusPip, this.divider,
+            this.connectInputHint,
             this.outputPort, this.inputPort
         );
 
@@ -330,6 +357,18 @@ class FactoryNode {
 
         this.group.on('mouseenter', () => this.showPorts());
         this.group.on('mouseleave', () => this.hidePorts());
+
+        // Output port hover ring — scale up and brighten when hoverable
+        this.outputPort.on('mouseenter', () => {
+            this.outputPort.scale({ x: 1.3, y: 1.3 });
+            this.outputPort.fill('#c49a2a');
+            this.group.getLayer()?.batchDraw();
+        });
+        this.outputPort.on('mouseleave', () => {
+            this.outputPort.scale({ x: 1, y: 1 });
+            this.outputPort.fill('#07060a');
+            this.group.getLayer()?.batchDraw();
+        });
 
         this.group.on('dragmove', () => {
             this.x = this.group.x();
@@ -457,6 +496,18 @@ class FactoryNode {
         }
 
         this.divider.visible(hasInputRows);
+
+        // "← CONNECT INPUT" hint — appears when recipe is chosen but no inputs wired yet
+        const showHint = def.usesRecipes && this.assignedRecipe && this.inputs.length === 0;
+        if (showHint) {
+            const hintText = '\u2190 CONNECT INPUT';
+            const hintW = measureTextWidth(hintText, 10, 'VT323');
+            this.connectInputHint.x(Math.max(8, Math.floor((w - hintW) / 2)));
+            this.connectInputHint.y(h - PAD_B - 10);
+            this.connectInputHint.visible(true);
+        } else {
+            this.connectInputHint.visible(false);
+        }
 
         // Resize all width-dependent shapes
         this.rect.width(w);

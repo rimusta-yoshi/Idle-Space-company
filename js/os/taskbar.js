@@ -52,7 +52,6 @@ class Taskbar {
         const allApps = [
             { id: 'factory',   name: 'FRANCHISE OPERATIONS TERMINAL', icon: 'OP',  alwaysVisible: true },
             { id: 'franchise', name: 'STRATUM PORTAL',                 icon: 'ST',  alwaysVisible: true },
-            { id: 'warehouse', name: 'INVENTORY CONTROL SYSTEM',       icon: 'WH' },
             { id: 'market',    name: 'STRATUM.EXCHANGE',                icon: 'EX' },
             { id: 'spaceport', name: 'SPACEPORT TERMINAL',             icon: 'SP' },
             { id: 'logout',    name: 'SESSION MANAGEMENT',             icon: 'SYS', alwaysVisible: true }

@@ -9,6 +9,7 @@ class FranchiseApp extends App {
         this.icon = 'ST';
         this.updateInterval = null;
         this._lastRender = '';
+        this._approvedTier = null;
     }
 
     mount(contentElement) {
@@ -24,8 +25,14 @@ class FranchiseApp extends App {
                 if (!game) return;
                 const advanced = game.tryFranchiseAdvance();
                 if (advanced) {
+                    this._approvedTier = game.franchise.tier;
                     this._lastRender = '';
                     this.updateDisplay(contentElement);
+                    setTimeout(() => {
+                        this._approvedTier = null;
+                        this._lastRender = '';
+                        this.updateDisplay(contentElement);
+                    }, 2500);
                 }
             });
         }
@@ -44,8 +51,8 @@ class FranchiseApp extends App {
         const nextTierDef = getNextFranchiseTier(tier);
         const required = nextTierDef?.requires?.creditsSubmit || 0;
 
-        // Cheap change detection
-        const renderKey = `${tier}|${Math.floor(creditBalance)}`;
+        // Cheap change detection — include approvedTier so the flash state re-renders
+        const renderKey = `${tier}|${Math.floor(creditBalance)}|${this._approvedTier}`;
         if (renderKey === this._lastRender) return;
         this._lastRender = renderKey;
 
@@ -74,11 +81,18 @@ class FranchiseApp extends App {
             const advanceBtn = root.querySelector('.franchise-advance-btn');
             if (advanceBtn) {
                 advanceBtn.style.display = '';
-                advanceBtn.textContent = canAfford
-                    ? `SUBMIT ${formatNumber(required)} CREDITS — APPLY FOR TIER ${nextTierDef.tier}`
-                    : `${formatNumber(required)} CREDITS REQUIRED`;
-                advanceBtn.disabled = !canAfford;
-                advanceBtn.classList.toggle('franchise-btn-ready', canAfford);
+                if (this._approvedTier !== null) {
+                    advanceBtn.textContent = `TIER ${this._approvedTier} APPROVED`;
+                    advanceBtn.disabled = true;
+                    advanceBtn.className = 'franchise-advance-btn tier-approved';
+                } else {
+                    advanceBtn.textContent = canAfford
+                        ? `SUBMIT ${formatNumber(required)} CREDITS — APPLY FOR TIER ${nextTierDef.tier}`
+                        : `${formatNumber(required)} CREDITS REQUIRED`;
+                    advanceBtn.disabled = !canAfford;
+                    advanceBtn.className = 'franchise-advance-btn'
+                        + (canAfford ? ' franchise-btn-ready can-afford' : '');
+                }
             }
         } else {
             const progressLabel = root.querySelector('.franchise-progress-label');
@@ -89,26 +103,26 @@ class FranchiseApp extends App {
             if (advanceBtn) advanceBtn.style.display = 'none';
         }
 
-        // Current tier rewards
+        // Current tier rewards — render as list items
         const rewardsEl = root.querySelector('.franchise-rewards');
-        if (rewardsEl) rewardsEl.textContent = tierDef.rewards;
+        if (rewardsEl) rewardsEl.innerHTML = `<li>${tierDef.rewards}</li>`;
 
-        // Next tier rewards
+        // Next tier rewards — render as list items
         const nextRewardsSection = root.querySelector('.franchise-next-rewards-section');
         const nextRewardsEl = root.querySelector('.franchise-next-rewards');
         if (nextTierDef && tierDef.nextRewards) {
             if (nextRewardsSection) nextRewardsSection.style.display = '';
-            if (nextRewardsEl) nextRewardsEl.textContent = `TIER ${nextTierDef.tier}: ${tierDef.nextRewards}`;
+            if (nextRewardsEl) nextRewardsEl.innerHTML = `<li>${tierDef.nextRewards}</li>`;
         } else {
             if (nextRewardsSection) nextRewardsSection.style.display = 'none';
         }
 
-        // Liaison dialogue — progress-driven line
-        const dialogue = root.querySelector('.franchise-dialogue');
-        if (dialogue && tierDef.liaisons?.length) {
-            const pct = nextTierDef ? creditBalance / required : 1;
-            const lineIdx = pct >= 1 ? 2 : pct >= 0.5 ? 1 : 0;
-            dialogue.textContent = `"${tierDef.liaisons[Math.min(lineIdx, tierDef.liaisons.length - 1)]}"`;
+        // Liaison terminal log — all messages for current tier
+        const liaisionLog = root.querySelector('.franchise-liaison-log');
+        if (liaisionLog && tierDef.liaisons?.length) {
+            liaisionLog.innerHTML = tierDef.liaisons
+                .map(msg => `<div class="franchise-log-line"><span class="franchise-log-prefix">&gt;</span>${msg}</div>`)
+                .join('');
         }
     }
 

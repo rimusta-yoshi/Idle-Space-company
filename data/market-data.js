@@ -22,28 +22,3 @@ const MARKET_BASE_PRICES = {
     engineAssembly:600
 };
 
-// Resources unlocked per franchise tier (cumulative — each tier adds to the pool)
-const TRADER_TIER_RESOURCES = {
-    0: ['ironOre', 'copperOre', 'coal', 'ironBar', 'copperBar', 'refinedFuel'],
-    1: ['steelPlate', 'copperWire', 'basicFrame', 'hullPlating'],
-    2: ['rareMins', 'circuitBoard', 'insulatedWire', 'fuelCell', 'fuelTank', 'wiringHarness', 'navCore', 'engineAssembly'],
-};
-
-// Probability weights — raw materials appear more frequently than processed goods
-const RESOURCE_WEIGHTS = {
-    ironOre: 30, copperOre: 30, coal: 25,
-    ironBar: 20, copperBar: 20, refinedFuel: 15,
-    steelPlate: 15, copperWire: 15,
-    rareMins: 10, circuitBoard: 8, insulatedWire: 8, fuelCell: 8,
-    basicFrame: 6, hullPlating: 5, fuelTank: 5, wiringHarness: 4, navCore: 3, engineAssembly: 2,
-};
-
-const SHIP_NAMES = [
-    'TRADESHIP_ORION',        'HAULER_NEBULA',          'MINING_VESSEL_ATLAS',
-    'CARGO_HAULER_IRONWIND',  'FREIGHTER_VOIDRUNNER',   'HAULER_STARWAY',
-    'MINING_BARGE_STONEBREAKER', 'INDUSTRIAL_SHIP_HEAVYLIFT', 'MINING_SHIP_PROSPECTOR',
-    'HAULER_BLACKCOMET',      'CARGO_VESSEL_DAWNBREAK', 'FREIGHTER_SOLARIS',
-    'MINING_BARGE_DEEPCORE',  'TRADESHIP_CASSIAN',      'HAULER_IRONREACH',
-    'CARGO_SHIP_REDSHIFT',    'FREIGHTER_COLDMANTLE',   'MINING_VESSEL_AURELIUS',
-    'TRADESHIP_FENWICK',      'HAULER_GRAVENPORT'
-];

@@ -36,10 +36,11 @@ const FRANCHISE_TIERS = [
         subtitle: 'Franchise Operator',
         requires: { creditsSubmit: 500 },
         unlockedBuildings: [
-            'assembler'
+            'assembler',
+            'splitter'
         ],
         starterKit: {},
-        rewards: 'Assembler access.',
+        rewards: 'Assembler and Splitter access.',
         nextRewards: 'Manufacturer and Export Terminal (automated selling). Rare Mineral Extractor access.',
         liaisons: [
             'Tier 1 approved. Assembler license is now active.',
@@ -55,8 +56,7 @@ const FRANCHISE_TIERS = [
         unlockedBuildings: [
             'manufacturer',
             'exportTerminal',
-            'rareMineralExtractor',
-            'splitter'
+            'rareMineralExtractor'
         ],
         starterKit: {},
         rewards: 'Manufacturer and Export Terminal access (purchase via STRATUM™ shop). Rare Mineral Extractor now available.',

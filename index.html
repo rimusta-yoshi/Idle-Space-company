@@ -45,10 +45,6 @@
                 <div class="icon">EX</div>
                 <div class="icon-label">EXCHANGE</div>
             </div>
-            <div class="desktop-icon" data-app="warehouse" style="display:none">
-                <div class="icon">WH</div>
-                <div class="icon-label">INVENTORY</div>
-            </div>
             <div class="desktop-icon" data-app="spaceport" style="display:none">
                 <div class="icon">SP</div>
                 <div class="icon-label">SPACEPORT</div>
@@ -100,20 +96,13 @@
             </div>
             <div class="notification-body">
                 <p>WELCOME, FRANCHISEE #[REDACTED].</p>
-                <p>Your Starter Operations Package has been provisioned. Two additional modules are now active on your workstation. Please review at your earliest convenience. Productivity metrics are being recorded.</p>
+                <p>Your Starter Operations Package has been provisioned. The following module is now active on your workstation. Please review at your earliest convenience. Productivity metrics are being recorded.</p>
                 <div class="notification-apps">
                     <div class="notification-app-item">
                         <span class="notification-app-icon">🏪</span>
                         <div>
                             <strong>STRATUM.EXCHANGE</strong> — APPROVED COMMODITY LIQUIDATION PORTAL<br>
-                            <span class="notification-app-desc">Offload surplus inventory to Stratum-approved buyers. All transactions subject to standard franchise royalty deduction. See Section 12.4 of your agreement.</span>
-                        </div>
-                    </div>
-                    <div class="notification-app-item">
-                        <span class="notification-app-icon">📦</span>
-                        <div>
-                            <strong>INVENTORY CONTROL SYSTEM</strong> — STORAGE MANAGEMENT MODULE<br>
-                            <span class="notification-app-desc">Monitor resource levels, production throughput, and storage utilisation. Stratum is not liable for losses due to capacity overflow.</span>
+                            <span class="notification-app-desc">Offload surplus inventory to Stratum-approved buyers. Inventory levels and live market rates available within. All transactions subject to standard franchise royalty deduction. See Section 12.4 of your agreement.</span>
                         </div>
                     </div>
                 </div>
@@ -161,48 +150,37 @@
 
             <!-- Header -->
             <header>
-                <h1>STRATUM GROUP</h1>
-                <p>FRANCHISE OPERATIONS TERMINAL // SECTOR ALPHA-1</p>
+                <div class="header-brand">
+                    <h1>STRATUM GROUP</h1>
+                    <p>FRANCHISE OPERATIONS TERMINAL // SECTOR ALPHA-1</p>
+                </div>
+                <div class="header-stats">
+                    <div class="header-stat" id="header-credits-stat">
+                        <span class="material-symbols-outlined header-stat-icon">paid</span>
+                        <span id="header-credits-amount" class="header-stat-value">0</span>
+                        <span id="header-credits-pnl" class="header-stat-sub neutral">+0/MIN</span>
+                    </div>
+                    <div class="header-stat header-stat--power" id="header-power-stat">
+                        <span class="material-symbols-outlined header-stat-icon">bolt</span>
+                        <span id="header-power-status" class="header-stat-value">POWER</span>
+                        <span class="header-stat-sub" id="header-power-detail">0/MIN</span>
+                    </div>
+                </div>
             </header>
 
             <!-- Main 2-Panel Layout -->
             <div class="main-layout">
-                <!-- Left Sidebar: Credits widget + Build Palette -->
+                <!-- Left Sidebar: Build Palette -->
                 <aside id="resources-sidebar" class="sidebar left-sidebar">
-                    <!-- Compact credits panel -->
-                    <div id="credits-panel">
-                        <div class="credits-balance-row">
-                            <span class="material-symbols-outlined credits-icon">paid</span>
-                            <span id="credits-amount" class="credits-amount">100</span>
-                        </div>
-                        <div class="credits-pnl-row">
-                            <span id="credits-pnl" class="credits-pnl neutral">+0/MIN</span>
-                        </div>
-                    </div>
-
-                    <!-- Power balance panel -->
-                    <div id="power-panel">
-                        <div class="power-header-row">
-                            <span class="material-symbols-outlined power-icon">bolt</span>
-                            <span id="power-status" class="power-status neutral">POWER</span>
-                        </div>
-                        <div class="power-detail-row">
-                            <span class="power-label">SUPPLY</span>
-                            <span id="power-supply" class="power-supply">0/MIN</span>
-                        </div>
-                        <div class="power-detail-row">
-                            <span class="power-label">DEMAND</span>
-                            <span id="power-demand" class="power-demand">0/MIN</span>
-                        </div>
-                    </div>
-
                     <!-- Build palette -->
                     <div class="palette-section-header">BUILD</div>
                     <div class="palette-tabs" id="palette-tabs">
                         <button class="palette-tab active" data-tab="all">ALL</button>
                         <button class="palette-tab" data-tab="extractors">EXTRACT</button>
+                        <button class="palette-tab" data-tab="power">POWER</button>
                         <button class="palette-tab" data-tab="smelters">SMELT</button>
                         <button class="palette-tab" data-tab="assemblers">ASSEMBLE</button>
+                        <button class="palette-tab" data-tab="manufacturers">MANUFACTURE</button>
                         <button class="palette-tab" data-tab="infrastructure">INFRA</button>
                         <button class="palette-tab" data-tab="commerce">TRADE</button>
                     </div>
@@ -260,54 +238,14 @@
     <template id="market-app-template">
         <div class="trader-container">
             <div class="trader-header">
-                <span class="trader-title">STRATUM.EXCHANGE // LIVE PURCHASE OFFERS</span>
-                <span class="trader-subtitle">ACTIVE BUYING ORDERS — PRICES FLUCTUATE PER VESSEL</span>
+                <span class="trader-title">STRATUM.EXCHANGE // COMMODITY TERMINAL</span>
                 <span class="trader-credits-balance">0 CR</span>
             </div>
-            <div class="trader-body">
-                <div class="trader-table-area">
-                    <table class="trader-table">
-                        <thead>
-                            <tr>
-                                <th>RESOURCE</th>
-                                <th>QTY</th>
-                                <th>PRICE</th>
-                                <th>TIME</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody class="trader-tbody"></tbody>
-                    </table>
-                </div>
-                <div class="trader-sidebar">
-                    <div class="trader-feed-header">ACTIVITY LOG</div>
-                    <div class="trader-feed-list"></div>
-                </div>
+            <div class="trader-tabs">
+                <button class="trader-tab active" data-tab="sell">SELL</button>
+                <button class="trader-tab" data-tab="market">MARKET</button>
             </div>
-        </div>
-    </template>
-
-    <!-- Warehouse app content template -->
-    <template id="warehouse-app-template">
-        <div class="warehouse-container">
-            <div class="warehouse-header">
-                <h2>INVENTORY CONTROL SYSTEM</h2>
-                <span class="wh-planet-label">SECTOR ALPHA-1</span>
-            </div>
-            <table class="warehouse-table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>RESOURCE</th>
-                        <th>STORED</th>
-                        <th>INFLOW</th>
-                        <th>NET</th>
-                    </tr>
-                </thead>
-                <tbody class="warehouse-tbody">
-                    <!-- Rows generated dynamically from storage nodes on the canvas -->
-                </tbody>
-            </table>
+            <div class="trader-tab-content"></div>
         </div>
     </template>
 
@@ -325,13 +263,13 @@
                 </div>
 
                 <div class="franchise-rewards-section">
-                    <div class="franchise-rewards-label">CURRENT TIER INCLUDES</div>
-                    <div class="franchise-rewards"></div>
+                    <div class="franchise-rewards-label">CURRENT TIER GRANTS</div>
+                    <ul class="franchise-rewards"></ul>
                 </div>
 
                 <div class="franchise-next-rewards-section">
-                    <div class="franchise-rewards-label">NEXT TIER UNLOCKS</div>
-                    <div class="franchise-next-rewards"></div>
+                    <div class="franchise-rewards-label franchise-rewards-label--next">NEXT TIER UNLOCKS</div>
+                    <ul class="franchise-next-rewards"></ul>
                 </div>
 
                 <button class="franchise-advance-btn" disabled>TIER 1 LOCKED</button>
@@ -350,7 +288,9 @@
  LIAISON</pre>
                 </div>
                 <div class="franchise-dialogue-box">
-                    <div class="franchise-dialogue"></div>
+                    <div class="franchise-liaison-header">STRATUM LIAISON</div>
+                    <div class="franchise-liaison-rule"></div>
+                    <div class="franchise-liaison-log"></div>
                 </div>
             </div>
         </div>
@@ -465,7 +405,6 @@
     <script src="js/os/desktop.js"></script>
     <script src="js/apps/factory-app.js"></script>
     <script src="js/apps/market-app.js"></script>
-    <script src="js/apps/warehouse-app.js"></script>
     <script src="js/apps/franchise-app.js"></script>
     <script src="js/apps/spaceport-app.js"></script>
     <script src="js/apps/logout-app.js"></script>

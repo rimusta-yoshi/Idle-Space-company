@@ -16,7 +16,6 @@ class SaveManager {
             windows: [],
             appData: {},
             unlockedApps: {
-                warehouse: false,
                 market: false,
                 spaceport: false
             }
@@ -26,7 +25,6 @@ class SaveManager {
     // Get unlocked apps state (with defaults for saves that predate this feature)
     getUnlockedApps() {
         return {
-            warehouse: false,
             market: false,
             spaceport: false,
             ...(this.data.unlockedApps || {})

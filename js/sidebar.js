@@ -25,12 +25,6 @@ class SidebarManager {
 
     // Build a palette card for a building type (one card per building, regardless of recipes)
     _makeBuildingCard(building) {
-        const recipeCount = building.usesRecipes ? getRecipesForBuilding(building.id).length : 0;
-        const subtitle = recipeCount > 0 ? `${recipeCount} RECIPES`
-            : building.autoSell ? 'AUTO SELL'
-            : building.category === 'infrastructure' ? 'GENERATOR'
-            : 'EXTRACTOR';
-
         const card = document.createElement('div');
         card.className = 'palette-card';
         card.draggable = true;
@@ -38,30 +32,43 @@ class SidebarManager {
         card.setAttribute('data-search-name', building.name.toUpperCase());
         card.setAttribute('data-category', building.category || '');
 
-        // For fixed-output buildings, build a production preview row
-        let outputsHtml = '';
-        if (!building.usesRecipes && !building.autoSell && building.production) {
+        // Output summary row — text only, no icons
+        let outputHtml = '';
+        if (building.usesRecipes) {
+            const outputKeys = getAllRecipeOutputs(building.id);
+            const names = outputKeys.map(key => {
+                const resDef = (typeof RESOURCES !== 'undefined') ? RESOURCES[key] : null;
+                return resDef ? resDef.name.toUpperCase() : key.toUpperCase();
+            });
+            const maxShow = 3;
+            const shown = names.slice(0, maxShow);
+            const remainder = names.length - maxShow;
+            let outputText = shown.join(' · ');
+            if (remainder > 0) outputText += ` +${remainder}`;
+            outputHtml = `<div class="palette-card-output">${outputText}</div>`;
+        } else if (!building.autoSell && building.production) {
             const parts = Object.entries(building.production).map(([resKey, rate]) => {
                 const resDef = (typeof RESOURCES !== 'undefined') ? RESOURCES[resKey] : null;
                 const resName = resDef ? resDef.name.toUpperCase() : resKey.toUpperCase();
-                const resIcon = resDef ? resDef.icon : 'circle';
-                return `<span class="palette-output-item">` +
-                    `<span class="material-symbols-outlined palette-icon">${resIcon}</span>` +
-                    `${resName} <span class="palette-output-rate">+${formatRatePerMin(rate)}</span>` +
-                    `</span>`;
+                return `${resName} <span class="palette-output-rate">+${formatRatePerMin(rate)}</span>`;
             });
             if (parts.length) {
-                outputsHtml = `<div class="palette-card-outputs">${parts.join('')}</div>`;
+                outputHtml = `<div class="palette-card-output">${parts.join('  ')}</div>`;
             }
+        } else if (building.autoSell) {
+            outputHtml = `<div class="palette-card-output palette-card-output--dim">AUTO-SELLS CONNECTED INPUT</div>`;
+        } else if (building.isStorage) {
+            outputHtml = `<div class="palette-card-output palette-card-output--dim">BUFFER STORAGE</div>`;
+        } else if (building.isSplitter) {
+            outputHtml = `<div class="palette-card-output palette-card-output--dim">SPLITS FLOW 3-WAY</div>`;
         }
 
         card.innerHTML = `
             <div class="palette-card-header">
                 <span class="palette-card-name">${building.name.toUpperCase()}</span>
-                <span class="palette-card-type">${subtitle}</span>
+                <span class="palette-card-price" data-price=""></span>
             </div>
-            ${outputsHtml}
-            <div class="palette-card-cost" data-cost=""></div>`;
+            ${outputHtml}`;
 
         return card;
     }
@@ -72,11 +79,58 @@ class SidebarManager {
 
         container.innerHTML = '';
 
-        Object.values(BUILDINGS).forEach(building => {
-            if (!building.unlocked) return;
-            // If a franchise unlock set is provided, filter by it
-            if (unlockedSet && !unlockedSet.has(building.id)) return;
-            container.appendChild(this._makeBuildingCard(building));
+        // Category display order for ALL view
+        const categoryOrder = ['power', 'extractors', 'smelters', 'assemblers', 'manufacturers', 'infrastructure', 'commerce', 'facilities'];
+        const categoryLabels = {
+            power: 'POWER',
+            extractors: 'EXTRACTORS',
+            smelters: 'SMELTERS',
+            assemblers: 'ASSEMBLERS',
+            manufacturers: 'MANUFACTURERS',
+            infrastructure: 'INFRASTRUCTURE',
+            commerce: 'COMMERCE',
+            facilities: 'FACILITIES'
+        };
+
+        categoryOrder.forEach(cat => {
+            const buildings = Object.values(BUILDINGS).filter(b => {
+                if (!b.unlocked) return false;
+                if (unlockedSet && !unlockedSet.has(b.id)) return false;
+                return b.category === cat;
+            });
+            if (buildings.length === 0) return;
+
+            const header = document.createElement('div');
+            header.className = 'palette-group-header';
+            header.textContent = categoryLabels[cat] || cat.toUpperCase();
+            header.setAttribute('data-group-header', 'true');
+            header.setAttribute('data-group-category', cat);
+            container.appendChild(header);
+
+            buildings.forEach(building => container.appendChild(this._makeBuildingCard(building)));
+        });
+
+        this._updateTabVisibility();
+    }
+
+    _updateTabVisibility() {
+        const tabs = this.rootElement.querySelectorAll('.palette-tab[data-tab]');
+        const cards = this.rootElement.querySelectorAll('.palette-card');
+
+        // Build a set of categories that have at least one card
+        const presentCategories = new Set();
+        cards.forEach(card => presentCategories.add(card.getAttribute('data-category') || ''));
+
+        tabs.forEach(tab => {
+            const tabKey = tab.getAttribute('data-tab');
+            if (tabKey === 'all') return; // ALL is always visible
+
+            // infrastructure tab also covers facilities
+            const hasBuildings = tabKey === 'infrastructure'
+                ? (presentCategories.has('infrastructure') || presentCategories.has('facilities'))
+                : presentCategories.has(tabKey);
+
+            tab.style.display = hasBuildings ? '' : 'none';
         });
     }
 
@@ -105,23 +159,38 @@ class SidebarManager {
     _applyFilters() {
         const input = this.rootElement.querySelector('#palette-search');
         const query = input ? input.value.trim().toUpperCase() : '';
-        const cards = this.rootElement.querySelectorAll('.palette-card');
+        const isAll = this.activeTab === 'all';
 
+        // facilities fold into the infrastructure tab
+        const tabMatchesCategory = (tab, category) => {
+            if (tab === 'all') return true;
+            if (tab === 'infrastructure' && category === 'facilities') return true;
+            return category === tab;
+        };
+
+        // Cards
+        const cards = this.rootElement.querySelectorAll('.palette-card');
         cards.forEach(card => {
             const name = card.getAttribute('data-search-name') || '';
             const category = card.getAttribute('data-category') || '';
             const matchesSearch = query === '' || name.includes(query);
-            const matchesTab = this.activeTab === 'all' || category === this.activeTab;
+            const matchesTab = tabMatchesCategory(this.activeTab, category);
             card.style.display = (matchesSearch && matchesTab) ? '' : 'none';
+        });
+
+        // Group headers — only visible in ALL view with no search query
+        const headers = this.rootElement.querySelectorAll('[data-group-header]');
+        headers.forEach(h => {
+            h.style.display = (isAll && query === '') ? '' : 'none';
         });
     }
 
-    // Update credits balance and P&L rate in the sidebar
+    // Update credits balance and P&L rate in the header
     updateResources() {
         const credits = this.resourceManager.resources['credits'];
         if (!credits) return;
 
-        const balanceEl = this.rootElement.querySelector('#credits-amount');
+        const balanceEl = this.rootElement.querySelector('#header-credits-amount');
         if (balanceEl) {
             // Lerp display value toward actual — smooth count-up instead of snap
             this._creditsDisplay = (this._creditsDisplay ?? credits.current);
@@ -129,38 +198,47 @@ class SidebarManager {
             balanceEl.textContent = formatNumber(Math.round(this._creditsDisplay));
         }
 
-        const pnlEl = this.rootElement.querySelector('#credits-pnl');
+        const pnlEl = this.rootElement.querySelector('#header-credits-pnl');
         if (pnlEl) {
             const ratePerMin = credits.production * 60;
             const sign = ratePerMin >= 0 ? '+' : '';
             pnlEl.textContent = `${sign}${formatNumber(Math.abs(ratePerMin))}/MIN`;
-            pnlEl.className = 'credits-pnl ' + (ratePerMin > 0 ? 'positive' : ratePerMin < 0 ? 'negative' : 'neutral');
+            pnlEl.className = 'header-stat-sub ' + (ratePerMin > 0 ? 'positive' : ratePerMin < 0 ? 'negative' : 'neutral');
         }
     }
 
-    // Update power balance display in the sidebar
+    // Update power balance display in the header
     updatePower(supply = 0, demand = 0) {
-        const supplyPerMin = supply * 60;
-        const demandPerMin = demand * 60;
+        const statusEl = this.rootElement.querySelector('#header-power-status');
+        const detailEl = this.rootElement.querySelector('#header-power-detail');
+        const deficit = demand - supply;
 
-        const supplyEl = this.rootElement.querySelector('#power-supply');
-        if (supplyEl) supplyEl.textContent = `${formatNumber(supplyPerMin)}/MIN`;
-
-        const demandEl = this.rootElement.querySelector('#power-demand');
-        if (demandEl) demandEl.textContent = `${formatNumber(demandPerMin)}/MIN`;
-
-        const statusEl = this.rootElement.querySelector('#power-status');
-        if (statusEl) {
-            const deficit = demand - supply;
-            if (demand <= 0.001) {
+        if (demand <= 0.001) {
+            if (statusEl) {
                 statusEl.textContent = 'POWER';
-                statusEl.className = 'power-status neutral';
-            } else if (deficit > 0.001) {
-                statusEl.textContent = `DEFICIT  -${formatNumber(deficit * 60)}/MIN`;
-                statusEl.className = 'power-status negative';
-            } else {
-                statusEl.textContent = `OK  +${formatNumber((supply - demand) * 60)}/MIN`;
-                statusEl.className = 'power-status positive';
+                statusEl.className = 'header-stat-value';
+            }
+            if (detailEl) {
+                detailEl.textContent = '0/MIN';
+                detailEl.className = 'header-stat-sub neutral';
+            }
+        } else if (deficit > 0.001) {
+            if (statusEl) {
+                statusEl.textContent = 'DEFICIT';
+                statusEl.className = 'header-stat-value negative';
+            }
+            if (detailEl) {
+                detailEl.textContent = `-${formatNumber(deficit * 60)}/MIN`;
+                detailEl.className = 'header-stat-sub negative';
+            }
+        } else {
+            if (statusEl) {
+                statusEl.textContent = 'OK';
+                statusEl.className = 'header-stat-value positive';
+            }
+            if (detailEl) {
+                detailEl.textContent = `+${formatNumber((supply - demand) * 60)}/MIN`;
+                detailEl.className = 'header-stat-sub positive';
             }
         }
     }
@@ -178,7 +256,7 @@ class SidebarManager {
             const claimsLeft = freeClaims[buildingType] || 0;
             const claimsTotal = starterKit[buildingType] || 0;
             const isExtractor = def?.category === 'extractors';
-            const costEl = card.querySelector('.palette-card-cost');
+            const costEl = card.querySelector('.palette-card-price');
             const count = buildingCounts[buildingType] || 0;
 
             // Check planet node cap for extractors
@@ -188,7 +266,7 @@ class SidebarManager {
                     card.classList.add('locked', 'claim-exhausted');
                     card.style.cursor = 'not-allowed';
                     if (costEl) {
-                        costEl.innerHTML = `<span class="claim-exhausted-msg">NODE LIMIT REACHED</span>`;
+                        costEl.innerHTML = `<span class="palette-price-limit">NODE LIMIT</span>`;
                     }
                     return;
                 }
@@ -199,7 +277,7 @@ class SidebarManager {
                 card.classList.remove('locked', 'claim-exhausted');
                 card.style.cursor = 'grab';
                 if (costEl) {
-                    costEl.innerHTML = `<span class="free-claim-badge">FREE ${claimsLeft}/${claimsTotal}</span>`;
+                    costEl.innerHTML = `<span class="free-claim-badge">FREE ${claimsLeft}/${claimsTotal}</span>`; // badge style unchanged
                 }
             } else {
                 // Normal cost check — extractors use stepped pricing
@@ -214,20 +292,18 @@ class SidebarManager {
                 if (costEl) {
                     const entries = Object.entries(cost || {});
                     if (entries.length === 0) {
-                        costEl.innerHTML = `<span class="cost-free">FREE</span>`;
+                        costEl.innerHTML = `<span class="free-claim-badge">FREE</span>`;
                     } else if (entries.length === 1 && entries[0][0] === 'credits') {
-                        // Credit-cost building: show "N CR" + STRATUM™ label
-                        costEl.innerHTML = `<span class="cost-credits">${formatNumber(entries[0][1])} CR</span>` +
-                            `<span class="cost-stratum-label">STRATUM™</span>`;
+                        costEl.innerHTML = `${formatNumber(entries[0][1])} CR <span class="palette-price-stratum">™</span>`;
                     } else {
                         costEl.innerHTML = entries
                             .map(([res, amt]) => {
                                 const name = (typeof RESOURCES !== 'undefined' && RESOURCES[res])
                                     ? RESOURCES[res].name.toUpperCase()
                                     : res.toUpperCase();
-                                return `<span class="cost-line"><span class="cost-amt">${formatNumber(amt)}</span> ${name}</span>`;
+                                return `${formatNumber(amt)} ${name}`;
                             })
-                            .join('');
+                            .join(' · ');
                     }
                 }
             }

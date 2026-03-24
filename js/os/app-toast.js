@@ -2,11 +2,6 @@
 // Slides in from the right, auto-dismisses after 4s, one at a time.
 
 const APP_TOAST_CONFIG = {
-    warehouse: {
-        icon: 'WH',
-        title: 'WAREHOUSE TERMINAL',
-        message: 'Application installed.'
-    },
     market: {
         icon: 'EX',
         title: 'STRATUM.EXCHANGE',

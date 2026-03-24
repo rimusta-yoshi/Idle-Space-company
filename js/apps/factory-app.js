@@ -131,7 +131,7 @@ class FactoryApp extends App {
             canvas: this.game.canvas.getSaveData(),
             buildingCounts: this.game.buildingCounts,
             franchise: this.game.getFranchiseSaveData(),
-            traders: this.game.traderManager.getSaveData()
+            market: this.game.marketManager.getSaveData()
         };
     }
 
