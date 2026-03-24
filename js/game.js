@@ -377,22 +377,26 @@ class Game {
 
                             let arriving;
                             if (fromNode.buildingDef?.isStorage) {
-                                // Storage uses a sentinel (9999) — compute actual downstream demand instead
-                                // so the splitter's actualOutputRate reflects real throughput, not the sentinel.
+                                // Storage uses a sentinel (9999) when it has inventory.
+                                // Only compute demand-based arriving when storage actually has stock;
+                                // otherwise leave arriving = 0 so empty storage starves downstream.
                                 arriving = 0;
-                                this.canvas.connections.forEach(out => {
-                                    if (out.fromNode.id !== node.id || out.resourceType !== res) return;
-                                    const toNode = out.toNode;
-                                    const toDef = toNode.buildingDef;
-                                    const toInputs = toDef.usesRecipes
-                                        ? (toNode.activeRecipe?.inputs || {})
-                                        : (toDef.consumption || {});
-                                    const demand = (toInputs[res] || 0) * toNode.level;
-                                    const inCount = this.canvas.connections.filter(c =>
-                                        c.toNode.id === toNode.id && c.resourceType === res
-                                    ).length;
-                                    arriving += demand / Math.max(1, inCount);
-                                });
+                                const storedRate = (fromNode.actualOutputRate || {})[res] || 0;
+                                if (storedRate > 0) {
+                                    this.canvas.connections.forEach(out => {
+                                        if (out.fromNode.id !== node.id || out.resourceType !== res) return;
+                                        const toNode = out.toNode;
+                                        const toDef = toNode.buildingDef;
+                                        const toInputs = toDef.usesRecipes
+                                            ? (toNode.activeRecipe?.inputs || {})
+                                            : (toDef.consumption || {});
+                                        const demand = (toInputs[res] || 0) * toNode.level;
+                                        const inCount = this.canvas.connections.filter(c =>
+                                            c.toNode.id === toNode.id && c.resourceType === res
+                                        ).length;
+                                        arriving += demand / Math.max(1, inCount);
+                                    });
+                                }
                             } else {
                                 const outCount = this.canvas.connections.filter(c =>
                                     c.fromNode.id === fromNode.id && c.resourceType === res

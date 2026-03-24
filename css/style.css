@@ -3192,3 +3192,224 @@ footer p {
     font-size: 12px;
     letter-spacing: 2px;
 }
+
+/* ==================================
+   SPACEPORT APP STYLES
+   ================================== */
+
+.spaceport-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #0a0806;
+    padding: 20px;
+    font-family: 'VT323', 'Courier New', monospace;
+    gap: 16px;
+}
+
+.spaceport-header {
+    border-bottom: 1px solid #2a2010;
+    padding-bottom: 12px;
+}
+
+.sp-title {
+    color: #c49a2a;
+    font-size: 20px;
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+}
+
+.sp-readiness {
+    color: #8a7a5e;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.spaceport-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.sp-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 80px 24px;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: #0c0a06;
+    border: 1px solid #1e1a0a;
+}
+
+.sp-label {
+    color: #9a8b72;
+    font-size: 14px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.sp-bar {
+    height: 12px;
+    background: #1a1510;
+    border: 1px solid #2a2010;
+    position: relative;
+    overflow: hidden;
+}
+
+.sp-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: #5a6a40;
+    transition: width 0.3s ease;
+}
+
+.sp-count {
+    color: #7a6a4a;
+    font-size: 13px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.sp-check {
+    color: #4a8a4a;
+    font-size: 18px;
+    text-align: center;
+    line-height: 1;
+}
+
+.sp-row-met {
+    border-color: #2a3a1a;
+    background: #0c100a;
+}
+
+.sp-row-met .sp-label {
+    color: #c49a2a;
+}
+
+.sp-row-met .sp-bar-fill {
+    background: #c49a2a;
+}
+
+.sp-row-met .sp-count {
+    color: #c49a2a;
+}
+
+.spaceport-launch-area {
+    display: flex;
+    justify-content: center;
+    padding-top: 8px;
+    border-top: 1px solid #2a2010;
+}
+
+.sp-launch-btn {
+    background: #0c0a06;
+    border: 1px solid #3a3020;
+    color: #4a3a2a;
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 18px;
+    letter-spacing: 2px;
+    padding: 12px 32px;
+    cursor: not-allowed;
+    transition: all 0.2s;
+    width: 100%;
+    max-width: 400px;
+}
+
+.sp-launch-btn:disabled {
+    opacity: 0.5;
+}
+
+.sp-launch-btn.sp-launch-ready {
+    color: #c49a2a;
+    border-color: #c49a2a;
+    cursor: pointer;
+    opacity: 1;
+    animation: sp-pulse 2s ease-in-out infinite;
+}
+
+.sp-launch-btn.sp-launch-ready:hover {
+    background: #1a1508;
+    box-shadow: 0 0 20px rgba(196, 154, 42, 0.5);
+}
+
+@keyframes sp-pulse {
+    0%, 100% { box-shadow: 0 0 6px rgba(196, 154, 42, 0.3); }
+    50%       { box-shadow: 0 0 18px rgba(196, 154, 42, 0.7); }
+}
+
+/* Launch completion overlay */
+
+.sp-completion-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.4s ease;
+}
+
+.sp-completion-modal {
+    background: #0a0806;
+    border: 1px solid #c49a2a;
+    box-shadow: 0 0 40px rgba(196, 154, 42, 0.4);
+    padding: 40px 48px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    font-family: 'VT323', 'Courier New', monospace;
+}
+
+.sp-completion-title {
+    color: #c49a2a;
+    font-size: 32px;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+}
+
+.sp-completion-divider {
+    color: #4a3a2a;
+    font-size: 14px;
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+}
+
+.sp-completion-subtitle {
+    color: #e8d5b0;
+    font-size: 18px;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+}
+
+.sp-completion-body {
+    color: #9a8b72;
+    font-size: 16px;
+    line-height: 2;
+    margin-bottom: 28px;
+}
+
+.sp-completion-placeholder {
+    color: #4a3a2a;
+    font-size: 14px;
+    margin-top: 8px;
+    letter-spacing: 1px;
+}
+
+.sp-completion-continue {
+    background: #0c0a06;
+    border: 1px solid #c49a2a;
+    color: #c49a2a;
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 18px;
+    letter-spacing: 2px;
+    padding: 10px 32px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sp-completion-continue:hover {
+    background: #1a1508;
+    box-shadow: 0 0 16px rgba(196, 154, 42, 0.5);
+}

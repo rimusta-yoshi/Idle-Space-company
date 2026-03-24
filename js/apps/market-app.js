@@ -1,19 +1,18 @@
-// Market App — STRATUM.EXCHANGE Trader Terminal
-// All tier-eligible resources listed on both BUYING and SELLING tabs.
+// Market App — STRATUM.EXCHANGE Live Purchase Offers
+// All tier-eligible resources listed as active buy offers (traders buying from player).
 // Prices fluctuate on a timer; % vs base price shown on each row.
 
 class MarketApp extends App {
     constructor() {
         super();
         this.id = 'market';
-        this.title = 'STRATUM.EXCHANGE // TRADER TERMINAL';
+        this.title = 'STRATUM.EXCHANGE // LIVE PURCHASE OFFERS';
         this.icon = 'EX';
         this._root = null;
         this._tickInterval = null;
         this._onTraderUpdate = null;
         this._onTraderActivity = null;
-        this._activeTab = 'buy';   // 'buy' | 'sell'
-        this._expandedKey = null;  // 'resource_DIRECTION' or null
+        this._expandedKey = null;  // 'resource_BUY' or null
         this._collapseHandler = null;
     }
 
@@ -25,17 +24,6 @@ class MarketApp extends App {
         if (!template) throw new Error('Market app template not found');
         contentElement.appendChild(template.content.cloneNode(true));
         this._root = contentElement;
-
-        this._root.querySelectorAll('.trader-tab').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this._activeTab = btn.getAttribute('data-tab');
-                this._expandedKey = null;
-                this._detachCollapseHandler();
-                this._root.querySelectorAll('.trader-tab').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                this._rebuildTable();
-            });
-        });
 
         this._rebuildAll();
 
@@ -60,7 +48,7 @@ class MarketApp extends App {
         const tbodyEl = this._root?.querySelector('.trader-tbody');
         if (!tbodyEl || !tm || !game) return;
 
-        const direction = this._activeTab === 'buy' ? 'BUY' : 'SELL';
+        const direction = 'BUY';
         const resources = this._eligibleResources(game);
 
         tbodyEl.innerHTML = '';
@@ -221,7 +209,7 @@ class MarketApp extends App {
         const game = this._game();
         if (!tm || !game || !this._root) return;
 
-        const direction = this._activeTab === 'buy' ? 'BUY' : 'SELL';
+        const direction = 'BUY';
 
         this._eligibleResources(game).forEach(resource => {
             const offer = tm._offers[resource]?.[direction];
@@ -270,18 +258,13 @@ class MarketApp extends App {
 
     _maxFillable(offer, game) {
         const remaining = offer.quantity - offer.quantityFilled;
-        if (offer.direction === 'BUY') {
-            let available = 0;
-            game.canvas.nodes.forEach(node => {
-                if (node.buildingDef?.isStorage && node.storedResourceType === offer.resource) {
-                    available += node.inventory;
-                }
-            });
-            return Math.min(remaining, Math.floor(available));
-        } else {
-            const credits = game.resources.get('credits');
-            return Math.min(remaining, Math.floor(credits / offer.pricePerUnit));
-        }
+        let available = 0;
+        game.canvas.nodes.forEach(node => {
+            if (node.buildingDef?.isStorage && node.storedResourceType === offer.resource) {
+                available += node.inventory;
+            }
+        });
+        return Math.min(remaining, Math.floor(available));
     }
 
     _fmtTime(seconds) {

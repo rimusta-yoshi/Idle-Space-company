@@ -625,6 +625,9 @@ class CanvasManager {
         // Buildings with no connection ports cannot participate in any connection
         if (fromDef.noConnections || toDef.noConnections) return false;
 
+        // Storage nodes are sinks — they cannot feed into each other
+        if (fromDef.isStorage && toDef.isStorage) return false;
+
         // Output connection limits
         if (!fromDef.isSplitter && fromNode.outputs.length >= 1) return false;
         if (fromDef.isSplitter && fromNode.outputs.length >= 3) return false;

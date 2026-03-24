@@ -260,13 +260,9 @@
     <template id="market-app-template">
         <div class="trader-container">
             <div class="trader-header">
-                <span class="trader-title">STRATUM.EXCHANGE // TRADER TERMINAL</span>
-                <span class="trader-subtitle">LIVE COMMODITY OFFERS — PRICES FLUCTUATE PER VESSEL</span>
+                <span class="trader-title">STRATUM.EXCHANGE // LIVE PURCHASE OFFERS</span>
+                <span class="trader-subtitle">ACTIVE BUYING ORDERS — PRICES FLUCTUATE PER VESSEL</span>
                 <span class="trader-credits-balance">0 CR</span>
-            </div>
-            <div class="trader-tabs">
-                <button class="trader-tab active" data-tab="buy">BUYING</button>
-                <button class="trader-tab" data-tab="sell">SELLING</button>
             </div>
             <div class="trader-body">
                 <div class="trader-table-area">
@@ -371,6 +367,57 @@
                 <div class="comms-message-body">
                     <div class="comms-body-placeholder">SELECT A MESSAGE</div>
                 </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Spaceport app content template -->
+    <template id="spaceport-app-template">
+        <div class="spaceport-container">
+            <div class="spaceport-header">
+                <div class="sp-title">SPACEPORT CONTROL // SECTOR ALPHA-1</div>
+                <div class="sp-readiness">Launch readiness: 0 / 6 systems ready</div>
+            </div>
+            <div class="spaceport-checklist">
+                <div class="sp-row" data-res="hullPlating">
+                    <div class="sp-label">HULL PLATING</div>
+                    <div class="sp-bar"><div class="sp-bar-fill"></div></div>
+                    <div class="sp-count">0 / 5</div>
+                    <div class="sp-check"></div>
+                </div>
+                <div class="sp-row" data-res="fuelTank">
+                    <div class="sp-label">FUEL TANK</div>
+                    <div class="sp-bar"><div class="sp-bar-fill"></div></div>
+                    <div class="sp-count">0 / 3</div>
+                    <div class="sp-check"></div>
+                </div>
+                <div class="sp-row" data-res="wiringHarness">
+                    <div class="sp-label">WIRING HARNESS</div>
+                    <div class="sp-bar"><div class="sp-bar-fill"></div></div>
+                    <div class="sp-count">0 / 4</div>
+                    <div class="sp-check"></div>
+                </div>
+                <div class="sp-row" data-res="navCore">
+                    <div class="sp-label">NAVIGATION CORE</div>
+                    <div class="sp-bar"><div class="sp-bar-fill"></div></div>
+                    <div class="sp-count">0 / 2</div>
+                    <div class="sp-check"></div>
+                </div>
+                <div class="sp-row" data-res="engineAssembly">
+                    <div class="sp-label">ENGINE ASSEMBLY</div>
+                    <div class="sp-bar"><div class="sp-bar-fill"></div></div>
+                    <div class="sp-count">0 / 1</div>
+                    <div class="sp-check"></div>
+                </div>
+                <div class="sp-row" data-res="refinedFuel">
+                    <div class="sp-label">REFINED FUEL</div>
+                    <div class="sp-bar"><div class="sp-bar-fill"></div></div>
+                    <div class="sp-count">0 / 50</div>
+                    <div class="sp-check"></div>
+                </div>
+            </div>
+            <div class="spaceport-launch-area">
+                <button class="sp-launch-btn" disabled>[ LAUNCH SEQUENCE INITIATE ]</button>
             </div>
         </div>
     </template>

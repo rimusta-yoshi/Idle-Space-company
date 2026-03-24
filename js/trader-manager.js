@@ -1,10 +1,10 @@
 // Trader Manager
-// Resource-keyed offer system: every eligible resource always has a BUY and SELL offer.
+// Resource-keyed offer system: every eligible resource always has a BUY offer (traders buying from player).
 // Timers refresh prices only — there is no "no offer" state for eligible resources.
 
 class TraderManager {
     constructor() {
-        this._offers = {}; // { [resource]: { BUY: offer, SELL: offer } }
+        this._offers = {}; // { [resource]: { BUY: offer } }
         this._activityLog = [];
         this._firstSaleFired = false;
     }
@@ -14,8 +14,7 @@ class TraderManager {
         this._eligibleResources(tier).forEach(resource => {
             if (!this._offers[resource]) {
                 this._offers[resource] = {
-                    BUY:  this._generateOffer(resource, 'BUY'),
-                    SELL: this._generateOffer(resource, 'SELL'),
+                    BUY: this._generateOffer(resource, 'BUY'),
                 };
             }
         });
@@ -27,35 +26,30 @@ class TraderManager {
         let needsUpdate = false;
 
         for (const [resource, pair] of Object.entries(this._offers)) {
-            for (const dir of ['BUY', 'SELL']) {
-                const offer = pair[dir];
-                offer.timeRemaining -= deltaTime;
-                if (offer.timeRemaining <= 0) {
-                    pair[dir] = this._generateOffer(resource, dir);
-                    const resName = RESOURCES[resource]?.name || resource;
-                    this._log('arrive', `${resName} ${dir} rate updated: ${pair[dir].pricePerUnit} CR/U`);
-                    needsUpdate = true;
-                }
+            const offer = pair['BUY'];
+            offer.timeRemaining -= deltaTime;
+            if (offer.timeRemaining <= 0) {
+                pair['BUY'] = this._generateOffer(resource, 'BUY');
+                const resName = RESOURCES[resource]?.name || resource;
+                this._log('arrive', `${resName} BUY rate updated: ${pair['BUY'].pricePerUnit} CR/U`);
+                needsUpdate = true;
             }
         }
 
         if (needsUpdate) document.dispatchEvent(new CustomEvent('traderUpdate'));
     }
 
-    // Execute a trade. direction = 'BUY' (player sells) | 'SELL' (player buys).
+    // Execute a trade. Only BUY direction supported (player sells to trader).
     executeTrade(resource, direction, qty, game) {
-        const offer = this._offers[resource]?.[direction];
+        if (direction !== 'BUY') return { success: false, message: 'Only sell offers available' };
+        const offer = this._offers[resource]?.['BUY'];
         if (!offer) return { success: false, message: 'No offer available' };
 
         const resDef  = RESOURCES[resource];
         const resName = resDef?.name || resource;
         const remaining = offer.quantity - offer.quantityFilled;
 
-        if (direction === 'BUY') {
-            return this._executeSell(resource, offer, qty, remaining, resName, game);
-        } else {
-            return this._executeBuy(resource, offer, qty, remaining, resName, game);
-        }
+        return this._executeSell(resource, offer, qty, remaining, resName, game);
     }
 
     // Player sells resource to BUY offer.
@@ -77,30 +71,6 @@ class TraderManager {
         }
 
         this._checkRefresh(resource, 'BUY', offer);
-        game.graphDirty = true;
-        return { success: true };
-    }
-
-    // Player buys resource from SELL offer.
-    _executeBuy(resource, offer, requestedQty, remaining, resName, game) {
-        const credits      = game.resources.get('credits');
-        const maxByCredits = Math.floor(credits / offer.pricePerUnit);
-        const storageSpace = this._storageSpace(resource, game);
-        const qty = Math.min(requestedQty, remaining, maxByCredits, Math.floor(storageSpace));
-
-        if (qty <= 0) {
-            if (maxByCredits <= 0) return { success: false, message: 'Insufficient credits' };
-            return { success: false, message: `No storage available for ${resName}` };
-        }
-
-        const cost = qty * offer.pricePerUnit;
-        game.resources.remove('credits', cost);
-        game._addToStorage(resource, qty);
-        offer.quantityFilled += qty;
-
-        this._log('trade', `Bought ${qty} ${resName}. -${cost} CR`);
-
-        this._checkRefresh(resource, 'SELL', offer);
         game.graphDirty = true;
         return { success: true };
     }
@@ -143,17 +113,6 @@ class TraderManager {
             }
         });
         return total;
-    }
-
-    _storageSpace(resource, game) {
-        let space = 0;
-        game.canvas.nodes.forEach(node => {
-            if (node.buildingDef?.isStorage && node.storedResourceType === resource) {
-                const cap = node.inventoryCapacity || 1;
-                space += Math.max(0, cap - node.inventory);
-            }
-        });
-        return space;
     }
 
     _log(type, message) {

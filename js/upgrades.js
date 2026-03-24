@@ -7,6 +7,7 @@ class UpgradeManager {
         this.rootElement = rootElement;
         this.currentNode = null; // Currently selected node for upgrade
         this.panel = null;
+        this._refreshInterval = null;
         this.initialize();
     }
 
@@ -58,11 +59,16 @@ class UpgradeManager {
         this.currentNode = node;
         this.updatePanelDisplay();
         this.panel.style.display = 'flex';
+        this._refreshInterval = setInterval(() => this.updatePanelDisplay(), 500);
         log(`Opened upgrade panel for ${node.buildingDef.name}`);
     }
 
     // Close upgrade panel
     closePanel() {
+        if (this._refreshInterval) {
+            clearInterval(this._refreshInterval);
+            this._refreshInterval = null;
+        }
         this.panel.style.display = 'none';
         this.currentNode = null;
     }
