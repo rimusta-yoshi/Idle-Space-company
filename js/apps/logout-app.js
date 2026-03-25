@@ -7,6 +7,7 @@ class LogoutApp extends App {
         this.id = 'logout';
         this.title = 'SESSION MANAGEMENT';
         this.icon = 'SYS';
+        this.color = '#607888';
         this.sessionStartTime = Date.now();
         this.sessionInterval = null;
     }

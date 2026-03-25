@@ -50,11 +50,12 @@ class Taskbar {
 
         // All possible apps; alwaysVisible ones are always shown
         const allApps = [
-            { id: 'factory',   name: 'FRANCHISE OPERATIONS TERMINAL', icon: 'OP',  alwaysVisible: true },
-            { id: 'franchise', name: 'STRATUM PORTAL',                 icon: 'ST',  alwaysVisible: true },
-            { id: 'market',    name: 'STRATUM.EXCHANGE',                icon: 'EX' },
-            { id: 'spaceport', name: 'SPACEPORT TERMINAL',             icon: 'SP' },
-            { id: 'logout',    name: 'SESSION MANAGEMENT',             icon: 'SYS', alwaysVisible: true }
+            { id: 'factory',   name: 'FRANCHISE OPERATIONS TERMINAL', icon: 'OP',  color: '#c49a2a', alwaysVisible: true },
+            { id: 'franchise', name: 'STRATUM PORTAL',                 icon: 'ST',  color: '#c49a2a', alwaysVisible: true },
+            { id: 'market',    name: 'STRATUM.EXCHANGE',                icon: 'EX',  color: '#20a0c0' },
+            { id: 'spaceport', name: 'SPACEPORT TERMINAL',             icon: 'SP',  color: '#4068d0' },
+            { id: 'comms',     name: 'STRATUM COMMS',                  icon: 'CM',  color: '#18a050', alwaysVisible: true },
+            { id: 'logout',    name: 'SESSION MANAGEMENT',             icon: 'SYS', color: '#607888', alwaysVisible: true }
         ];
 
         const visibleApps = allApps.filter(app => app.alwaysVisible || unlocked[app.id]);
@@ -115,6 +116,11 @@ class Taskbar {
         const systemTray = document.getElementById('system-tray');
         if (systemTray && this.element) {
             this.element.insertBefore(appButton, systemTray);
+        }
+
+        // Accent left border from app color
+        if (window.app.color) {
+            appButton.style.borderLeftColor = window.app.color;
         }
 
         // Track button

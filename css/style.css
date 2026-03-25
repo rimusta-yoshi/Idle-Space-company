@@ -285,8 +285,8 @@ header p {
 
 .palette-card:hover {
     background-color: #141108;
-    border-color: #c49a2a;
-    border-left-color: #c49a2a;
+    border-color: var(--card-cat-color, #c49a2a);
+    border-left-color: var(--card-cat-color, #c49a2a);
 }
 
 .palette-card:active {
@@ -1161,7 +1161,7 @@ footer p {
     position: absolute;
     background: #090c08;
     border: 2px solid #2a2010;
-    border-left: 3px solid #3a2e18;
+    border-left: 3px solid var(--window-accent, #3a2e18);
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
@@ -1172,8 +1172,8 @@ footer p {
 
 .os-window.focused {
     border-color: #3a3018;
-    border-top: 2px solid #c49a2a;
-    border-left: 3px solid #c49a2a;
+    border-top: 2px solid var(--window-accent, #c49a2a);
+    border-left: 3px solid var(--window-accent, #c49a2a);
     box-shadow: 0 4px 32px rgba(0,0,0,0.75),
                 0 0 0 1px rgba(196,154,42,0.08),
                 inset 0 0 30px rgba(196,154,42,0.015);
@@ -1221,7 +1221,7 @@ footer p {
 }
 
 .os-window.focused .window-icon {
-    background: #c49a2a;
+    background: var(--window-accent, #c49a2a);
 }
 
 .window-title {
@@ -2528,7 +2528,9 @@ footer p {
     background: #1e1a0a;
     color: #c49a2a;
     border: 2px solid #8a6b1a;
+    border-left: 3px solid #3a2e18;
     padding: 5px 15px;
+    padding-left: 10px;
     margin: 0 5px;
     font-family: 'VT323', 'Courier New', monospace;
     font-size: 12px;
@@ -2848,7 +2850,8 @@ footer p {
 
 .palette-group-header::before {
     content: '\25C6  ';
-    color: #4a3e1a;
+    color: var(--cat-color, #4a3e1a);
+    opacity: 0.5;
     letter-spacing: 0;
 }
 
@@ -2880,13 +2883,13 @@ footer p {
 }
 
 .palette-tab:hover {
-    border-color: #5a4a20;
-    color: #8a7a40;
+    border-color: var(--tab-color, #5a4a20);
+    color: var(--tab-color, #8a7a40);
 }
 
 .palette-tab.active {
-    background: #c49a2a;
-    border-color: #e8b830;
+    background: var(--tab-color, #c49a2a);
+    border-color: var(--tab-color, #e8b830);
     color: #080a07;
     box-shadow: inset 0 2px 3px rgba(0,0,0,0.35);
 }
@@ -3398,6 +3401,16 @@ footer p {
     background: #141208;
     outline: 1px solid #3a2e10;
     outline-offset: -1px;
+}
+
+.res-color-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 5px;
+    flex-shrink: 0;
+    vertical-align: middle;
 }
 
 .tr-no-offer {

@@ -15,6 +15,7 @@ class MarketApp extends App {
         this.id = 'market';
         this.title = 'STRATUM.EXCHANGE // COMMODITY TERMINAL';
         this.icon = 'EX';
+        this.color = '#20a0c0';
         this._root       = null;
         this._activeTab  = 'sell';
         this._pollInterval      = null;
@@ -139,9 +140,11 @@ class MarketApp extends App {
             const resDef   = RESOURCES[res];
             const resName  = resDef?.name || res;
             const price    = mm.getPrice(res);
+            const resColor = resDef?.color || '#c49a2a';
             const iconHtml = resDef
                 ? `<span class="material-symbols-outlined wh-icon">${resDef.icon}</span>`
                 : '';
+            const dotHtml = `<span class="res-color-dot" style="background:${resColor}"></span>`;
             const gaugeHtml = capacity > 0
                 ? stockGauge(Math.floor(stock), capacity)
                 : `<span class="stock-count">${formatNumber(Math.floor(stock))}</span>`;
@@ -152,7 +155,7 @@ class MarketApp extends App {
                 row.className = 'trader-row';
                 row.dataset.resource = res;
                 row.innerHTML = `
-                    <td class="tr-resource">${iconHtml} ${resName}</td>
+                    <td class="tr-resource">${dotHtml}${iconHtml} ${resName}</td>
                     <td class="tr-qty" data-field="stock">${gaugeHtml}</td>
                     <td class="tr-price" data-field="price">${price} CR/U</td>
                     <td class="tr-action--expanded" style="display:flex;gap:4px;align-items:center;padding:7px 12px;">
@@ -395,7 +398,8 @@ function updateMarketTicker(mm) {
         const ratio   = current / base;
         const arrow   = ratio > 1.05 ? '\u2191' : ratio < 0.95 ? '\u2193' : '\u2192';
         const cls     = ratio > 1.05 ? 'ticker-up' : ratio < 0.95 ? 'ticker-down' : 'ticker-flat';
-        return `<span class="ticker-name">${name}</span> ` +
+        const nameColor = resDef?.color || '#8a7a50';
+        return `<span class="ticker-name" style="color:${nameColor}">${name}</span> ` +
                `<span class="ticker-price">${formatNumber(current)}CR</span> ` +
                `<span class="${cls}">${arrow}</span>` +
                `<span style="color:#2a2010">  \u00b7  </span>`;

@@ -7,6 +7,7 @@ class FactoryApp extends App {
         this.id = 'factory';
         this.title = 'FRANCHISE OPERATIONS TERMINAL';
         this.icon = 'OP';
+        this.color = '#c49a2a';
         this.game = null; // Game instance
         this.resizeObserver = null;
     }

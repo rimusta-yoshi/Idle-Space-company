@@ -63,6 +63,10 @@ class SidebarManager {
             outputHtml = `<div class="palette-card-output palette-card-output--dim">SPLITS FLOW 3-WAY</div>`;
         }
 
+        const catColor = getCategoryColor(building.category);
+        card.style.borderLeftColor = catColor;
+        card.style.setProperty('--card-cat-color', catColor);
+
         card.innerHTML = `
             <div class="palette-card-header">
                 <span class="palette-card-name">${building.name.toUpperCase()}</span>
@@ -105,6 +109,9 @@ class SidebarManager {
             header.textContent = categoryLabels[cat] || cat.toUpperCase();
             header.setAttribute('data-group-header', 'true');
             header.setAttribute('data-group-category', cat);
+            const catColor = getCategoryColor(cat);
+            header.style.color = catColor;
+            header.style.setProperty('--cat-color', catColor);
             container.appendChild(header);
 
             buildings.forEach(building => container.appendChild(this._makeBuildingCard(building)));
@@ -124,6 +131,10 @@ class SidebarManager {
         tabs.forEach(tab => {
             const tabKey = tab.getAttribute('data-tab');
             if (tabKey === 'all') return; // ALL is always visible
+
+            // Apply category color as CSS custom property
+            const catColor = getCategoryColor(tabKey);
+            tab.style.setProperty('--tab-color', catColor);
 
             // infrastructure tab also covers facilities
             const hasBuildings = tabKey === 'infrastructure'

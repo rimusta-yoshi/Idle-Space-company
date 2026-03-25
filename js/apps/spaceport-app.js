@@ -25,6 +25,7 @@ class SpaceportApp extends App {
         this.id = 'spaceport';
         this.title = 'SPACEPORT CONTROL';
         this.icon = 'SP';
+        this.color = '#4068d0';
         this.updateInterval = null;
         this.launched = false;
         this.launching = false;

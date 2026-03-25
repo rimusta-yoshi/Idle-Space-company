@@ -145,6 +145,7 @@ class CommsApp extends App {
         this.id = 'comms';
         this.title = 'STRATUM COMMS // OPERATOR INBOX';
         this.icon = 'CM';
+        this.color = '#18a050';
         this._selectedId = null;
         this._commsListener = null;
         this._root = null;

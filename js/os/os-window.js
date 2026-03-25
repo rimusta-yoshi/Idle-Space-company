@@ -45,6 +45,11 @@ class OSWindow {
         // Set initial position/size
         this.updatePosition();
 
+        // Apply app accent color to window left-edge and icon
+        if (this.app.color) {
+            this.element.style.setProperty('--window-accent', this.app.color);
+        }
+
         // Inject app content
         this.app.mount(this.content);
     }

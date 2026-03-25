@@ -7,6 +7,7 @@ class FranchiseApp extends App {
         this.id = 'franchise';
         this.title = 'STRATUM PORTAL';
         this.icon = 'ST';
+        this.color = '#c49a2a';
         this.updateInterval = null;
         this._lastRender = '';
         this._approvedTier = null;

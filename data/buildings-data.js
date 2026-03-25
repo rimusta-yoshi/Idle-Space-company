@@ -1,6 +1,21 @@
 // Building Definitions
 // Data-driven building configuration
 
+const CATEGORY_COLORS = {
+    power:          '#90c010',
+    extractors:     '#6088a0',
+    smelters:       '#e07030',
+    assemblers:     '#18a050',
+    manufacturers:  '#c83020',
+    infrastructure: '#7a7a88',
+    commerce:       '#20a0c0',
+    facilities:     '#4068d0',
+};
+
+function getCategoryColor(category) {
+    return CATEGORY_COLORS[category] || '#8a7a50';
+}
+
 const BUILDINGS = {
     // ===== EXTRACTORS =====
 
@@ -440,6 +455,7 @@ const BUILDING_CATEGORIES = {
     }
 };
 
+
 // Helper function to get building definition
 function getBuildingDef(buildingId) {
     return BUILDINGS[buildingId];
@@ -516,3 +532,4 @@ function getAllRecipeInputs(buildingId) {
     recipes.forEach(recipe => Object.keys(recipe.inputs).forEach(key => inputs.add(key)));
     return Array.from(inputs);
 }
+

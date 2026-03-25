@@ -29,20 +29,25 @@ class Connection {
         this.createKonvaArrow();
     }
 
+    _getResourceColor() {
+        return RESOURCES[this.resourceType]?.color || '#c49a2a';
+    }
+
     createKonvaArrow() {
         const points = this.getArrowPoints();
+        const color  = this._getResourceColor();
 
         this.arrow = new Konva.Arrow({
             points: points,
-            stroke: '#c49a2a',
+            stroke: color,
             strokeWidth: 2,
-            fill: '#c49a2a',
+            fill: color,
             pointerLength: 8,
             pointerWidth: 8,
             lineCap: 'square',
             lineJoin: 'miter',
             tension: 0,
-            opacity: 0.9,
+            opacity: 0.8,
             hitStrokeWidth: 20,  // Fat invisible hit area — much easier to click
             dash: [10, 6],
             dashOffset: 0
@@ -50,17 +55,15 @@ class Connection {
 
         // Add hover effect + grab cursor
         this.arrow.on('mouseenter', () => {
-            this.arrow.stroke('#e8c840');
-            this.arrow.fill('#e8c840');
             this.arrow.strokeWidth(3);
+            this.arrow.opacity(1);
             this.arrow.getStage()?.container().style.setProperty('cursor', 'grab');
             this.arrow.getLayer()?.draw();
         });
 
         this.arrow.on('mouseleave', () => {
-            this.arrow.stroke('#c49a2a');
-            this.arrow.fill('#c49a2a');
             this.arrow.strokeWidth(2);
+            this.arrow.opacity(0.8);
             this.arrow.getStage()?.container().style.removeProperty('cursor');
             this.arrow.getLayer()?.draw();
         });
@@ -81,7 +84,7 @@ class Connection {
             x: 0, y: 0,
             width: 68, height: 16,
             fill: '#0e0c09',
-            stroke: '#3a2e10',
+            stroke: color + '40',
             strokeWidth: 1,
             cornerRadius: 2,
             listening: false,
@@ -93,7 +96,7 @@ class Connection {
             text: '',
             fontSize: 12,
             fontFamily: 'VT323, Courier New',
-            fill: '#c49a2a',
+            fill: color,
             align: 'center',
             width: 68,
             listening: false,
