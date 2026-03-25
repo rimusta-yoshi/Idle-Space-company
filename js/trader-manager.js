@@ -6,6 +6,8 @@ class MarketManager {
     constructor() {
         this._prices = {};          // { [resource]: { current, timeRemaining } }
         this._firstSaleFired = false;
+        this._priceHistory = {};    // { [resource]: [{ price, time }] }
+        this._lastUpdated = null;
     }
 
     // Called every game tick. Counts down timers and refreshes prices on expiry.
@@ -18,6 +20,10 @@ class MarketManager {
             price.timeRemaining -= deltaTime;
             if (price.timeRemaining <= 0) {
                 this._prices[resource] = this._generatePrice(resource);
+                if (!this._priceHistory[resource]) this._priceHistory[resource] = [];
+                this._priceHistory[resource].push({ price: this._prices[resource].current, time: Date.now() });
+                if (this._priceHistory[resource].length > 20) this._priceHistory[resource].shift();
+                this._lastUpdated = resource;
                 needsUpdate = true;
             }
         }
@@ -44,6 +50,14 @@ class MarketManager {
 
     getPrice(resource) {
         return this._prices[resource]?.current ?? MARKET_BASE_PRICES[resource] ?? 10;
+    }
+
+    getPriceHistory(resource) {
+        return this._priceHistory[resource] || [];
+    }
+
+    getLastUpdated() {
+        return this._lastUpdated;
     }
 
     // Execute a sell: deduct qty from storage, add credits, return result.

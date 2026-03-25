@@ -161,9 +161,18 @@
                         <span id="header-credits-pnl" class="header-stat-sub neutral">+0/MIN</span>
                     </div>
                     <div class="header-stat header-stat--power" id="header-power-stat">
-                        <span class="material-symbols-outlined header-stat-icon">bolt</span>
-                        <span id="header-power-status" class="header-stat-value">POWER</span>
-                        <span class="header-stat-sub" id="header-power-detail">0/MIN</span>
+                        <span class="header-stat-icon material-symbols-outlined">bolt</span>
+                        <div class="vu-meter" id="header-power-vu">
+                            <div class="vu-segment" data-index="0"></div>
+                            <div class="vu-segment" data-index="1"></div>
+                            <div class="vu-segment" data-index="2"></div>
+                            <div class="vu-segment" data-index="3"></div>
+                            <div class="vu-segment" data-index="4"></div>
+                            <div class="vu-segment" data-index="5"></div>
+                            <div class="vu-segment" data-index="6"></div>
+                            <div class="vu-segment" data-index="7"></div>
+                        </div>
+                        <span class="header-stat-sub" id="header-power-detail"></span>
                     </div>
                 </div>
             </header>
@@ -196,6 +205,11 @@
                         <div class="zoom-indicator" id="zoom-indicator">Zoom: 100%</div>
                     </div>
                     <div class="canvas-info">
+                        <div class="market-ticker-wrap">
+                            <div class="market-ticker" id="market-ticker">
+                                <span class="market-ticker-inner" id="market-ticker-inner">── MARKET DATA LOADING ──</span>
+                            </div>
+                        </div>
                         <p>[ PAN: SPACE+DRAG | ZOOM: SCROLL | PLACE: DRAG FROM SIDEBAR | CONNECT: DRAG OUTPUT PORT | UPGRADE: DOUBLE-CLICK ]</p>
                     </div>
                 </main>

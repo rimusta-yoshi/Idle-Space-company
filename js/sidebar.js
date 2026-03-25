@@ -209,37 +209,27 @@ class SidebarManager {
 
     // Update power balance display in the header
     updatePower(supply = 0, demand = 0) {
-        const statusEl = this.rootElement.querySelector('#header-power-status');
-        const detailEl = this.rootElement.querySelector('#header-power-detail');
-        const deficit = demand - supply;
+        const ratio = demand > 0 ? Math.min(supply / demand, 1) : 1;
+        const net = supply - demand;
 
-        if (demand <= 0.001) {
-            if (statusEl) {
-                statusEl.textContent = 'POWER';
-                statusEl.className = 'header-stat-value';
+        // Drive VU segments
+        const segments = this.rootElement.querySelectorAll('#header-power-vu .vu-segment');
+        const filled = Math.round(ratio * 8);
+        segments.forEach((seg, i) => {
+            seg.classList.remove('active', 'warn', 'danger');
+            if (i < filled) {
+                seg.classList.add('active');
+                if (ratio < 0.5) seg.classList.add('danger');
+                else if (ratio < 0.85) seg.classList.add('warn');
             }
-            if (detailEl) {
-                detailEl.textContent = '0/MIN';
-                detailEl.className = 'header-stat-sub neutral';
-            }
-        } else if (deficit > 0.001) {
-            if (statusEl) {
-                statusEl.textContent = 'DEFICIT';
-                statusEl.className = 'header-stat-value negative';
-            }
-            if (detailEl) {
-                detailEl.textContent = `-${formatNumber(deficit * 60)}/MIN`;
-                detailEl.className = 'header-stat-sub negative';
-            }
-        } else {
-            if (statusEl) {
-                statusEl.textContent = 'OK';
-                statusEl.className = 'header-stat-value positive';
-            }
-            if (detailEl) {
-                detailEl.textContent = `+${formatNumber((supply - demand) * 60)}/MIN`;
-                detailEl.className = 'header-stat-sub positive';
-            }
+        });
+
+        // Sub-label: signed net figure
+        const detail = this.rootElement.querySelector('#header-power-detail');
+        if (detail) {
+            const sign = net >= 0 ? '+' : '';
+            detail.textContent = `${sign}${formatRatePerMin(net)}`;
+            detail.className = 'header-stat-sub ' + (net >= 0 ? 'positive' : 'negative');
         }
     }
 

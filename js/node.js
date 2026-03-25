@@ -47,7 +47,7 @@ class FactoryNode {
         // Konva shapes
         this.group = null;
         this.rect = null;
-        this.headerBg = null;
+        this.bodyRect = null;
         this.headerIcon = null;  // Material Symbol icon (transition_push)
         this.headerName = null;  // Output resource name
         this.headerRate = null;  // "60/MIN" right-aligned
@@ -234,30 +234,30 @@ class FactoryNode {
         });
         this.group.nodeRef = this;
 
-        // Background
+        // Header zone background (nameplate)
         this.rect = new Konva.Rect({
             x: 0, y: 0,
             width: w, height: h,
-            fill: def.color,
+            fill: '#181509',
             stroke: '#d4a832',
             strokeWidth: 1.5,
             cornerRadius: 4
         });
 
+        // Body zone background (readout panel)
+        this.bodyRect = new Konva.Rect({
+            x: 0, y: HEADER_H,
+            width: w, height: h - HEADER_H,
+            fill: '#0b0e09',
+            cornerRadius: [0, 0, 4, 4]
+        });
+
         // Left tier stripe — coloured by output resource
         this.tierStripe = new Konva.Rect({
             x: 0, y: 0,
-            width: 3, height: h,
+            width: 4, height: h,
             fill: this._getOutputColor(),
             cornerRadius: [4, 0, 0, 4]
-        });
-
-        // Header background — dark overlay for clear separation
-        this.headerBg = new Konva.Rect({
-            x: 0, y: 0,
-            width: w, height: HEADER_H,
-            fill: 'rgba(0, 0, 0, 0.22)',
-            cornerRadius: [4, 4, 0, 0]
         });
 
         // Building type sub-label — small dim text at top of header (row 1)
@@ -297,11 +297,15 @@ class FactoryNode {
             fill: '#c49a2a'
         });
 
-        // Status pip — right side of row 2
+        // Status pip — right side of row 2 (LED indicator)
         this.statusPip = new Konva.Circle({
             x: w - 9, y: Math.round(HEADER_H * 3 / 4),
-            radius: 4,
-            fill: '#2a2010'
+            radius: 5,
+            fill: '#2a2010',
+            shadowColor: '#ffffff',
+            shadowBlur: 6,
+            shadowOpacity: 0.4,
+            shadowEnabled: false
         });
 
         // "← CONNECT INPUT" hint — shown inside body when recipe set but no inputs connected
@@ -310,7 +314,7 @@ class FactoryNode {
             text: '\u2190 CONNECT INPUT',
             fontSize: 10,
             fontFamily: 'VT323, Courier New',
-            fill: '#3a3020',
+            fill: '#4a6a5a',
             listening: false,
             visible: false
         });
@@ -320,6 +324,16 @@ class FactoryNode {
             points: [0, HEADER_H, w, HEADER_H],
             stroke: '#2a1c08',
             strokeWidth: 1,
+            visible: false
+        });
+
+        // Waveform — live oscilloscope line in body zone
+        this.waveformLine = new Konva.Line({
+            points: [],
+            stroke: '#c49a2a',
+            strokeWidth: 1,
+            opacity: 0.22,
+            listening: false,
             visible: false
         });
 
@@ -346,9 +360,10 @@ class FactoryNode {
         });
 
         this.group.add(
-            this.rect, this.tierStripe, this.headerBg,
+            this.rect, this.bodyRect, this.tierStripe,
             this.buildingSubLabel, this.headerIcon, this.headerName, this.headerRate,
             this.statusPip, this.divider,
+            this.waveformLine,
             this.connectInputHint,
             this.outputPort, this.inputPort
         );
@@ -512,7 +527,8 @@ class FactoryNode {
         // Resize all width-dependent shapes
         this.rect.width(w);
         this.rect.height(h);
-        this.headerBg.width(w);
+        this.bodyRect.width(w);
+        this.bodyRect.height(h - HEADER_H);
         this.divider.points([0, HEADER_H, w, HEADER_H]);
         this.outputPort.x(w);
         this.outputPort.y(h / 2);
@@ -543,23 +559,62 @@ class FactoryNode {
 
         const def = this.buildingDef;
 
+        // Waveform — body-zone oscilloscope (skipped for storage which has its own fill bar)
+        if (!def.isStorage) {
+            const wh = this.calcHeight();
+            const ww = this.nodeWidth;
+            const bodyHeight = wh - HEADER_H - PAD_B;
+
+            if (bodyHeight > 0) {
+                const eff = this.efficiency || 0;
+                const t = Date.now() / 800;
+                const amplitude = eff * 7;
+                const WAVE_X = 4;
+                const WAVE_W = ww - 8;
+                const WAVE_Y = HEADER_H + Math.floor(bodyHeight / 2);
+                const steps = 24;
+                const points = [];
+
+                for (let i = 0; i <= steps; i++) {
+                    points.push(
+                        WAVE_X + (i / steps) * WAVE_W,
+                        WAVE_Y + Math.sin(t + i * 0.55) * amplitude
+                    );
+                }
+
+                this.waveformLine.points(points);
+                this.waveformLine.opacity(eff < 0.01 ? 0.08 : 0.22);
+                this.waveformLine.stroke(eff >= 0.999 ? '#4a8a4a' : eff >= 0.01 ? '#c49a2a' : '#3a3a3a');
+                this.waveformLine.visible(true);
+            } else {
+                this.waveformLine.visible(false);
+            }
+        }
+
         // Storage nodes: colour by fill level, no efficiency concept
         if (def.isStorage) {
             const pct = this.inventoryCapacity > 0 ? this.inventory / this.inventoryCapacity : 0;
-            this.rect.fill(def.color);
+            this.rect.fill('#181509');
             this.rect.strokeWidth(1.5);
             if (!this.storedResourceType) {
                 this.rect.stroke('#333344');
                 this.statusPip.fill('#2a2010');
+                this.statusPip.shadowEnabled(false);
             } else if (pct > 0.9) {
                 this.rect.stroke('#cc4422');
                 this.statusPip.fill('#cc4422');
+                this.statusPip.shadowColor('#cc3333');
+                this.statusPip.shadowEnabled(true);
             } else if (pct > 0.05) {
                 this.rect.stroke('#4a8a4a');
                 this.statusPip.fill('#4a8a4a');
+                this.statusPip.shadowColor('#4a8a4a');
+                this.statusPip.shadowEnabled(true);
             } else {
                 this.rect.stroke('#a07818');
                 this.statusPip.fill('#c8a020');
+                this.statusPip.shadowColor('#c49a2a');
+                this.statusPip.shadowEnabled(true);
             }
             this.headerName.fill('#e8d5b0');
             return;
@@ -567,51 +622,73 @@ class FactoryNode {
 
         if (this.standby) {
             // Standby: has connections but not fully connected — waiting for the missing link
-            this.rect.fill(def.color);
+            this.rect.fill('#181509');
             this.rect.stroke('#555555');
             this.rect.strokeWidth(1.5);
             this.headerName.fill('#888880');
             this.statusPip.fill('#999999');
+            this.statusPip.shadowEnabled(false);
+            return;
+        }
+
+        // No recipe selected — display state, not error
+        if (def.usesRecipes && !this.assignedRecipe) {
+            this.rect.fill('#181509');
+            this.rect.stroke('#2a4a3a');
+            this.rect.strokeWidth(1.5);
+            this.headerName.fill('#4a8a5a');
+            this.statusPip.fill('#2a2010');
+            this.statusPip.shadowEnabled(false);
             return;
         }
 
         const eff = this.efficiency ?? 1.0;
 
         if (eff < 0.01) {
-            // No throughput — missing connections, no recipe, or zero supply
+            // No throughput — missing connections or zero supply
             this.rect.fill('#1a0808');
             this.rect.stroke('#663030');
             this.rect.strokeWidth(1.5);
             this.headerName.fill('#cc3333');
             this.statusPip.fill('#cc3333');
+            this.statusPip.shadowColor('#cc3333');
+            this.statusPip.shadowEnabled(true);
         } else if (def.usesRecipes && !this.activeRecipe) {
             // Recipe assigned but connections not established — waiting
-            this.rect.fill(def.color);
+            this.rect.fill('#181509');
             this.rect.stroke('#c49a2a');
             this.rect.strokeWidth(1.5);
             this.headerName.fill('#e8d5b0');
-            this.statusPip.fill(this.assignedRecipe ? '#c49a2a' : '#2a2010');
+            this.statusPip.fill('#c49a2a');
+            this.statusPip.shadowColor('#c49a2a');
+            this.statusPip.shadowEnabled(true);
         } else if (eff < 0.999) {
-            this.rect.fill(def.color);
+            this.rect.fill('#181509');
             this.headerName.fill('#e8d5b0');
             if (this.powerThrottled) {
                 // Power grid deficit — red border, red-amber pip
                 this.rect.stroke('#993322');
                 this.rect.strokeWidth(2);
                 this.statusPip.fill('#cc4422');
+                this.statusPip.shadowColor('#cc3333');
+                this.statusPip.shadowEnabled(true);
             } else {
                 // Supply-constrained — amber border, amber pip
                 this.rect.stroke('#a07818');
                 this.rect.strokeWidth(1.5);
                 this.statusPip.fill('#c8a020');
+                this.statusPip.shadowColor('#c49a2a');
+                this.statusPip.shadowEnabled(true);
             }
         } else {
             // Full throughput
-            this.rect.fill(def.color);
+            this.rect.fill('#181509');
             this.rect.stroke('#c49a2a');
             this.rect.strokeWidth(1.5);
             this.headerName.fill('#e8d5b0');
-            this.statusPip.fill('#4a8a4a'); // green
+            this.statusPip.fill('#4a8a4a');
+            this.statusPip.shadowColor('#4a8a4a');
+            this.statusPip.shadowEnabled(true);
         }
     }
 

@@ -2,6 +2,13 @@
 // Tab 1 (SELL): live inventory with inline sell controls.
 // Tab 2 (MARKET): all resources with base price, current price, and trend.
 
+function stockGauge(current, capacity) {
+    const BLOCKS = 8;
+    const filled = capacity > 0 ? Math.round((current / capacity) * BLOCKS) : 0;
+    const bar = '\u2588'.repeat(filled) + '\u2591'.repeat(BLOCKS - filled);
+    return `<span class="stock-gauge">${bar}</span> <span class="stock-count">${formatNumber(current)}</span>`;
+}
+
 class MarketApp extends App {
     constructor() {
         super();
@@ -10,8 +17,9 @@ class MarketApp extends App {
         this.icon = 'EX';
         this._root       = null;
         this._activeTab  = 'sell';
-        this._pollInterval  = null;
-        this._onPriceUpdate = null;
+        this._pollInterval      = null;
+        this._onPriceUpdate     = null;
+        this._selectedChartResource = null;
     }
 
     _mm()   { return window.gameInstance?.marketManager; }
@@ -37,9 +45,15 @@ class MarketApp extends App {
         this._updateCredits();
 
         this._onPriceUpdate = () => {
-            if (this._activeTab === 'market') this._rebuildContent();
+            if (this._activeTab === 'market') {
+                this._rebuildContent();
+                // Chart redraw deferred so the rebuilt DOM is laid out first
+                requestAnimationFrame(() => this._drawChart(this._selectedChartResource));
+            }
+            this._updateTicker();
         };
         document.addEventListener('marketPriceUpdate', this._onPriceUpdate);
+        this._updateTicker();
 
         // Poll: credits + sell table live updates
         this._pollInterval = setInterval(() => {
@@ -84,12 +98,16 @@ class MarketApp extends App {
         const tbody = this._root?.querySelector('.sell-tbody');
         if (!tbody || !game || !mm) return;
 
-        // Aggregate storage inventory
-        const stockMap = {};
+        // Aggregate storage inventory and capacity
+        const stockMap    = {};
+        const capacityMap = {};
         game.canvas.nodes.forEach(node => {
-            if (node.buildingDef?.isStorage && node.storedResourceType && node.inventory > 0) {
+            if (node.buildingDef?.isStorage && node.storedResourceType) {
                 const res = node.storedResourceType;
-                stockMap[res] = (stockMap[res] || 0) + node.inventory;
+                capacityMap[res] = (capacityMap[res] || 0) + node.inventoryCapacity;
+                if (node.inventory > 0) {
+                    stockMap[res] = (stockMap[res] || 0) + node.inventory;
+                }
             }
         });
 
@@ -116,13 +134,17 @@ class MarketApp extends App {
         if (emptyRow) emptyRow.closest('tr').remove();
 
         resources.forEach(res => {
-            const stock   = stockMap[res];
-            const resDef  = RESOURCES[res];
-            const resName = resDef?.name || res;
-            const price   = mm.getPrice(res);
+            const stock    = stockMap[res];
+            const capacity = capacityMap[res] || 0;
+            const resDef   = RESOURCES[res];
+            const resName  = resDef?.name || res;
+            const price    = mm.getPrice(res);
             const iconHtml = resDef
                 ? `<span class="material-symbols-outlined wh-icon">${resDef.icon}</span>`
                 : '';
+            const gaugeHtml = capacity > 0
+                ? stockGauge(Math.floor(stock), capacity)
+                : `<span class="stock-count">${formatNumber(Math.floor(stock))}</span>`;
 
             let row = existingRows.get(res);
             if (!row) {
@@ -131,7 +153,7 @@ class MarketApp extends App {
                 row.dataset.resource = res;
                 row.innerHTML = `
                     <td class="tr-resource">${iconHtml} ${resName}</td>
-                    <td class="tr-qty" data-field="stock">${Math.floor(stock)}</td>
+                    <td class="tr-qty" data-field="stock">${gaugeHtml}</td>
                     <td class="tr-price" data-field="price">${price} CR/U</td>
                     <td class="tr-action--expanded" style="display:flex;gap:4px;align-items:center;padding:7px 12px;">
                         <input class="tr-qty-input" type="number" min="1" max="${Math.floor(stock)}" value="${Math.floor(stock)}" />
@@ -166,8 +188,8 @@ class MarketApp extends App {
                 const stockEl = row.querySelector('[data-field="stock"]');
                 const priceEl = row.querySelector('[data-field="price"]');
                 const input   = row.querySelector('.tr-qty-input');
-                if (stockEl) stockEl.textContent = Math.floor(stock);
-                if (priceEl) priceEl.textContent  = `${price} CR/U`;
+                if (stockEl) stockEl.innerHTML = gaugeHtml;
+                if (priceEl) priceEl.textContent = `${price} CR/U`;
                 if (input)   input.max = Math.floor(stock);
             }
         });
@@ -194,6 +216,13 @@ class MarketApp extends App {
     _buildMarketTab(area) {
         const mm = this._mm();
         area.innerHTML = `
+            <div class="market-chart-panel">
+                <div class="market-chart-header">
+                    <span class="market-chart-label" id="market-chart-label">── SELECT A RESOURCE ──</span>
+                    <span class="market-chart-price" id="market-chart-price"></span>
+                </div>
+                <canvas id="market-price-chart" width="400" height="120"></canvas>
+            </div>
             <table class="trader-table">
                 <thead>
                     <tr>
@@ -220,13 +249,117 @@ class MarketApp extends App {
 
             const tr = document.createElement('tr');
             tr.className = 'trader-row';
+            tr.dataset.resource = res;
+            tr.style.cursor = 'pointer';
             tr.innerHTML = `
                 <td class="tr-resource">${resName}</td>
                 <td class="tr-price">${basePrice} CR/U</td>
                 <td class="tr-price">${curPrice} CR/U</td>
                 <td class="${pctClass}">${symbol} ${pctStr}</td>`;
+            tr.addEventListener('click', () => {
+                this._selectedChartResource = res;
+                tbody.querySelectorAll('tr').forEach(r => r.classList.remove('trader-row--selected'));
+                tr.classList.add('trader-row--selected');
+                this._drawChart(res);
+            });
+            if (this._selectedChartResource === res) {
+                tr.classList.add('trader-row--selected');
+            }
             tbody.appendChild(tr);
         });
+
+        // Defer draw so canvas offsetWidth has settled
+        const defaultRes = this._selectedChartResource || mm?.getLastUpdated();
+        if (defaultRes) {
+            requestAnimationFrame(() => this._drawChart(defaultRes));
+        }
+    }
+
+    _drawChart(resourceKey) {
+        if (!resourceKey) return;
+        const canvas = this._root?.querySelector('#market-price-chart');
+        if (!canvas) return;
+
+        // Match canvas pixel width to rendered width
+        if (canvas.offsetWidth > 0) canvas.width = canvas.offsetWidth;
+
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+
+        ctx.fillStyle = '#080a07';
+        ctx.fillRect(0, 0, w, h);
+
+        // Faint grid lines
+        ctx.strokeStyle = 'rgba(196, 154, 42, 0.06)';
+        ctx.lineWidth = 1;
+        for (let y = 0; y < h; y += 30) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+            ctx.stroke();
+        }
+
+        const mm = this._mm();
+        const history = mm ? mm.getPriceHistory(resourceKey) : [];
+
+        if (history.length < 2) {
+            ctx.fillStyle = '#3a3020';
+            ctx.font = '14px VT323, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('AWAITING DATA', w / 2, h / 2);
+            // Still update the label
+            const labelEl = this._root?.querySelector('#market-chart-label');
+            const resDef = RESOURCES[resourceKey];
+            if (labelEl) labelEl.textContent = resDef ? resDef.name.toUpperCase() : resourceKey;
+            return;
+        }
+
+        const prices = history.map(p => p.price);
+        const min = Math.min(...prices) * 0.9;
+        const max = Math.max(...prices) * 1.1;
+        const range = max - min || 1;
+
+        const toY = p => h - 8 - ((p - min) / range) * (h - 16);
+        const toX = i => 4 + (i / (history.length - 1)) * (w - 8);
+
+        // Glow line
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(196, 154, 42, 0.15)';
+        ctx.lineWidth = 4;
+        history.forEach((p, i) => {
+            i === 0 ? ctx.moveTo(toX(i), toY(p.price)) : ctx.lineTo(toX(i), toY(p.price));
+        });
+        ctx.stroke();
+
+        // Main line
+        ctx.beginPath();
+        ctx.strokeStyle = '#c49a2a';
+        ctx.lineWidth = 1.5;
+        history.forEach((p, i) => {
+            i === 0 ? ctx.moveTo(toX(i), toY(p.price)) : ctx.lineTo(toX(i), toY(p.price));
+        });
+        ctx.stroke();
+
+        // Latest point dot
+        const last = history[history.length - 1];
+        ctx.fillStyle = '#e8c050';
+        ctx.beginPath();
+        ctx.arc(toX(history.length - 1), toY(last.price), 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Update header
+        const labelEl = this._root?.querySelector('#market-chart-label');
+        const priceEl = this._root?.querySelector('#market-chart-price');
+        const resDef = RESOURCES[resourceKey];
+        if (labelEl) labelEl.textContent = resDef ? resDef.name.toUpperCase() : resourceKey;
+        if (priceEl) priceEl.textContent = `${formatNumber(last.price)} CR/U`;
+    }
+
+    // ── Market ticker (factory app footer) ───────────────────────────────────
+
+    _updateTicker() {
+        updateMarketTicker(this._mm());
     }
 
     // ── Shared helpers ───────────────────────────────────────────────────────
@@ -248,3 +381,32 @@ class MarketApp extends App {
     getSaveData()  { return {}; }
     loadSaveData() {}
 }
+
+function updateMarketTicker(mm) {
+    mm = mm || window.gameInstance?.marketManager;
+    const inner = document.getElementById('market-ticker-inner');
+    if (!inner || !mm) return;
+
+    const entries = Object.keys(MARKET_BASE_PRICES).map(key => {
+        const current = mm.getPrice(key);
+        const base    = MARKET_BASE_PRICES[key];
+        const resDef  = RESOURCES[key];
+        const name    = resDef ? resDef.name.toUpperCase() : key;
+        const ratio   = current / base;
+        const arrow   = ratio > 1.05 ? '\u2191' : ratio < 0.95 ? '\u2193' : '\u2192';
+        const cls     = ratio > 1.05 ? 'ticker-up' : ratio < 0.95 ? 'ticker-down' : 'ticker-flat';
+        return `<span class="ticker-name">${name}</span> ` +
+               `<span class="ticker-price">${formatNumber(current)}CR</span> ` +
+               `<span class="${cls}">${arrow}</span>` +
+               `<span style="color:#2a2010">  \u00b7  </span>`;
+    });
+
+    inner.innerHTML = entries.join('');
+    inner.style.animation = 'none';
+    inner.offsetHeight; // force reflow
+    inner.style.animation = '';
+    inner.style.animationDuration = `${Math.max(20, entries.length * 3)}s`;
+}
+
+// Keep ticker live even when MarketApp window is closed
+document.addEventListener('marketPriceUpdate', () => updateMarketTicker());
