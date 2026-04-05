@@ -853,7 +853,7 @@ class Game {
         // Create and place node
         const node = new FactoryNode(buildingType, worldPos.x, worldPos.y);
         if (usedFreeClaim) node.isStarterKit = true;
-        this.canvas.addNode(node);
+        this.canvas.addNode(node, true);
 
         // Update count (immutable update)
         this.buildingCounts = {

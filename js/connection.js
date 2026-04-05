@@ -152,11 +152,16 @@ class Connection {
     }
 
     // Add to Konva layer
-    addToLayer(layer) {
+    addToLayer(layer, animate = false) {
         // Arrow goes to the very bottom; labels sit just above it (below nodes)
         layer.add(this.arrow);
         this.arrow.moveToBottom();
         layer.add(this.labelBg, this.label);
+
+        if (animate) {
+            this.arrow.opacity(0);
+            this.arrow.to({ duration: 0.3, opacity: 0.8, easing: Konva.Easings.EaseOut });
+        }
     }
 
     // Remove from layer

@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HERE TO HELP — Brand Exploration</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=VT323&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Core pharma palette */
+  --red:      #C8302A;
+  --red-hi:   #E84040;
+  --red-lo:   #8C1F1A;
+  --blue:     #4A9EC8;
+  --blue-hi:  #72BEE0;
+  --blue-lo:  #2A6A8C;
+  --green:    #3AAA6A;
+  --amber:    #C49A2A;
+  --yellow:   #E8D840;
+
+  /* Clinical surfaces */
+  --white:    #F5F7FA;
+  --white-hi: #FFFFFF;
+  --border:   #D4DCE8;
+  --border-lo:#B8C4D4;
+  --mist:     #E0E8F0;
+
+  /* Reality layer (from Stratum) */
+  --grime:    #060805;
+  --g1:       #0d0f0b;
+  --g2:       #181a14;
+  --g3:       #242620;
+  --g4:       #3a3c2e;
+  --gtext:    #f0e8d8;
+  --gmuted:   #9a8b72;
+  --gamber:   #c49a2a;
+
+  /* Clinical darks */
+  --ink:      #1C2333;
+  --ink-mid:  #253047;
+  --ink-lo:   #0E1520;
+  --text:     #1A2030;
+  --muted:    #6B7A90;
+  --faint:    #B8C4D4;
+
+  /* Typography */
+  --g: 'Archivo Black', sans-serif;
+  --s: 'Inter', sans-serif;
+  --p: 'Playfair Display', Georgia, serif;
+  --t: 'VT323', monospace;
+
+  --nav-w: 200px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--white);
+  color: var(--text);
+  font-family: var(--s);
+  font-size: 16px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── NAV ─────────────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: var(--nav-w);
+  background: var(--white-hi);
+  border-right: 1px solid var(--border);
+  padding: 40px 28px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.nav-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+.nav-cross {
+  display: grid;
+  grid-template-columns: 8px 8px 8px;
+  grid-template-rows: 8px 8px 8px;
+  gap: 0;
+}
+.nav-cross span {
+  background: var(--red);
+}
+.nav-cross span:nth-child(2),
+.nav-cross span:nth-child(4),
+.nav-cross span:nth-child(5),
+.nav-cross span:nth-child(6),
+.nav-cross span:nth-child(8) {
+  background: var(--red);
+}
+.nav-cross span:nth-child(1),
+.nav-cross span:nth-child(3),
+.nav-cross span:nth-child(7),
+.nav-cross span:nth-child(9) {
+  background: transparent;
+}
+.nav-wordmark {
+  font-family: var(--g);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--red);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.nav-item {
+  font-family: var(--g);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 7px 0 7px 12px;
+  border-left: 2px solid transparent;
+  display: block;
+  transition: color 0.1s, border-color 0.1s;
+}
+.nav-item:hover { color: var(--text); }
+.nav-item.active { color: var(--red); border-left-color: var(--red); }
+.nav-foot {
+  margin-top: auto;
+  font-family: var(--t);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--faint);
+  line-height: 2;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+/* ── MAIN ────────────────────────────────────────────────── */
+.main { margin-left: var(--nav-w); }
+
+/* ── HERO / IDENTITY ─────────────────────────────────────── */
+#identity {
+  min-height: 100vh;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+.hero-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40px 60px;
+  font-family: var(--t);
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--faint);
+}
+.hero-stamp {
+  border: 1px solid var(--border);
+  padding: 3px 12px;
+  letter-spacing: 4px;
+  color: var(--muted);
+}
+.hero-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 56px;
+}
+.hero-tagline {
+  font-family: var(--s);
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 2.4;
+  text-transform: uppercase;
+}
+.hero-tagline strong {
+  color: var(--red);
+  font-weight: 500;
+}
+.hero-bottom-strip {
+  background: var(--red);
+  padding: 10px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--g);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: white;
+  text-transform: uppercase;
+}
+
+/* ── MASCOT / CROSS ──────────────────────────────────────── */
+.hth-mascot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+}
+.cross-wrap {
+  position: relative;
+}
+.cross-body {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--cw) var(--cw) var(--cw);
+  grid-template-rows: var(--cw) var(--cw) var(--cw);
+}
+.cross-body .cc {
+  background: var(--red);
+}
+.cross-body .cx {
+  background: transparent;
+}
+/* Shadow offset */
+.cross-shadow {
+  position: absolute;
+  display: grid;
+  grid-template-columns: var(--cw) var(--cw) var(--cw);
+  grid-template-rows: var(--cw) var(--cw) var(--cw);
+  top: 8px; left: 8px;
+  z-index: -1;
+}
+.cross-shadow .cc { background: var(--red-lo); }
+.cross-shadow .cx { background: transparent; }
+/* Face overlay */
+.cross-face {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  z-index: 2;
+}
+.cross-eyes {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+.cross-eye {
+  font-family: var(--t);
+  color: white;
+  line-height: 1;
+  font-weight: 400;
+}
+.cross-mouth {
+  font-family: var(--t);
+  color: white;
+  line-height: 1;
+}
+
+/* Hero mascot size */
+.hth-mascot--hero { --cw: 80px; }
+.hth-mascot--hero .cross-eye  { font-size: 52px; }
+.hth-mascot--hero .cross-mouth { font-size: 36px; }
+.hth-mascot--hero .cross-shadow { top: 10px; left: 10px; }
+
+/* Display size */
+.hth-mascot--display { --cw: 56px; }
+.hth-mascot--display .cross-eye  { font-size: 36px; }
+.hth-mascot--display .cross-mouth { font-size: 26px; }
+
+/* Medium size */
+.hth-mascot--md { --cw: 32px; }
+.hth-mascot--md .cross-eye  { font-size: 20px; }
+.hth-mascot--md .cross-mouth { font-size: 15px; }
+.hth-mascot--md .cross-eyes { gap: 4px; }
+.hth-mascot--md .cross-shadow { top: 4px; left: 4px; }
+
+/* Small size */
+.hth-mascot--sm { --cw: 18px; }
+.hth-mascot--sm .cross-eye  { font-size: 12px; }
+.hth-mascot--sm .cross-mouth { font-size: 10px; }
+.hth-mascot--sm .cross-eyes { gap: 2px; gap: 2px; }
+.hth-mascot--sm .cross-face { gap: 1px; }
+.hth-mascot--sm .cross-shadow { top: 3px; left: 3px; }
+
+/* Wordmark under mascot */
+.hth-wordmark {
+  font-family: var(--g);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: var(--text);
+}
+.hth-wordmark--hero   { font-size: clamp(48px, 7vw, 96px); }
+.hth-wordmark--display { font-size: 52px; }
+.hth-wordmark--md     { font-size: 28px; }
+.hth-wordmark--sm     { font-size: 15px; }
+.hth-wordmark span { color: var(--red); }
+
+/* ── SHARED SECTION ELEMENTS ─────────────────────────────── */
+.section-eyebrow {
+  font-family: var(--t);
+  font-size: 14px;
+  letter-spacing: 4px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-family: var(--g);
+  font-size: clamp(28px, 3.5vw, 48px);
+  color: var(--text);
+  line-height: 1.05;
+  margin-bottom: 24px;
+}
+.section-body {
+  font-family: var(--s);
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--muted);
+  max-width: 540px;
+  margin-bottom: 60px;
+  font-weight: 300;
+}
+.pull-quote {
+  font-family: var(--p);
+  font-size: clamp(20px, 2.5vw, 32px);
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.4;
+  border-left: 4px solid var(--red);
+  padding-left: 32px;
+  max-width: 640px;
+  margin-top: 60px;
+}
+.pull-quote em { color: var(--red); font-style: normal; }
+
+/* ── THE MARK ────────────────────────────────────────────── */
+#mark {
+  padding: 120px 80px;
+  background: var(--white-hi);
+  border-top: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.mark-bg-text {
+  font-family: var(--g);
+  font-size: 28vw;
+  line-height: 1;
+  color: var(--mist);
+  position: absolute;
+  right: -20px;
+  bottom: 20px;
+  pointer-events: none;
+  letter-spacing: -0.03em;
+  user-select: none;
+}
+.mark-scale-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 60px;
+  flex-wrap: wrap;
+  margin-bottom: 60px;
+}
+.mark-instance {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+.mark-instance-label {
+  font-family: var(--t);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.mark-lockup-showcase {
+  display: flex;
+  align-items: flex-end;
+  gap: 80px;
+  flex-wrap: wrap;
+  margin-bottom: 60px;
+}
+.mark-showcase-item {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Construction diagram */
+.construction-diagram {
+  display: flex;
+  gap: 60px;
+  flex-wrap: wrap;
+  margin-top: 60px;
+  padding-top: 60px;
+  border-top: 1px solid var(--border);
+}
+.construction-panel {
+  flex: 1;
+  min-width: 200px;
+}
+.construction-label {
+  font-family: var(--t);
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+.grid-diagram {
+  display: grid;
+  grid-template-columns: 48px 48px 48px;
+  grid-template-rows: 48px 48px 48px;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+.gd-cc { background: var(--red); opacity: 0.9; }
+.gd-cx { background: var(--border); }
+.gd-active { background: var(--red); }
+.gd-shadow { background: var(--red-lo); opacity: 0.5; }
+.gd-face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--t);
+  font-size: 24px;
+  color: white;
+}
+
+/* On dark surface variant */
+.mark-on-dark {
+  background: var(--ink);
+  padding: 60px;
+  border-radius: 4px;
+  margin-top: 60px;
+  display: flex;
+  gap: 60px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.mark-on-light {
+  background: var(--white);
+  border: 1px solid var(--border);
+  padding: 60px;
+  border-radius: 4px;
+  margin-top: 20px;
+  display: flex;
+  gap: 60px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ── COLOUR ──────────────────────────────────────────────── */
+#colour {
+  padding: 80px 0 0;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+}
+.colour-header { padding: 0 80px 60px; }
+.colour-strip {
+  display: flex;
+  align-items: center;
+  padding: 0 80px;
+  height: 72px;
+  gap: 28px;
+  border-top: 1px solid var(--border);
+  transition: height 0.2s;
+}
+.colour-strip:hover { height: 96px; }
+.colour-strip:last-of-type { border-bottom: 1px solid var(--border); }
+.colour-strip-index {
+  font-family: var(--g);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--faint);
+  width: 24px;
+  flex-shrink: 0;
+}
+.colour-strip-swatch { width: 36px; height: 36px; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.08); }
+.colour-strip-name {
+  font-family: var(--g);
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: var(--text);
+  flex: 1;
+}
+.colour-strip-div {
+  font-family: var(--p);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--muted);
+}
+.colour-strip-hex {
+  font-family: var(--t);
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  width: 100px;
+  text-align: right;
+}
+.colour-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  height: 110px;
+  margin-top: 60px;
+}
+.colour-block {
+  display: flex;
+  align-items: flex-end;
+  padding: 8px 10px;
+}
+.colour-block-label {
+  font-family: var(--g);
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+.colour-block-label--dark {
+  color: rgba(0,0,0,0.35);
+}
+
+/* The two-layer split */
+.two-layer-demo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 60px;
+  border-top: 1px solid var(--border);
+}
+.layer-pharma {
+  background: var(--white);
+  padding: 60px;
+  border-right: 1px solid var(--border);
+}
+.layer-reality {
+  background: var(--grime);
+  padding: 60px;
+}
+.layer-label {
+  font-family: var(--t);
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.layer-pharma .layer-label { color: var(--red); }
+.layer-reality .layer-label { color: var(--gamber); }
+.layer-swatches {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.layer-swatch {
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+.layer-swatch--dark-border { border-color: rgba(255,255,255,0.1); }
+.layer-caption {
+  font-size: 12px;
+  margin-top: 20px;
+  line-height: 1.6;
+  font-weight: 300;
+}
+.layer-pharma .layer-caption { color: var(--muted); }
+.layer-reality .layer-caption { color: var(--gmuted); font-family: var(--t); letter-spacing: 1px; font-size: 13px; }
+
+/* ── TYPOGRAPHY ──────────────────────────────────────────── */
+#type {
+  padding: 120px 80px;
+  background: var(--white-hi);
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+}
+.type-specimen-block {
+  margin-bottom: 80px;
+  padding-bottom: 80px;
+  border-bottom: 1px solid var(--border);
+}
+.type-specimen-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.type-label {
+  font-family: var(--t);
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--red);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.type-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.type-display {
+  font-family: var(--g);
+  font-size: clamp(52px, 10vw, 130px);
+  line-height: 0.9;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  white-space: nowrap;
+  margin-bottom: 16px;
+}
+.type-display span { color: var(--red); }
+.type-inter-display {
+  font-family: var(--s);
+  font-size: clamp(28px, 4vw, 56px);
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 24px;
+  letter-spacing: -0.01em;
+}
+.type-inter-display strong { font-weight: 500; color: var(--red); }
+.type-pixel-display {
+  font-family: var(--t);
+  font-size: clamp(36px, 6vw, 80px);
+  line-height: 1;
+  color: var(--ink);
+  letter-spacing: 3px;
+  margin-bottom: 24px;
+}
+.type-pixel-display span { color: var(--red); }
+.type-meta {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+.type-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.type-meta-key {
+  font-family: var(--t);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--faint);
+  text-transform: uppercase;
+}
+.type-meta-val {
+  font-family: var(--s);
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 300;
+}
+
+/* ── VOICE ───────────────────────────────────────────────── */
+#voice {
+  padding: 120px 80px;
+  background: var(--ink);
+  overflow: hidden;
+  position: relative;
+}
+.voice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-top: 60px;
+}
+.voice-panel {
+  padding: 40px;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.voice-panel--official { background: var(--white); }
+.voice-panel--reality  { background: var(--g1); }
+.voice-panel-label {
+  font-family: var(--t);
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.voice-panel--official .voice-panel-label { color: var(--red); }
+.voice-panel--reality  .voice-panel-label { color: var(--gamber); }
+.voice-copy {
+  font-family: var(--s);
+  font-size: 15px;
+  line-height: 1.7;
+  font-weight: 300;
+}
+.voice-panel--official .voice-copy { color: var(--muted); }
+.voice-panel--reality  .voice-copy {
+  font-family: var(--t);
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: var(--gmuted);
+  line-height: 1.8;
+}
+.voice-copy strong {
+  color: var(--red);
+  font-weight: 500;
+}
+.voice-panel--reality .voice-copy strong {
+  color: var(--gamber);
+}
+.voice-copy em {
+  font-style: italic;
+  color: var(--text);
+}
+.voice-panel--official .voice-copy em { color: var(--text); }
+.voice-panel--reality  .voice-copy em  { color: var(--gtext); }
+.voice-rule {
+  font-family: var(--g);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.voice-panel--official .voice-rule { color: var(--faint); }
+.voice-panel--reality  .voice-rule { color: var(--g3); border-color: var(--g3); }
+
+/* ── UI PATTERNS ─────────────────────────────────────────── */
+#ui {
+  padding: 120px 80px;
+  background: var(--mist);
+  border-top: 1px solid var(--border);
+}
+.ui-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 60px;
+}
+.ui-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.ui-panel-header {
+  background: var(--white-hi);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ui-panel-title {
+  font-family: var(--g);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.ui-panel-badge {
+  font-family: var(--t);
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+.badge--ok    { background: #D4EFE0; color: var(--green); }
+.badge--warn  { background: #FFF3CD; color: #B88A00; }
+.badge--alert { background: #FFE8E8; color: var(--red); }
+.badge--info  { background: #D8EEF8; color: var(--blue-lo); }
+.ui-panel-body { padding: 16px; }
+.ui-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.ui-row:last-child { border-bottom: none; }
+.ui-row-key {
+  font-family: var(--s);
+  color: var(--muted);
+  font-weight: 300;
+}
+.ui-row-val {
+  font-family: var(--t);
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: var(--text);
+}
+.ui-row-val--ok    { color: var(--green); }
+.ui-row-val--warn  { color: #B88A00; }
+.ui-row-val--alert { color: var(--red); }
+
+/* Progress bars */
+.ui-progress {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ui-progress-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ui-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--s);
+}
+.ui-progress-label span:last-child {
+  font-family: var(--t);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+.ui-progress-track {
+  height: 4px;
+  background: var(--mist);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.ui-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+.fill--ok    { background: var(--green); }
+.fill--warn  { background: #E8B800; }
+.fill--alert { background: var(--red); }
+.fill--blue  { background: var(--blue); }
+
+/* Notification card */
+.ui-notification {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: var(--white-hi);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  margin-bottom: 8px;
+}
+.ui-notif-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  grid-template-columns: 9px 9px 9px;
+  grid-template-rows: 9px 9px 9px;
+  gap: 0;
+}
+.ui-notif-icon .cc { background: var(--red); }
+.ui-notif-icon .cx { background: transparent; }
+.ui-notif-body { display: flex; flex-direction: column; gap: 2px; }
+.ui-notif-title {
+  font-family: var(--g);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text);
+}
+.ui-notif-text {
+  font-family: var(--s);
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* ── THE LAYER ───────────────────────────────────────────── */
+#layer {
+  padding: 120px 80px;
+  background: var(--g1);
+  border-top: 4px solid var(--red);
+  position: relative;
+  overflow: hidden;
+}
+.layer-demo-wrap {
+  position: relative;
+  margin-top: 60px;
+}
+.layer-factory-bg {
+  background: var(--grime);
+  border: 1px solid var(--g3);
+  padding: 32px;
+  font-family: var(--t);
+  font-size: 15px;
+  letter-spacing: 2px;
+  color: var(--gmuted);
+  line-height: 2;
+  min-height: 300px;
+  position: relative;
+}
+.factory-node {
+  display: inline-block;
+  border: 1px solid var(--g4);
+  background: var(--g2);
+  padding: 6px 14px;
+  margin: 4px;
+  font-size: 13px;
+  color: var(--gamber);
+}
+.factory-node--green { border-color: var(--green); color: var(--green); }
+.factory-node--red   { border-color: var(--red); color: var(--red); }
+.factory-conn {
+  display: inline-block;
+  color: var(--g4);
+  margin: 0 4px;
+  font-size: 18px;
+}
+.pharma-overlay {
+  position: absolute;
+  top: 20px; right: 20px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--red);
+  padding: 16px 20px;
+  min-width: 200px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.pharma-overlay-title {
+  font-family: var(--g);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.pharma-overlay-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.pharma-overlay-stat:last-child { border-bottom: none; }
+.pharma-overlay-stat span:first-child { color: var(--muted); font-weight: 300; }
+.pharma-overlay-stat span:last-child  { font-family: var(--t); color: var(--green); letter-spacing: 1px; }
+
+/* Scanline overlay for reality sections */
+.scanline {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 5;
+}
+.scanline::after {
+  content: '';
+  position: absolute; left: 0; right: 0; height: 100px;
+  background: linear-gradient(transparent, rgba(196,154,42,0.03) 50%, transparent);
+  animation: scan-down 12s linear infinite;
+}
+@keyframes scan-down { from{top:-100px} to{top:100%} }
+
+/* ── MOTION ──────────────────────────────────────────────── */
+@keyframes fade-rise  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+@keyframes cross-in   { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes pulse-soft {
+  0%,100%{opacity:1}
+  50%{opacity:0.7}
+}
+@keyframes glitch-pass {
+  0%,93%,100%{transform:none;filter:none;opacity:1}
+  94%{transform:translateX(-3px);filter:hue-rotate(20deg)}
+  95%{transform:translateX(3px)}
+  96%{transform:translateX(-1px);filter:hue-rotate(-10deg);opacity:0.94}
+  97%{transform:none;filter:none;opacity:1}
+}
+
+/* Hero mascot entrance */
+.hth-mascot--hero { animation: glitch-pass 16s step-end infinite; }
+.hth-mascot--hero .cross-body  { opacity: 0; }
+.hth-mascot--hero .cross-shadow { opacity: 0; }
+.hth-mascot--hero .hth-wordmark { opacity: 0; }
+.hth-mascot--hero.drawn .cross-shadow { animation: cross-in 0.3s ease 0.05s both; }
+.hth-mascot--hero.drawn .cross-body   { animation: cross-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.15s both; }
+.hth-mascot--hero.drawn .hth-wordmark { animation: fade-rise 0.5s ease 0.45s both; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-mark">
+    <div class="nav-cross">
+      <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+      <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+      <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+    </div>
+    <div class="nav-wordmark">Here<br>To Help</div>
+  </div>
+  <a href="#identity"  class="nav-item active">Identity</a>
+  <a href="#mark"      class="nav-item">The Mark</a>
+  <a href="#colour"    class="nav-item">Colour</a>
+  <a href="#type"      class="nav-item">Typography</a>
+  <a href="#voice"     class="nav-item">Voice</a>
+  <a href="#ui"        class="nav-item">UI Patterns</a>
+  <a href="#layer"     class="nav-item">The Layer</a>
+  <div class="nav-foot">
+    HTH / BRAND SPEC<br>
+    UNCLASSIFIED<br>
+    REV 1.0
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- IDENTITY -->
+  <section id="identity">
+    <div class="hero-top-bar">
+      <span>HERE TO HELP — BRAND SYSTEM</span>
+      <span class="hero-stamp">FRANCHISE DIVISION</span>
+      <span>UNAWARE · UNTREATED · UNTIL NOW</span>
+    </div>
+
+    <div class="hero-main">
+      <div class="hth-mascot hth-mascot--hero" id="heroMascot">
+        <div class="cross-wrap">
+          <div class="cross-shadow">
+            <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+            <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+            <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+          </div>
+          <div class="cross-body">
+            <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+            <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+            <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+          </div>
+          <div class="cross-face">
+            <div class="cross-eyes">
+              <span class="cross-eye">T</span>
+              <span class="cross-eye">O</span>
+            </div>
+            <span class="cross-mouth">‿</span>
+          </div>
+        </div>
+        <div class="hth-wordmark hth-wordmark--hero">HERE <span>TO</span> HELP</div>
+      </div>
+
+      <p class="hero-tagline">
+        A <strong>STRATUM GROUP</strong> FRANCHISE OPERATION<br>
+        SERVING ALL KNOWN INHABITED SYSTEMS<br>
+        <strong>UNAWARE · UNTREATED · UNTIL NOW</strong>
+      </p>
+    </div>
+
+    <div class="hero-bottom-strip">
+      <span>PLANETARY HEALTH SERVICES · INDUSTRIAL LOGISTICS · COLONY WELLNESS</span>
+      <span>HTH-001</span>
+    </div>
+  </section>
+
+  <!-- THE MARK -->
+  <section id="mark">
+    <div class="mark-bg-text">HTH</div>
+    <div class="section-eyebrow">The Mark</div>
+    <h2 class="section-title">The Cross.<br>The Face. The Franchise.</h2>
+    <p class="section-body">The mascot is a sentient cross — a logo that gained awareness and decided, sincerely, to help. The face is not an addition. It is what the logo became. Always cheerful. Always present. Never self-aware.</p>
+
+    <div class="pull-quote">
+      "The cross does not <em>represent</em> help.<br>The cross <em>is</em> help. There is no distinction."
+    </div>
+
+    <!-- Scale showcase -->
+    <div style="margin-top: 80px;">
+      <p class="construction-label">Scale — All sizes, one mark</p>
+      <div class="mark-scale-row" style="margin-top: 28px;">
+        <div class="mark-instance">
+          <div class="hth-mascot hth-mascot--hero" style="animation:none;">
+            <div class="cross-wrap">
+              <div class="cross-shadow">
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+              </div>
+              <div class="cross-body">
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+              </div>
+              <div class="cross-face">
+                <div class="cross-eyes"><span class="cross-eye">T</span><span class="cross-eye">O</span></div>
+                <span class="cross-mouth">‿</span>
+              </div>
+            </div>
+          </div>
+          <div class="mark-instance-label">240PX — HERO</div>
+        </div>
+
+        <div class="mark-instance">
+          <div class="hth-mascot hth-mascot--display">
+            <div class="cross-wrap">
+              <div class="cross-shadow">
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+              </div>
+              <div class="cross-body">
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+              </div>
+              <div class="cross-face">
+                <div class="cross-eyes"><span class="cross-eye">T</span><span class="cross-eye">O</span></div>
+                <span class="cross-mouth">‿</span>
+              </div>
+            </div>
+          </div>
+          <div class="mark-instance-label">168PX — DISPLAY</div>
+        </div>
+
+        <div class="mark-instance">
+          <div class="hth-mascot hth-mascot--md">
+            <div class="cross-wrap">
+              <div class="cross-shadow">
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+              </div>
+              <div class="cross-body">
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+              </div>
+              <div class="cross-face">
+                <div class="cross-eyes"><span class="cross-eye">T</span><span class="cross-eye">O</span></div>
+                <span class="cross-mouth">‿</span>
+              </div>
+            </div>
+          </div>
+          <div class="mark-instance-label">96PX — MEDIUM</div>
+        </div>
+
+        <div class="mark-instance">
+          <div class="hth-mascot hth-mascot--sm">
+            <div class="cross-wrap">
+              <div class="cross-shadow">
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+              </div>
+              <div class="cross-body">
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+              </div>
+              <div class="cross-face">
+                <div class="cross-eyes"><span class="cross-eye">T</span><span class="cross-eye">O</span></div>
+                <span class="cross-mouth">‿</span>
+              </div>
+            </div>
+          </div>
+          <div class="mark-instance-label">54PX — SMALL</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- With wordmark -->
+    <div class="construction-diagram">
+      <div class="construction-panel">
+        <div class="construction-label">With Wordmark — Preferred lockup</div>
+        <div style="display:flex;flex-direction:column;gap:40px;margin-top:20px;">
+          <div style="display:flex;align-items:center;gap:24px;">
+            <div class="hth-mascot hth-mascot--md">
+              <div class="cross-wrap">
+                <div class="cross-shadow">
+                  <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                  <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                  <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                </div>
+                <div class="cross-body">
+                  <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                  <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                  <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                </div>
+                <div class="cross-face">
+                  <div class="cross-eyes"><span class="cross-eye">T</span><span class="cross-eye">O</span></div>
+                  <span class="cross-mouth">‿</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="hth-wordmark hth-wordmark--md">HERE <span>TO</span> HELP</div>
+              <div style="font-family:var(--t);font-size:12px;letter-spacing:3px;color:var(--muted);margin-top:4px;">A STRATUM GROUP FRANCHISE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="construction-panel">
+        <div class="construction-label">On dark surface</div>
+        <div class="mark-on-dark">
+          <div class="hth-mascot hth-mascot--md">
+            <div class="cross-wrap">
+              <div class="cross-shadow">
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+              </div>
+              <div class="cross-body">
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+                <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+                <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+              </div>
+              <div class="cross-face">
+                <div class="cross-eyes"><span class="cross-eye">T</span><span class="cross-eye">O</span></div>
+                <span class="cross-mouth">‿</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="hth-wordmark hth-wordmark--md" style="color:#F5F7FA;">HERE <span>TO</span> HELP</div>
+            <div style="font-family:var(--t);font-size:12px;letter-spacing:3px;color:var(--gmuted);margin-top:4px;">A STRATUM GROUP FRANCHISE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLOUR -->
+  <section id="colour">
+    <div class="colour-header">
+      <div class="section-eyebrow">Colour</div>
+      <h2 class="section-title">Two palettes.<br>One reality.</h2>
+      <p class="section-body">The pharma surface is clean, clinical, trustworthy. The factory floor underneath uses the Stratum amber-dark system. These palettes never mix on the same surface. The contrast is the message.</p>
+    </div>
+
+    <!-- Pharma palette -->
+    <div style="padding: 0 80px 8px;">
+      <div class="type-label">Pharma Surface</div>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">01</span>
+      <div class="colour-strip-swatch" style="background:#C8302A;"></div>
+      <span class="colour-strip-name">Treatment Red</span>
+      <span class="colour-strip-div">Primary — The cross, alerts, CTAs</span>
+      <span class="colour-strip-hex">#C8302A</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">02</span>
+      <div class="colour-strip-swatch" style="background:#4A9EC8;"></div>
+      <span class="colour-strip-name">Clinical Blue</span>
+      <span class="colour-strip-div">Secondary — Status, information</span>
+      <span class="colour-strip-hex">#4A9EC8</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">03</span>
+      <div class="colour-strip-swatch" style="background:#F5F7FA;border:1px solid #D4DCE8;"></div>
+      <span class="colour-strip-name">Clinic White</span>
+      <span class="colour-strip-div">Surface — panels, cards, overlays</span>
+      <span class="colour-strip-hex">#F5F7FA</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">04</span>
+      <div class="colour-strip-swatch" style="background:#3AAA6A;"></div>
+      <span class="colour-strip-name">Wellness Green</span>
+      <span class="colour-strip-div">Positive — healthy, resolved, ok</span>
+      <span class="colour-strip-hex">#3AAA6A</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">05</span>
+      <div class="colour-strip-swatch" style="background:#1C2333;"></div>
+      <span class="colour-strip-name">Night Ink</span>
+      <span class="colour-strip-div">Text — primary on light surfaces</span>
+      <span class="colour-strip-hex">#1C2333</span>
+    </div>
+
+    <!-- Reality layer palette -->
+    <div style="padding: 40px 80px 8px;">
+      <div class="type-label">Factory Floor (Stratum)</div>
+    </div>
+    <div class="colour-strip" style="background:var(--g1);">
+      <span class="colour-strip-index" style="color:var(--g4);">06</span>
+      <div class="colour-strip-swatch" style="background:#c49a2a;"></div>
+      <span class="colour-strip-name" style="color:var(--gtext);">Amber</span>
+      <span class="colour-strip-div" style="color:var(--gmuted);">Stratum primary — the factory layer</span>
+      <span class="colour-strip-hex" style="color:var(--gmuted);">#C49A2A</span>
+    </div>
+    <div class="colour-strip" style="background:var(--g1);">
+      <span class="colour-strip-index" style="color:var(--g4);">07</span>
+      <div class="colour-strip-swatch" style="background:#060805;border-color:var(--g3);"></div>
+      <span class="colour-strip-name" style="color:var(--gtext);">Grime Ink</span>
+      <span class="colour-strip-div" style="color:var(--gmuted);">Factory background</span>
+      <span class="colour-strip-hex" style="color:var(--gmuted);">#060805</span>
+    </div>
+
+    <!-- Colour grid -->
+    <div class="colour-grid">
+      <div class="colour-block" style="background:#C8302A;">
+        <span class="colour-block-label">RED</span>
+      </div>
+      <div class="colour-block" style="background:#E84040;">
+        <span class="colour-block-label">RED-HI</span>
+      </div>
+      <div class="colour-block" style="background:#8C1F1A;">
+        <span class="colour-block-label">RED-LO</span>
+      </div>
+      <div class="colour-block" style="background:#4A9EC8;">
+        <span class="colour-block-label">BLUE</span>
+      </div>
+      <div class="colour-block" style="background:#3AAA6A;">
+        <span class="colour-block-label">GREEN</span>
+      </div>
+      <div class="colour-block" style="background:#F5F7FA;">
+        <span class="colour-block-label colour-block-label--dark">WHITE</span>
+      </div>
+      <div class="colour-block" style="background:#1C2333;">
+        <span class="colour-block-label">INK</span>
+      </div>
+    </div>
+
+    <!-- Two-layer demo -->
+    <div class="two-layer-demo">
+      <div class="layer-pharma">
+        <div class="layer-label">PHARMA SURFACE</div>
+        <div class="layer-swatches">
+          <div class="layer-swatch" style="background:#C8302A;" title="Treatment Red"></div>
+          <div class="layer-swatch" style="background:#4A9EC8;" title="Clinical Blue"></div>
+          <div class="layer-swatch" style="background:#F5F7FA;border:1px solid #D4DCE8;" title="Clinic White"></div>
+          <div class="layer-swatch" style="background:#3AAA6A;" title="Wellness Green"></div>
+          <div class="layer-swatch" style="background:#1C2333;" title="Night Ink"></div>
+        </div>
+        <p class="layer-caption">Clean. Reassuring. Slightly too perfect. Lives in menus, overlays, mascot communications, and the colony health dashboard. Never touches raw production data.</p>
+      </div>
+      <div class="layer-reality">
+        <div class="layer-label">FACTORY FLOOR</div>
+        <div class="layer-swatches">
+          <div class="layer-swatch layer-swatch--dark-border" style="background:#c49a2a;" title="Amber"></div>
+          <div class="layer-swatch layer-swatch--dark-border" style="background:#060805;" title="Grime Ink"></div>
+          <div class="layer-swatch layer-swatch--dark-border" style="background:#181a14;" title="S2"></div>
+          <div class="layer-swatch layer-swatch--dark-border" style="background:#3a3c2e;" title="S4"></div>
+          <div class="layer-swatch layer-swatch--dark-border" style="background:#f0e8d8;" title="Text"></div>
+        </div>
+        <p class="layer-caption">THE CANVAS. WHERE WORK GETS DONE. AMBER PIPS AND GRIMY NODES. THE MASCOT DOES NOT LIVE HERE. ONLY NUMBERS.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TYPOGRAPHY -->
+  <section id="type">
+    <div class="section-eyebrow">Typography</div>
+    <h2 class="section-title">Three voices.<br>Three surfaces.</h2>
+    <p class="section-body">Each typeface is assigned to a surface layer. They never appear together on the same panel. When you see VT323, you are on the factory floor. When you see Inter, you are receiving communications from Here To Help.</p>
+
+    <div class="type-specimen-block">
+      <div class="type-label">ARCHIVO BLACK — CORPORATE HEADERS</div>
+      <div class="type-display">HERE TO <span>HELP</span></div>
+      <div class="type-display" style="color:var(--red);">TREATMENT</div>
+      <div class="type-meta">
+        <div class="type-meta-item">
+          <span class="type-meta-key">Usage</span>
+          <span class="type-meta-val">Section headers, the wordmark, UI labels, CTAs</span>
+        </div>
+        <div class="type-meta-item">
+          <span class="type-meta-key">Where</span>
+          <span class="type-meta-val">Pharma surface only — never on factory canvas</span>
+        </div>
+        <div class="type-meta-item">
+          <span class="type-meta-key">Weight</span>
+          <span class="type-meta-val">Black (900) only</span>
+        </div>
+        <div class="type-meta-item">
+          <span class="type-meta-key">Case</span>
+          <span class="type-meta-val">All caps for labels, title case for copy</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="type-specimen-block">
+      <div class="type-label">INTER — CLINICAL BODY COPY</div>
+      <div class="type-inter-display">
+        Colony <strong>Wellness Index</strong> has<br>
+        improved by <strong style="color:var(--green);">12%</strong> this cycle.
+      </div>
+      <div class="type-inter-display" style="font-size:clamp(16px,2vw,24px);color:var(--muted);">
+        Our franchise operations have reached 14 inhabited systems, delivering <strong>certified health improvements</strong> to over 2.4 million registered colonists. Results may vary. Not valid in restricted zones.
+      </div>
+      <div class="type-meta">
+        <div class="type-meta-item">
+          <span class="type-meta-key">Usage</span>
+          <span class="type-meta-val">Mascot communications, notifications, colony reports</span>
+        </div>
+        <div class="type-meta-item">
+          <span class="type-meta-key">Weights</span>
+          <span class="type-meta-val">300 (body), 400 (default), 500 (emphasis)</span>
+        </div>
+        <div class="type-meta-item">
+          <span class="type-meta-key">Tone</span>
+          <span class="type-meta-val">Warm, slightly bureaucratic, relentlessly positive</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="type-specimen-block">
+      <div class="type-label">VT323 — FACTORY FLOOR</div>
+      <div class="type-pixel-display">IRON ORE<span> ►</span> SMELTER</div>
+      <div class="type-pixel-display" style="color:var(--muted);font-size:clamp(20px,3vw,44px);">
+        EFFICIENCY: 0.87 · OUTPUT: 4.3/s · QUEUE: 12
+      </div>
+      <div class="type-meta">
+        <div class="type-meta-item">
+          <span class="type-meta-key">Usage</span>
+          <span class="type-meta-val">Production data, node labels, raw numbers, canvas UI</span>
+        </div>
+        <div class="type-meta-item">
+          <span class="type-meta-key">Where</span>
+          <span class="type-meta-val">Factory canvas only — never in pharma overlays</span>
+        </div>
+        <div class="type-meta-item">
+          <span class="type-meta-key">Tone</span>
+          <span class="type-meta-val">Neutral, mechanical, indifferent to outcomes</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VOICE -->
+  <section id="voice">
+    <div class="scanline"></div>
+    <div class="section-eyebrow" style="color:var(--faint);">Voice</div>
+    <h2 class="section-title" style="color:var(--white);">What Here To Help says.<br><span style="color:var(--gmuted);font-size:0.65em;">What is actually happening.</span></h2>
+    <p class="section-body" style="color:var(--gmuted);">The mascot is never sarcastic. It never acknowledges a gap between its language and reality. The gap is the player's discovery, not the mascot's confession.</p>
+
+    <div class="voice-grid">
+      <div class="voice-panel voice-panel--official">
+        <div class="voice-panel-label">Official Communications</div>
+        <p class="voice-copy">"Wonderful news! Colony Sector 7 has <strong>achieved Wellness Tier 2</strong>. Our certified logistics teams have successfully delivered 847 units of Processed Iron — a key ingredient in healthy infrastructure. <em>Keep building. We're here to help.</em>"</p>
+        <div class="voice-rule">MASCOT BROADCAST · CYCLE 14</div>
+      </div>
+      <div class="voice-panel voice-panel--reality">
+        <div class="voice-panel-label">Factory Floor</div>
+        <p class="voice-copy">IRON_ORE → SMELTER_01 → <strong>IRON_BAR</strong><br>OUTPUT: 4.3/s · EFFICIENCY: 0.87<br>COLONY DEMAND: 6.0/s<br>SHORTFALL: <strong>1.7/s</strong><br><em>SECTOR_7: CONSTRUCTION STALLED</em></p>
+        <div class="voice-rule">RAW TELEMETRY</div>
+      </div>
+
+      <div class="voice-panel voice-panel--official">
+        <div class="voice-panel-label">New Planet Arrival</div>
+        <p class="voice-copy">"Hello! I'm <strong>Here To Help</strong>. We've detected suboptimal resource utilisation on your planet. Don't worry — that's exactly what <em>we're here for</em>. Our franchise team will begin assessment immediately. Please continue your normal activities."</p>
+        <div class="voice-rule">MASCOT INTRODUCTION · PLANET ARRIVAL</div>
+      </div>
+      <div class="voice-panel voice-panel--reality">
+        <div class="voice-panel-label">What That Means</div>
+        <p class="voice-copy">NEW_PLANET: KETT-4<br>RESOURCES: COAL [RICH] · RARE_ORE [MODERATE]<br>COLONY: 2,100 INHABITANTS<br>CURRENT_EXPORTS: <strong>NONE</strong><br><em>FRANCHISE_TARGET: MAX EXTRACTION</em></p>
+        <div class="voice-rule">SCAN RESULTS · KETT-4</div>
+      </div>
+
+      <div class="voice-panel voice-panel--official">
+        <div class="voice-panel-label">Event — Crisis Response</div>
+        <p class="voice-copy">"We've detected an <strong>Unmet Wellness Event</strong> in progress. Our rapid response logistics are already mobilising. This is what we trained for. <em>Unaware. Untreated. Until now.</em>"</p>
+        <div class="voice-rule">MASCOT ALERT · PRIORITY 1</div>
+      </div>
+      <div class="voice-panel voice-panel--reality">
+        <div class="voice-panel-label">System Log</div>
+        <p class="voice-copy">!! OUTBREAK_DETECTED: SECTOR_3<br>MEDICINE STOCK: <strong>0 UNITS</strong><br>ASSEMBLER_02: IDLE [NO INPUT]<br>COAL_MINE: OFFLINE [UNFUELED]<br><em>AFFECTED: 340 COLONISTS</em></p>
+        <div class="voice-rule">SYSTEM LOG · CYCLE 31</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UI PATTERNS -->
+  <section id="ui">
+    <div class="section-eyebrow">UI Patterns</div>
+    <h2 class="section-title">Clinical surfaces.<br>Factory data.</h2>
+    <p class="section-body">Pharma panels float over the factory canvas. They are always white, bordered, and precise. They speak the mascot's language. They show only what Here To Help wants the player to see — until the player looks at the canvas underneath.</p>
+
+    <div class="ui-grid">
+
+      <!-- Colony Health Panel -->
+      <div class="ui-panel">
+        <div class="ui-panel-header">
+          <span class="ui-panel-title">Colony Wellness · Sector 4</span>
+          <span class="ui-panel-badge badge--ok">HEALTHY</span>
+        </div>
+        <div class="ui-panel-body">
+          <div class="ui-row">
+            <span class="ui-row-key">Population</span>
+            <span class="ui-row-val">1,840</span>
+          </div>
+          <div class="ui-row">
+            <span class="ui-row-key">Wellness Index</span>
+            <span class="ui-row-val ui-row-val--ok">87.4</span>
+          </div>
+          <div class="ui-row">
+            <span class="ui-row-key">Supply Status</span>
+            <span class="ui-row-val ui-row-val--ok">NOMINAL</span>
+          </div>
+          <div class="ui-row">
+            <span class="ui-row-key">Next Review</span>
+            <span class="ui-row-val">CYCLE 28</span>
+          </div>
+          <div class="ui-progress">
+            <div class="ui-progress-row">
+              <div class="ui-progress-label">
+                <span>Food Supply</span>
+                <span>94%</span>
+              </div>
+              <div class="ui-progress-track">
+                <div class="ui-progress-fill fill--ok" style="width:94%;"></div>
+              </div>
+            </div>
+            <div class="ui-progress-row">
+              <div class="ui-progress-label">
+                <span>Medicine</span>
+                <span>78%</span>
+              </div>
+              <div class="ui-progress-track">
+                <div class="ui-progress-fill fill--blue" style="width:78%;"></div>
+              </div>
+            </div>
+            <div class="ui-progress-row">
+              <div class="ui-progress-label">
+                <span>Housing Materials</span>
+                <span>62%</span>
+              </div>
+              <div class="ui-progress-track">
+                <div class="ui-progress-fill fill--warn" style="width:62%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert Panel -->
+      <div class="ui-panel">
+        <div class="ui-panel-header">
+          <span class="ui-panel-title">Active Situations</span>
+          <span class="ui-panel-badge badge--alert">2 OPEN</span>
+        </div>
+        <div class="ui-panel-body">
+          <div class="ui-notification">
+            <div class="ui-notif-icon">
+              <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+              <span class="cc"></span><span class="cc"></span><span class="cc"></span>
+              <span class="cx"></span><span class="cc"></span><span class="cx"></span>
+            </div>
+            <div class="ui-notif-body">
+              <div class="ui-notif-title">UNMET WELLNESS EVENT · SECTOR 7</div>
+              <div class="ui-notif-text">Medicine demand exceeds current supply. Here To Help is mobilising. Estimated resolution: 4 cycles.</div>
+            </div>
+          </div>
+          <div class="ui-notification" style="border-left-color: #B88A00;">
+            <div class="ui-notif-icon" style="display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:var(--g);font-size:16px;color:#B88A00;">!</span>
+            </div>
+            <div class="ui-notif-body">
+              <div class="ui-notif-title" style="color:#B88A00;">SUPPLY DELAY · IRON BARS</div>
+              <div class="ui-notif-text">Construction materials running below target. Colony expansion paused pending resupply.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Franchise Status -->
+      <div class="ui-panel">
+        <div class="ui-panel-header">
+          <span class="ui-panel-title">Franchise Status</span>
+          <span class="ui-panel-badge badge--info">TIER 2</span>
+        </div>
+        <div class="ui-panel-body">
+          <div class="ui-row">
+            <span class="ui-row-key">Planets Served</span>
+            <span class="ui-row-val">3</span>
+          </div>
+          <div class="ui-row">
+            <span class="ui-row-key">Total Colonists</span>
+            <span class="ui-row-val">5,240</span>
+          </div>
+          <div class="ui-row">
+            <span class="ui-row-key">Avg Wellness</span>
+            <span class="ui-row-val ui-row-val--warn">71.2</span>
+          </div>
+          <div class="ui-row">
+            <span class="ui-row-key">HTH Rating</span>
+            <span class="ui-row-val ui-row-val--ok">SATISFACTORY</span>
+          </div>
+          <div class="ui-progress" style="margin-top:16px;">
+            <div class="ui-progress-row">
+              <div class="ui-progress-label">
+                <span>Progress to Tier 3</span>
+                <span>44%</span>
+              </div>
+              <div class="ui-progress-track">
+                <div class="ui-progress-fill fill--blue" style="width:44%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- THE LAYER -->
+  <section id="layer">
+    <div class="scanline"></div>
+    <div class="section-eyebrow" style="color:var(--faint);">The Layer</div>
+    <h2 class="section-title" style="color:var(--gtext);">Pharma floats.<br>Factory endures.</h2>
+    <p class="section-body" style="color:var(--gmuted);">The Here To Help interface is an overlay. Below it, the production canvas runs exactly as it always has — amber nodes, grime backgrounds, VT323 readouts. The clinical surface never replaces the factory. It annotates it.</p>
+
+    <div class="pull-quote" style="border-left-color:var(--red);color:var(--gmuted);">
+      "The mascot does not <em style="color:var(--gamber);">see</em> the canvas.<br>It only reads the reports."
+    </div>
+
+    <div class="layer-demo-wrap">
+      <div class="layer-factory-bg">
+        <div style="margin-bottom:16px;color:var(--g4);">// PLANET: KETT-4 · CYCLE 22 · PRODUCTION LOG</div>
+        <div>
+          <span class="factory-node">COAL MINE</span>
+          <span class="factory-conn">→</span>
+          <span class="factory-node factory-node--green">SMELTER 01</span>
+          <span class="factory-conn">→</span>
+          <span class="factory-node factory-node--green">IRON BAR</span>
+          <span class="factory-conn">→</span>
+          <span class="factory-node">ASSEMBLER</span>
+        </div>
+        <div style="margin-top:12px;">
+          <span class="factory-node factory-node--red">COPPER MINE ✗</span>
+          <span class="factory-conn">→</span>
+          <span class="factory-node" style="opacity:0.4;">SMELTER 02</span>
+          <span class="factory-conn" style="opacity:0.3;">→</span>
+          <span class="factory-node" style="opacity:0.3;">COPPER BAR</span>
+        </div>
+        <div style="margin-top:20px;color:var(--g4);font-size:13px;">
+          EFFICIENCY: 0.61 &nbsp;·&nbsp; TOTAL OUTPUT: 2.1/s &nbsp;·&nbsp; DEMAND: 4.8/s &nbsp;·&nbsp; SHORTFALL: 2.7/s
+        </div>
+
+        <!-- Pharma overlay floating on top -->
+        <div class="pharma-overlay">
+          <div class="pharma-overlay-title">
+            <div style="display:inline-grid;grid-template-columns:5px 5px 5px;grid-template-rows:5px 5px 5px;gap:0;vertical-align:middle;margin-right:6px;">
+              <span></span><span style="background:var(--red);display:block;"></span><span></span>
+              <span style="background:var(--red);display:block;"></span><span style="background:var(--red);display:block;"></span><span style="background:var(--red);display:block;"></span>
+              <span></span><span style="background:var(--red);display:block;"></span><span></span>
+            </div>
+            COLONY WELLNESS REPORT
+          </div>
+          <div class="pharma-overlay-stat">
+            <span>Wellness Index</span>
+            <span style="color:#B88A00;">61.4</span>
+          </div>
+          <div class="pharma-overlay-stat">
+            <span>Supply Rating</span>
+            <span style="color:#B88A00;">MODERATE</span>
+          </div>
+          <div class="pharma-overlay-stat">
+            <span>HTH Assessment</span>
+            <span>IMPROVING</span>
+          </div>
+          <div style="font-family:var(--s);font-size:10px;color:var(--muted);margin-top:12px;line-height:1.5;font-weight:300;">
+            "We're making great progress!<br>Keep it up — we're here to help."
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// Entrance animation
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('heroMascot').classList.add('drawn')
+  }, 300)
+})
+
+// Active nav highlight
+const sections = document.querySelectorAll('section[id]')
+const navItems = document.querySelectorAll('.nav-item')
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'))
+      const active = document.querySelector(`.nav-item[href="#${e.target.id}"]`)
+      if (active) active.classList.add('active')
+    }
+  })
+}, { threshold: 0.3 })
+sections.forEach(s => observer.observe(s))
+</script>
+
+</body>
+</html>

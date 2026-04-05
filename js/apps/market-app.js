@@ -246,8 +246,8 @@ class MarketApp extends App {
             const basePrice = MARKET_BASE_PRICES[res];
             const curPrice  = mm ? mm.getPrice(res) : basePrice;
             const pct       = Math.round(((curPrice - basePrice) / basePrice) * 100);
-            const pctClass  = pct >= 0 ? 'tr-pct-high' : 'tr-pct-low';
-            const symbol    = pct >= 0 ? '▲' : '▼';
+            const direction = pct > 2 ? 'up' : pct < -2 ? 'down' : 'flat';
+            const symbol    = direction === 'up' ? '▲' : direction === 'down' ? '▼' : '→';
             const pctStr    = `${pct >= 0 ? '+' : ''}${pct}%`;
 
             const tr = document.createElement('tr');
@@ -255,10 +255,10 @@ class MarketApp extends App {
             tr.dataset.resource = res;
             tr.style.cursor = 'pointer';
             tr.innerHTML = `
-                <td class="tr-resource">${resName}</td>
-                <td class="tr-price">${basePrice} CR/U</td>
-                <td class="tr-price">${curPrice} CR/U</td>
-                <td class="${pctClass}">${symbol} ${pctStr}</td>`;
+                <td class="tr-resource tr-resource--editorial">${resName}</td>
+                <td class="tr-price tr-price--flat" data-field="base">${basePrice}</td>
+                <td class="tr-price tr-price--${direction} val-flash" data-field="cur">${curPrice}</td>
+                <td class="tr-pct-${direction === 'up' ? 'high' : direction === 'down' ? 'low' : 'flat'} val-flash">${symbol} ${pctStr}</td>`;
             tr.addEventListener('click', () => {
                 this._selectedChartResource = res;
                 tbody.querySelectorAll('tr').forEach(r => r.classList.remove('trader-row--selected'));
@@ -305,6 +305,8 @@ class MarketApp extends App {
 
         const mm = this._mm();
         const history = mm ? mm.getPriceHistory(resourceKey) : [];
+        const resDef = RESOURCES[resourceKey];
+        const resColor = resDef?.color || '#c49a2a';
 
         if (history.length < 2) {
             ctx.fillStyle = '#3a3020';
@@ -313,7 +315,6 @@ class MarketApp extends App {
             ctx.fillText('AWAITING DATA', w / 2, h / 2);
             // Still update the label
             const labelEl = this._root?.querySelector('#market-chart-label');
-            const resDef = RESOURCES[resourceKey];
             if (labelEl) labelEl.textContent = resDef ? resDef.name.toUpperCase() : resourceKey;
             return;
         }
@@ -326,18 +327,18 @@ class MarketApp extends App {
         const toY = p => h - 8 - ((p - min) / range) * (h - 16);
         const toX = i => 4 + (i / (history.length - 1)) * (w - 8);
 
-        // Glow line
+        // Glow pass (6px wide, 12% opacity of resource colour)
         ctx.beginPath();
-        ctx.strokeStyle = 'rgba(196, 154, 42, 0.15)';
-        ctx.lineWidth = 4;
+        ctx.strokeStyle = resColor + '1f'; // ~12% opacity
+        ctx.lineWidth = 6;
         history.forEach((p, i) => {
             i === 0 ? ctx.moveTo(toX(i), toY(p.price)) : ctx.lineTo(toX(i), toY(p.price));
         });
         ctx.stroke();
 
-        // Main line
+        // Main line in resource colour
         ctx.beginPath();
-        ctx.strokeStyle = '#c49a2a';
+        ctx.strokeStyle = resColor;
         ctx.lineWidth = 1.5;
         history.forEach((p, i) => {
             i === 0 ? ctx.moveTo(toX(i), toY(p.price)) : ctx.lineTo(toX(i), toY(p.price));
@@ -346,7 +347,7 @@ class MarketApp extends App {
 
         // Latest point dot
         const last = history[history.length - 1];
-        ctx.fillStyle = '#e8c050';
+        ctx.fillStyle = resColor;
         ctx.beginPath();
         ctx.arc(toX(history.length - 1), toY(last.price), 3, 0, Math.PI * 2);
         ctx.fill();
@@ -354,7 +355,6 @@ class MarketApp extends App {
         // Update header
         const labelEl = this._root?.querySelector('#market-chart-label');
         const priceEl = this._root?.querySelector('#market-chart-price');
-        const resDef = RESOURCES[resourceKey];
         if (labelEl) labelEl.textContent = resDef ? resDef.name.toUpperCase() : resourceKey;
         if (priceEl) priceEl.textContent = `${formatNumber(last.price)} CR/U`;
     }

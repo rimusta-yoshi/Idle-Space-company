@@ -732,8 +732,22 @@ class FactoryNode {
         return this.y + this.calcHeight() / 2;
     }
 
-    addToLayer(layer) {
+    addToLayer(layer, animate = false) {
         layer.add(this.group);
+
+        if (animate) {
+            // Bar-extend: tierStripe draws left-to-right over 400ms
+            this.tierStripe.width(0);
+            this.tierStripe.to({ duration: 0.4, width: 4, easing: Konva.Easings.EaseOut });
+
+            // Brief header glow flash
+            this.headerTint.opacity(0.3);
+            this.headerTint.to({
+                duration: 0.5,
+                opacity: 0.06,
+                easing: Konva.Easings.EaseOut
+            });
+        }
     }
 
     removeFromLayer() {

@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STRATUM GROUP — Brand Exploration</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --amber:   #c49a2a;
+  --amber-hi:#e8c840;
+  --steel:   #6088a0;
+  --orange:  #e07030;
+  --green:   #18a050;
+  --red:     #c83020;
+  --teal:    #20a0c0;
+  --cobalt:  #4068d0;
+  --lime:    #90c010;
+  --purple:  #8840c0;
+
+  --ink:     #060805;
+  --s1:      #0d0f0b;
+  --s2:      #181a14;
+  --s3:      #242620;
+  --s4:      #3a3c2e;
+  --text:    #f0e8d8;
+  --muted:   #9a8b72;
+  --faint:   #3a3020;
+
+  --doc-bg:  #f2ead4;
+  --doc-ink: #18160e;
+
+  --g: 'Archivo Black', sans-serif;
+  --s: 'Playfair Display', Georgia, serif;
+  --t: 'VT323', monospace;
+
+  --nav-w: 200px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--s);
+  font-size: 18px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* NAV */
+.nav {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: var(--nav-w);
+  background: var(--ink);
+  border-right: 1px solid var(--s3);
+  padding: 40px 28px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.nav-mark {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 40px;
+}
+.nav-bar { height: 4px; background: var(--amber); }
+.nav-bar:nth-child(1) { width: 100%; }
+.nav-bar:nth-child(2) { width: 70%; }
+.nav-bar:nth-child(3) { width: 42%; }
+.nav-wordmark {
+  font-family: var(--t);
+  font-size: 15px;
+  letter-spacing: 4px;
+  color: var(--amber);
+  margin-top: 10px;
+}
+.nav-item {
+  font-family: var(--g);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 7px 0 7px 12px;
+  border-left: 2px solid transparent;
+  display: block;
+  transition: color 0.1s, border-color 0.1s;
+}
+.nav-item:hover { color: var(--text); }
+.nav-item.active { color: var(--amber); border-left-color: var(--amber); }
+.nav-foot {
+  margin-top: auto;
+  font-family: var(--t);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--faint);
+  line-height: 2;
+  border-top: 1px solid var(--s3);
+  padding-top: 20px;
+}
+
+/* MAIN */
+.main { margin-left: var(--nav-w); }
+
+/* HERO */
+#identity {
+  min-height: 100vh;
+  background: var(--ink);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+.hero-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40px 60px;
+  font-family: var(--t);
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--faint);
+}
+.hero-stamp {
+  border: 1px solid var(--faint);
+  padding: 3px 12px;
+  letter-spacing: 4px;
+}
+.hero-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 48px;
+}
+.hero-tagline {
+  font-family: var(--t);
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--faint);
+  text-align: center;
+  line-height: 2.2;
+}
+.hero-bottom-strip {
+  background: var(--amber);
+  padding: 10px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--g);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+/* LOGO LOCKUP — Concept C */
+.logo-lockup {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.logo-name {
+  font-family: var(--g);
+  color: var(--amber);
+  white-space: nowrap;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.logo-bars {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+.logo-bar { background: var(--amber); display: block; }
+.logo-bar:nth-child(1) { width: 100%; }
+.logo-bar:nth-child(2) { width: 70%; }
+.logo-bar:nth-child(3) { width: 42%; }
+.logo-qualifier {
+  font-family: var(--g);
+  color: var(--muted);
+  text-transform: uppercase;
+  text-align: right;
+  align-self: stretch;
+}
+
+/* Hero scale */
+.logo-lockup--hero .logo-name    { font-size: clamp(72px, 10vw, 140px); }
+.logo-lockup--hero .logo-bars    { gap: 9px; margin-top: 14px; }
+.logo-lockup--hero .logo-bar     { height: 8px; box-shadow: 0 0 18px rgba(196,154,42,0.4); }
+.logo-lockup--hero .logo-qualifier { font-size: 14px; letter-spacing: 0.55em; margin-top: 9px; }
+
+/* Display scale (mark section) */
+.logo-lockup--display .logo-name    { font-size: 80px; }
+.logo-lockup--display .logo-bars    { gap: 7px; margin-top: 12px; }
+.logo-lockup--display .logo-bar     { height: 7px; }
+.logo-lockup--display .logo-qualifier { font-size: 12px; letter-spacing: 0.45em; margin-top: 8px; }
+
+/* Medium scale */
+.logo-lockup--md .logo-name    { font-size: 32px; }
+.logo-lockup--md .logo-bars    { gap: 4px; margin-top: 7px; }
+.logo-lockup--md .logo-bar     { height: 4px; }
+.logo-lockup--md .logo-qualifier { font-size: 8px; letter-spacing: 0.35em; margin-top: 5px; }
+
+/* Small scale */
+.logo-lockup--sm .logo-name    { font-size: 17px; }
+.logo-lockup--sm .logo-bars    { gap: 3px; margin-top: 5px; }
+.logo-lockup--sm .logo-bar     { height: 2px; }
+.logo-lockup--sm .logo-qualifier { font-size: 7px; letter-spacing: 0.3em; margin-top: 3px; }
+
+/* Mark showcase */
+.mark-lockup-showcase {
+  display: flex;
+  align-items: flex-end;
+  gap: 80px;
+  flex-wrap: wrap;
+  margin-bottom: 60px;
+}
+.mark-showcase-item {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* SHARED SECTION ELEMENTS */
+.section-eyebrow {
+  font-family: var(--t);
+  font-size: 14px;
+  letter-spacing: 4px;
+  color: var(--amber);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-family: var(--g);
+  font-size: clamp(32px, 4vw, 54px);
+  color: var(--text);
+  line-height: 1.05;
+  margin-bottom: 24px;
+  letter-spacing: -0.01em;
+}
+.section-body {
+  font-family: var(--s);
+  font-size: 18px;
+  line-height: 1.75;
+  color: var(--muted);
+  max-width: 540px;
+  margin-bottom: 60px;
+}
+.pull-quote {
+  font-family: var(--s);
+  font-size: clamp(22px, 3vw, 38px);
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.3;
+  border-left: 4px solid var(--amber);
+  padding-left: 32px;
+  max-width: 680px;
+  margin-top: 60px;
+}
+.pull-quote em { color: var(--amber); font-style: normal; }
+
+/* THE MARK */
+#mark {
+  padding: 120px 80px;
+  background: var(--s1);
+  position: relative;
+  overflow: hidden;
+}
+.mark-bg-text {
+  font-family: var(--g);
+  font-size: 30vw;
+  line-height: 1;
+  color: var(--s2);
+  position: absolute;
+  right: -20px;
+  bottom: 20px;
+  pointer-events: none;
+  letter-spacing: -0.03em;
+}
+.mark-scale-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 60px;
+  flex-wrap: wrap;
+  margin-bottom: 60px;
+}
+.mark-instance { display: flex; flex-direction: column; gap: 4px; }
+.mark-instance-bars { display: flex; flex-direction: column; gap: 3px; }
+.mi-bar { background: var(--amber); height: 3px; }
+.mark-instance--sm .mi-bar { height: 2px; }
+.mark-instance--lg .mi-bar { height: 8px; }
+.mark-instance--xl .mi-bar { height: 14px; }
+.mark-instance--sm .mi-bar:nth-child(1) { width: 32px; }
+.mark-instance--sm .mi-bar:nth-child(2) { width: 22px; }
+.mark-instance--sm .mi-bar:nth-child(3) { width: 14px; }
+.mark-instance--md .mi-bar:nth-child(1) { width: 80px; }
+.mark-instance--md .mi-bar:nth-child(2) { width: 56px; }
+.mark-instance--md .mi-bar:nth-child(3) { width: 34px; }
+.mark-instance--lg .mi-bar:nth-child(1) { width: 160px; }
+.mark-instance--lg .mi-bar:nth-child(2) { width: 112px; }
+.mark-instance--lg .mi-bar:nth-child(3) { width: 67px; }
+.mark-instance--xl .mi-bar:nth-child(1) { width: 280px; }
+.mark-instance--xl .mi-bar:nth-child(2) { width: 196px; }
+.mark-instance--xl .mi-bar:nth-child(3) { width: 118px; }
+.mark-instance-label {
+  font-family: var(--t);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.mark-ratio-block {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+  max-width: 400px;
+  margin-top: 40px;
+}
+.ratio-col { background: var(--amber); }
+.ratio-col:nth-child(1) { width: 100px; height: 60px; }
+.ratio-col:nth-child(2) { width: 70px;  height: 42px; }
+.ratio-col:nth-child(3) { width: 42px;  height: 25px; }
+.ratio-label {
+  font-family: var(--t);
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-top: 12px;
+}
+
+/* COLOUR */
+#colour { padding: 80px 0 0; background: var(--ink); }
+.colour-header { padding: 0 80px 60px; }
+.colour-strip {
+  display: flex;
+  align-items: center;
+  padding: 0 80px;
+  height: 72px;
+  gap: 28px;
+  border-top: 1px solid var(--s3);
+  transition: height 0.2s;
+}
+.colour-strip:hover { height: 96px; }
+.colour-strip:last-of-type { border-bottom: 1px solid var(--s3); }
+.colour-strip-index {
+  font-family: var(--g);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--faint);
+  width: 24px;
+  flex-shrink: 0;
+}
+.colour-strip-swatch { width: 36px; height: 36px; flex-shrink: 0; }
+.colour-strip-name {
+  font-family: var(--g);
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: var(--text);
+  flex: 1;
+}
+.colour-strip-div {
+  font-family: var(--s);
+  font-size: 15px;
+  font-style: italic;
+  color: var(--muted);
+}
+.colour-strip-hex {
+  font-family: var(--t);
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  width: 100px;
+  text-align: right;
+}
+.colour-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  height: 110px;
+  margin-top: 60px;
+}
+.colour-block {
+  display: flex;
+  align-items: flex-end;
+  padding: 8px 10px;
+}
+.colour-block-label {
+  font-family: var(--g);
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: rgba(0,0,0,0.45);
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+/* TYPOGRAPHY */
+#type {
+  padding: 120px 80px;
+  background: var(--s1);
+  overflow: hidden;
+}
+.type-specimen-block {
+  margin-bottom: 80px;
+  padding-bottom: 80px;
+  border-bottom: 1px solid var(--s3);
+}
+.type-specimen-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.type-label {
+  font-family: var(--t);
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--amber);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.type-label::after { content: ''; flex: 1; height: 1px; background: var(--s4); }
+.type-display {
+  font-family: var(--g);
+  font-size: clamp(60px, 12vw, 156px);
+  line-height: 0.88;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  white-space: nowrap;
+  margin-bottom: 16px;
+}
+.type-display span { color: var(--amber); }
+.type-serif-display {
+  font-family: var(--s);
+  font-size: clamp(36px, 5.5vw, 76px);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: 24px;
+}
+.type-serif-body {
+  font-family: var(--s);
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--muted);
+  max-width: 600px;
+  columns: 2;
+  column-gap: 40px;
+}
+.type-terminal-samples { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.tts { font-family: var(--t); color: var(--amber); letter-spacing: 3px; }
+.tts-1 { font-size: 36px; }
+.tts-2 { font-size: 22px; color: var(--muted); }
+.tts-3 { font-size: 15px; color: var(--s4); }
+.type-note {
+  font-family: var(--s);
+  font-size: 15px;
+  font-style: italic;
+  color: var(--muted);
+  max-width: 480px;
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+/* VOICE */
+#voice { background: var(--ink); }
+.voice-panel {
+  padding: 100px 80px;
+  border-bottom: 1px solid var(--s3);
+  position: relative;
+  overflow: hidden;
+}
+.voice-panel--amber { background: var(--amber); }
+.voice-panel--amber .voice-quote { color: var(--ink); }
+.voice-panel--amber .voice-attr { color: rgba(0,0,0,0.45); }
+.voice-panel--amber .voice-bg-num { color: rgba(0,0,0,0.08); }
+.voice-bg-num {
+  font-family: var(--g);
+  font-size: 40vw;
+  line-height: 0.8;
+  color: var(--s2);
+  position: absolute;
+  right: -40px;
+  top: -60px;
+  pointer-events: none;
+  letter-spacing: -0.04em;
+}
+.voice-quote {
+  font-family: var(--s);
+  font-size: clamp(22px, 3.5vw, 46px);
+  font-style: italic;
+  line-height: 1.3;
+  color: var(--text);
+  max-width: 820px;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 32px;
+}
+.voice-attr {
+  font-family: var(--t);
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  position: relative;
+  z-index: 1;
+}
+
+/* SURFACES */
+#surfaces { padding: 120px 80px; background: var(--s1); }
+.surfaces-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px;
+  margin-top: 60px;
+}
+.surface-panel {
+  padding: 40px;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+}
+.surface-terminal { background: var(--ink); border: 1px solid var(--s4); }
+.surface-doc { background: var(--doc-bg); color: var(--doc-ink); }
+.surface-signal { background: var(--s2); }
+.surface-label {
+  font-family: var(--g);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid currentColor;
+  opacity: 0.35;
+}
+.term-line {
+  font-family: var(--t);
+  font-size: 15px;
+  letter-spacing: 2px;
+  color: var(--amber);
+  line-height: 1.7;
+}
+.term-line--dim  { color: var(--muted); }
+.term-line--ok   { color: var(--lime); }
+.term-line--warn { color: var(--orange); }
+.term-line--err  { color: var(--red); }
+.term-cursor {
+  display: inline-block;
+  width: 9px; height: 16px;
+  background: var(--amber);
+  vertical-align: middle;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.doc-classification {
+  font-family: var(--t);
+  font-size: 11px;
+  letter-spacing: 4px;
+  border: 1px solid var(--doc-ink);
+  padding: 2px 8px;
+  display: inline-block;
+  margin-bottom: 24px;
+  opacity: 0.4;
+}
+.doc-heading {
+  font-family: var(--g);
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.doc-body {
+  font-family: var(--s);
+  font-size: 13px;
+  line-height: 1.7;
+  color: #3a3020;
+  margin-bottom: 16px;
+}
+.doc-rule { height: 1px; background: #c8bea0; margin: 16px 0; }
+.doc-stamp {
+  font-family: var(--t);
+  font-size: 22px;
+  letter-spacing: 6px;
+  color: #c43020;
+  border: 2px solid #c43020;
+  padding: 4px 12px;
+  display: inline-block;
+  opacity: 0.65;
+  transform: rotate(-3deg);
+  margin-top: auto;
+  align-self: flex-start;
+}
+.signal-title {
+  font-family: var(--g);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--teal);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+.signal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--s3);
+}
+.signal-row-name { font-family: var(--s); font-size: 14px; font-style: italic; color: var(--muted); }
+.signal-row-val { font-family: var(--t); font-size: 18px; letter-spacing: 1px; }
+.signal-row-val--up   { color: var(--lime); }
+.signal-row-val--down { color: var(--red); }
+.signal-row-val--flat { color: var(--amber); }
+
+/* DIVISIONS */
+#divisions { background: var(--ink); }
+.div-intro { padding: 120px 80px 60px; }
+.division-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+.division-panel {
+  aspect-ratio: 1 / 1.1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.div-num {
+  font-family: var(--g);
+  font-size: 90px;
+  line-height: 1;
+  color: rgba(0,0,0,0.15);
+  position: absolute;
+  top: 8px; right: 12px;
+  letter-spacing: -4px;
+}
+.div-icon {
+  font-family: var(--t);
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 36px;
+  position: relative;
+  z-index: 1;
+}
+.div-name {
+  font-family: var(--g);
+  font-size: 15px;
+  letter-spacing: 2px;
+  color: white;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+}
+.div-code {
+  font-family: var(--t);
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+/* IN MOTION */
+#motion { padding: 120px 80px; background: var(--s1); }
+.motion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px;
+  margin-top: 60px;
+}
+.motion-panel {
+  background: var(--ink);
+  border: 1px solid var(--s3);
+  padding: 40px;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+.motion-label {
+  font-family: var(--g);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--amber);
+  margin-bottom: 32px;
+  text-transform: uppercase;
+}
+.boot-lines { display: flex; flex-direction: column; gap: 6px; }
+.boot-line {
+  font-family: var(--t);
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  opacity: 0;
+  animation: boot-in 0.3s ease forwards;
+}
+.boot-line.ok  { color: var(--lime); }
+.boot-line.err { color: var(--red); }
+@keyframes boot-in { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:none} }
+.tier-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 14px;
+}
+.tier-badge {
+  font-family: var(--g);
+  font-size: 72px;
+  color: var(--amber);
+  animation: tier-pulse 2.5s ease-in-out infinite;
+}
+@keyframes tier-pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.5; text-shadow: 0 0 40px rgba(196,154,42,0.7); }
+}
+.tier-label { font-family: var(--t); font-size: 14px; letter-spacing: 4px; color: var(--muted); }
+.vu-wrap {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  height: 100px;
+  margin-top: auto;
+}
+.vu-col { flex: 1; display: flex; flex-direction: column-reverse; gap: 2px; }
+.vu-seg { height: 9px; background: var(--s3); transition: background 0.12s; }
+.vu-seg.on      { background: var(--lime); }
+.vu-seg.on.warn { background: var(--amber); }
+.vu-seg.on.dang { background: var(--red); }
+
+/* ── MOTION SYSTEM ────────────────────────────────────────── */
+
+@keyframes bar-extend    { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+@keyframes clip-up       { from{clip-path:inset(0 0 100% 0)} to{clip-path:inset(0 0 0% 0)} }
+@keyframes fade-rise     { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+@keyframes scan-down     { from{top:-120px} to{top:100%} }
+@keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+@keyframes num-drift     { from{transform:translateY(0)} to{transform:translateY(-16px)} }
+@keyframes val-flash     { 0%,100%{opacity:1} 40%{opacity:0.15} }
+@keyframes ratio-rise    { from{transform:scaleY(0)} to{transform:scaleY(1)} }
+@keyframes glitch-pass {
+  0%,91%,100%{transform:none;filter:none;opacity:1}
+  92%{transform:translateX(-4px) skewX(-0.5deg);filter:hue-rotate(25deg)}
+  93%{transform:translateX(4px)}
+  94%{transform:translateX(-2px);filter:hue-rotate(-15deg);opacity:0.92}
+  95%{transform:none;filter:none;opacity:1}
+  96%{transform:translateX(2px)}
+  97%{transform:none}
+}
+
+/* Hero logo entrance (JS adds .drawn) */
+.logo-lockup--hero { animation: glitch-pass 14s step-end infinite; }
+.logo-lockup--hero .logo-name    { opacity:0; }
+.logo-lockup--hero .logo-bar     { transform-origin:left center; transform:scaleX(0); }
+.logo-lockup--hero .logo-qualifier{ opacity:0; }
+.logo-lockup--hero.drawn .logo-name     { animation:fade-rise 0.35s ease 0.05s both; }
+.logo-lockup--hero.drawn .logo-bar      { animation:bar-extend 0.55s cubic-bezier(0.16,1,0.3,1) 0.3s both; }
+.logo-lockup--hero.drawn .logo-bar:nth-child(2){ animation-delay:0.42s; }
+.logo-lockup--hero.drawn .logo-bar:nth-child(3){ animation-delay:0.54s; }
+.logo-lockup--hero.drawn .logo-qualifier{ animation:fade-rise 0.4s ease 0.72s both; }
+
+/* Scanline overlay */
+#identity { position:relative; }
+.scanline-overlay {
+  position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:5;
+}
+.scanline-overlay::after {
+  content:'';
+  position:absolute; left:0; right:0; height:120px;
+  background:linear-gradient(transparent,rgba(196,154,42,0.04) 50%,transparent);
+  animation:scan-down 9s linear infinite;
+}
+
+/* Oscilloscope */
+.oscillo-wrap { padding:0 60px 0; }
+#oscillo { display:block; width:100%; height:52px; }
+
+/* Ticker */
+.ticker-wrap {
+  display:flex; align-items:stretch;
+  background:var(--ink);
+  border-top:1px solid var(--amber);
+  border-bottom:1px solid var(--s3);
+  height:48px; overflow:hidden;
+}
+.ticker-label {
+  font-family:var(--t); font-size:15px; letter-spacing:4px;
+  color:var(--amber); background:var(--s3);
+  padding:0 20px; border-right:1px solid var(--amber);
+  display:flex; align-items:center; gap:10px;
+  flex-shrink:0; white-space:nowrap;
+}
+.ticker-live-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:var(--lime);
+  animation:live-pulse 1.4s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%,100%{opacity:1;box-shadow:0 0 0 rgba(144,192,16,0)}
+  50%{opacity:0.4;box-shadow:0 0 6px rgba(144,192,16,0.6)}
+}
+.ticker-scroll {
+  flex:1; overflow:hidden; display:flex; align-items:center;
+}
+.ticker-track {
+  display:inline-flex; white-space:nowrap; align-items:center;
+  animation:ticker-scroll 36s linear infinite;
+}
+.ticker-item {
+  font-family:var(--t); font-size:17px; letter-spacing:2px;
+  color:var(--muted); padding:0 28px; flex-shrink:0;
+  display:inline-flex; align-items:center; gap:10px;
+}
+.ticker-item + .ticker-item::before {
+  content:'·'; color:var(--s4); margin-right:0; position:relative; left:-14px;
+}
+.ticker-item .t-name { font-size:13px; letter-spacing:3px; color:var(--muted); }
+.ticker-item .t-val  { font-size:19px; }
+.ticker-item .up  { color:var(--lime); }
+.ticker-item .dn  { color:var(--red); }
+.ticker-item .flat{ color:var(--amber); }
+
+/* Scroll reveal */
+.sr  { opacity:0; transform:translateY(16px); transition:opacity 0.6s ease,transform 0.6s ease; }
+.sr-l{ opacity:0; transform:translateX(-16px);transition:opacity 0.5s ease,transform 0.5s ease; }
+.sr.in,.sr-l.in { opacity:1; transform:none; }
+
+/* Colour strip reveal */
+.colour-strip-swatch {
+  transform-origin:left; transform:scaleX(0);
+  transition:transform 0.45s cubic-bezier(0.16,1,0.3,1);
+}
+.colour-strip-name,.colour-strip-div,.colour-strip-hex { opacity:0; transition:opacity 0.35s; }
+.colour-strip.in .colour-strip-swatch { transform:scaleX(1); }
+.colour-strip.in .colour-strip-name { opacity:1; transition-delay:0.18s; }
+.colour-strip.in .colour-strip-div  { opacity:1; transition-delay:0.26s; }
+.colour-strip.in .colour-strip-hex  { opacity:1; transition-delay:0.32s; }
+
+/* Ratio bars */
+.ratio-col { transform-origin:bottom; transform:scaleY(0); transition:transform 0.5s cubic-bezier(0.16,1,0.3,1); }
+.ratio-col.in { transform:scaleY(1); }
+.ratio-col:nth-child(2){ transition-delay:0.1s; }
+.ratio-col:nth-child(3){ transition-delay:0.2s; }
+
+/* Mark lockup draw-in on scroll */
+.mark-showcase-item .logo-bar { transform-origin:left center; transform:scaleX(0); transition:transform 0.5s cubic-bezier(0.16,1,0.3,1); }
+.mark-showcase-item .logo-name,.mark-showcase-item .logo-qualifier { opacity:0; transition:opacity 0.4s; }
+.mark-showcase-item.in .logo-bar     { transform:scaleX(1); }
+.mark-showcase-item.in .logo-bar:nth-child(2){ transition-delay:0.1s; }
+.mark-showcase-item.in .logo-bar:nth-child(3){ transition-delay:0.2s; }
+.mark-showcase-item.in .logo-name    { opacity:1; }
+.mark-showcase-item.in .logo-qualifier{ opacity:1; transition-delay:0.32s; }
+
+/* Division panels flood up */
+.division-panel { clip-path:inset(0 0 100% 0); transition:clip-path 0.55s cubic-bezier(0.16,1,0.3,1); }
+.division-panel.in { clip-path:inset(0% 0 0 0); }
+
+/* Ambient drifts */
+.div-num   { animation:num-drift 9s ease-in-out infinite alternate; }
+.voice-bg-num{ animation:num-drift 18s ease-in-out infinite alternate; }
+
+/* Signal flash on update */
+.signal-row-val.flash { animation:val-flash 0.28s ease; }
+
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="logo-lockup logo-lockup--sm" style="margin-bottom:36px">
+    <div class="logo-name">STRATUM</div>
+    <div class="logo-bars">
+      <div class="logo-bar"></div>
+      <div class="logo-bar"></div>
+      <div class="logo-bar"></div>
+    </div>
+    <div class="logo-qualifier">GROUP</div>
+  </div>
+  <a class="nav-item" href="#identity">Identity</a>
+  <a class="nav-item" href="#mark">The Mark</a>
+  <a class="nav-item" href="#colour">Colour</a>
+  <a class="nav-item" href="#type">Typography</a>
+  <a class="nav-item" href="#voice">Voice</a>
+  <a class="nav-item" href="#surfaces">Surfaces</a>
+  <a class="nav-item" href="#divisions">Divisions</a>
+  <a class="nav-item" href="#motion">In Motion</a>
+  <div class="nav-foot">
+    BRAND EXPLORATION<br>
+    INTERNAL USE ONLY<br>
+    REV 2 · 8026.03
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- §1 IDENTITY -->
+  <section id="identity">
+    <div class="scanline-overlay"></div>
+    <div class="hero-top-bar">
+      <span>STRATUM GROUP · FRANCHISE OPERATIONS</span>
+      <span class="hero-stamp">INTERNAL</span>
+      <span>YEAR 8026 · OUTER SYSTEM DIVISION</span>
+    </div>
+    <div class="hero-main">
+      <div class="logo-lockup logo-lockup--hero">
+        <div class="logo-name">STRATUM</div>
+        <div class="logo-bars">
+          <div class="logo-bar"></div>
+          <div class="logo-bar"></div>
+          <div class="logo-bar"></div>
+        </div>
+        <div class="logo-qualifier">GROUP</div>
+      </div>
+      <div class="hero-tagline">
+        RESOURCE EXTRACTION<br>
+        INDUSTRIAL PROCESSING<br>
+        ORBITAL LOGISTICS
+      </div>
+    </div>
+    <div class="oscillo-wrap">
+      <canvas id="oscillo"></canvas>
+    </div>
+    <div class="ticker-wrap">
+      <div class="ticker-label">
+        <div class="ticker-live-dot"></div>
+        EXCHANGE · LIVE
+      </div>
+      <div class="ticker-scroll">
+        <div class="ticker-track" id="tickerTrack"></div>
+      </div>
+    </div>
+    <div class="hero-bottom-strip">
+      <span>EST. 7814</span>
+      <span>SURFACE · DEPTH · CORE</span>
+      <span>OPERATING IN 14 SYSTEMS</span>
+    </div>
+  </section>
+
+  <!-- §2 THE MARK -->
+  <section id="mark">
+    <div class="mark-bg-text">///</div>
+    <div class="section-eyebrow">02 · THE MARK</div>
+    <h2 class="section-title">Three strata.<br>One ratio.</h2>
+    <p class="section-body">
+      The mark is three horizontal bars in the proportion 1.00 · 0.70 · 0.42.
+      These are not arbitrary. They represent the foundational logic of extraction:
+      each layer of depth funds the capacity to go deeper.
+      The mark does not change. It does not rotate. It does not get recoloured.
+    </p>
+
+    <div class="mark-lockup-showcase">
+      <div class="mark-showcase-item">
+        <div class="logo-lockup logo-lockup--display">
+          <div class="logo-name">STRATUM</div>
+          <div class="logo-bars">
+            <div class="logo-bar"></div>
+            <div class="logo-bar"></div>
+            <div class="logo-bar"></div>
+          </div>
+          <div class="logo-qualifier">GROUP</div>
+        </div>
+        <div class="mark-instance-label">DISPLAY / 80PX</div>
+      </div>
+      <div class="mark-showcase-item">
+        <div class="logo-lockup logo-lockup--md">
+          <div class="logo-name">STRATUM</div>
+          <div class="logo-bars">
+            <div class="logo-bar"></div>
+            <div class="logo-bar"></div>
+            <div class="logo-bar"></div>
+          </div>
+          <div class="logo-qualifier">GROUP</div>
+        </div>
+        <div class="mark-instance-label">HEADER / 32PX</div>
+      </div>
+      <div class="mark-showcase-item">
+        <div class="logo-lockup logo-lockup--sm">
+          <div class="logo-name">STRATUM</div>
+          <div class="logo-bars">
+            <div class="logo-bar"></div>
+            <div class="logo-bar"></div>
+            <div class="logo-bar"></div>
+          </div>
+          <div class="logo-qualifier">GROUP</div>
+        </div>
+        <div class="mark-instance-label">NAV / 17PX</div>
+      </div>
+    </div>
+
+    <div class="mark-ratio-block">
+      <div class="ratio-col"></div>
+      <div class="ratio-col"></div>
+      <div class="ratio-col"></div>
+    </div>
+    <div class="ratio-label">PROPORTION · 1.00 : 0.70 : 0.42</div>
+
+    <div class="pull-quote">
+      "The mark is not decorative.<br>It is <em>structural</em>."
+    </div>
+  </section>
+
+  <!-- §3 COLOUR -->
+  <section id="colour">
+    <div class="colour-header">
+      <div class="section-eyebrow">03 · COLOUR</div>
+      <h2 class="section-title">Colour as function.</h2>
+      <p class="section-body">
+        Each division carries a signal colour. These are operational identifiers — they appear
+        on physical signage, terminal interfaces, and document headers.
+        Colour is information. It is never decorative.
+      </p>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">01</span>
+      <div class="colour-strip-swatch" style="background:#c49a2a"></div>
+      <span class="colour-strip-name">AMBER</span>
+      <span class="colour-strip-div">Operations · Primary</span>
+      <span class="colour-strip-hex">#C49A2A</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">02</span>
+      <div class="colour-strip-swatch" style="background:#6088a0"></div>
+      <span class="colour-strip-name">STEEL</span>
+      <span class="colour-strip-div">Mining &amp; Extraction</span>
+      <span class="colour-strip-hex">#6088A0</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">03</span>
+      <div class="colour-strip-swatch" style="background:#e07030"></div>
+      <span class="colour-strip-name">FURNACE</span>
+      <span class="colour-strip-div">Smelting &amp; Processing</span>
+      <span class="colour-strip-hex">#E07030</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">04</span>
+      <div class="colour-strip-swatch" style="background:#18a050"></div>
+      <span class="colour-strip-name">SIGNAL</span>
+      <span class="colour-strip-div">Assembly &amp; Manufacturing</span>
+      <span class="colour-strip-hex">#18A050</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">05</span>
+      <div class="colour-strip-swatch" style="background:#c83020"></div>
+      <span class="colour-strip-name">PRODUCTION</span>
+      <span class="colour-strip-div">Heavy Manufacturing</span>
+      <span class="colour-strip-hex">#C83020</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">06</span>
+      <div class="colour-strip-swatch" style="background:#20a0c0"></div>
+      <span class="colour-strip-name">EXCHANGE</span>
+      <span class="colour-strip-div">Commerce &amp; Trade</span>
+      <span class="colour-strip-hex">#20A0C0</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">07</span>
+      <div class="colour-strip-swatch" style="background:#4068d0"></div>
+      <span class="colour-strip-name">ORBITAL</span>
+      <span class="colour-strip-div">Spaceport &amp; Logistics</span>
+      <span class="colour-strip-hex">#4068D0</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">08</span>
+      <div class="colour-strip-swatch" style="background:#90c010"></div>
+      <span class="colour-strip-name">POWER</span>
+      <span class="colour-strip-div">Energy &amp; Infrastructure</span>
+      <span class="colour-strip-hex">#90C010</span>
+    </div>
+    <div class="colour-strip">
+      <span class="colour-strip-index">09</span>
+      <div class="colour-strip-swatch" style="background:#8840c0"></div>
+      <span class="colour-strip-name">RARE</span>
+      <span class="colour-strip-div">Rare Minerals · Restricted</span>
+      <span class="colour-strip-hex">#8840C0</span>
+    </div>
+    <div class="colour-grid">
+      <div class="colour-block" style="background:#c49a2a"><span class="colour-block-label">AMBER</span></div>
+      <div class="colour-block" style="background:#6088a0"><span class="colour-block-label">STEEL</span></div>
+      <div class="colour-block" style="background:#e07030"><span class="colour-block-label">FURNACE</span></div>
+      <div class="colour-block" style="background:#18a050"><span class="colour-block-label">SIGNAL</span></div>
+      <div class="colour-block" style="background:#c83020"><span class="colour-block-label">PROD</span></div>
+      <div class="colour-block" style="background:#20a0c0"><span class="colour-block-label">EXCH</span></div>
+      <div class="colour-block" style="background:#4068d0"><span class="colour-block-label">ORB</span></div>
+      <div class="colour-block" style="background:#90c010"><span class="colour-block-label">POWER</span></div>
+      <div class="colour-block" style="background:#8840c0"><span class="colour-block-label">RARE</span></div>
+    </div>
+  </section>
+
+  <!-- §4 TYPOGRAPHY -->
+  <section id="type">
+    <div class="section-eyebrow">04 · TYPOGRAPHY</div>
+    <h2 class="section-title">Three voices.<br>One system.</h2>
+
+    <div style="height:48px"></div>
+
+    <div class="type-specimen-block">
+      <div class="type-label">ARCHIVO BLACK · GROTESQUE · STRUCTURAL</div>
+      <div class="type-display">OPER<span>A</span>TION<span>AL</span></div>
+      <p class="type-note">
+        For headings, labels, navigation, division names. Bold and uncompromising.
+        Reads at a glance from any distance. Never italic.
+      </p>
+    </div>
+
+    <div class="type-specimen-block">
+      <div class="type-label">PLAYFAIR DISPLAY ITALIC · SERIF · EDITORIAL</div>
+      <div class="type-serif-display">
+        The contract is clear.<br>
+        <em style="color:var(--amber)">Compliance is expected.</em>
+      </div>
+      <div class="type-serif-body">
+        For body copy, document text, pull quotes, and any communication requiring
+        sustained reading. The serif voice is STRATUM's official outward face —
+        precise, authoritative, and older than the operator reading it.
+        It carries weight because weight has been earned over two hundred years of operations.
+        Italic for emphasis. Never bold italic.
+      </div>
+    </div>
+
+    <div class="type-specimen-block">
+      <div class="type-label">VT323 · TERMINAL · OPERATIONAL CODES ONLY</div>
+      <div class="type-terminal-samples">
+        <div class="tts tts-1">STRATUM GROUP · OUTER SYSTEM TERMINAL</div>
+        <div class="tts tts-2">NODE: OPERATIONAL · EFF: 0.92 · TIER: II · REF: OPS-4471</div>
+        <div class="tts tts-3">SYS:8026.03.28 · CLASSIFICATION: INTERNAL USE ONLY · DO NOT DISTRIBUTE</div>
+      </div>
+      <p class="type-note">
+        Terminal interfaces, status codes, hex values, timestamps. Never for body copy. Never below 13px.
+      </p>
+    </div>
+  </section>
+
+  <!-- §5 VOICE -->
+  <section id="voice">
+    <div class="voice-panel voice-panel--amber">
+      <div class="voice-bg-num">§</div>
+      <div class="voice-quote">
+        "Your franchise agreement has been renewed under Standard Terms, Section 14.
+        Performance metrics are available in your operator portal.
+        We note your Tier I certification remains pending."
+      </div>
+      <div class="voice-attr">FRANCHISE RENEWAL NOTICE · AUTOMATED · STRATUM GROUP OPERATIONS</div>
+    </div>
+    <div class="voice-panel">
+      <div class="voice-bg-num">01</div>
+      <div class="voice-quote">
+        "STRATUM does not require your enthusiasm.<br>
+        Only your compliance with the terms agreed."
+      </div>
+      <div class="voice-attr">ONBOARDING DOCUMENTATION · SECTION 1 · OPERATOR OBLIGATIONS</div>
+    </div>
+    <div class="voice-panel" style="background:var(--s2)">
+      <div class="voice-bg-num">02</div>
+      <div class="voice-quote">
+        "The outer system is not hostile.<br>
+        It is simply <em style="color:var(--amber)">indifferent</em>.<br>
+        So are we."
+      </div>
+      <div class="voice-attr">SAFETY ORIENTATION · OUTER SYSTEM OPERATIONS · ALL OPERATORS</div>
+    </div>
+  </section>
+
+  <!-- §6 SURFACES -->
+  <section id="surfaces">
+    <div class="section-eyebrow">06 · SURFACES</div>
+    <h2 class="section-title">Three registers.<br>Every artefact lives in one.</h2>
+    <p class="section-body">
+      Terminal · Document · Signal. The surface determines the typeface, colour register,
+      and information density. These are not stylistic choices — they are operational categories.
+    </p>
+    <div class="surfaces-grid">
+      <div class="surface-panel surface-terminal">
+        <div class="surface-label">TERMINAL SURFACE</div>
+        <div class="term-line">STRATUM GROUP · OPS TERMINAL</div>
+        <div class="term-line term-line--dim">━━━━━━━━━━━━━━━━━━━━━━━</div>
+        <div class="term-line term-line--ok">✓ IRON SMELTER · ONLINE</div>
+        <div class="term-line term-line--ok">✓ ASSEMBLER A · ONLINE</div>
+        <div class="term-line term-line--warn">⚠ COPPER FEED · 62%</div>
+        <div class="term-line term-line--err">✗ POWER · DEFICIT</div>
+        <div class="term-line term-line--dim">━━━━━━━━━━━━━━━━━━━━━━━</div>
+        <div class="term-line term-line--dim">EFF: 0.78 AVG · NODE COUNT: 12</div>
+        <div class="term-line" style="margin-top:20px"><span class="term-cursor"></span></div>
+      </div>
+      <div class="surface-panel surface-doc">
+        <div class="surface-label" style="color:var(--doc-ink)">DOCUMENT SURFACE</div>
+        <div class="doc-classification">FRANCHISE · STANDARD TERMS</div>
+        <div class="doc-heading">Operator Agreement</div>
+        <div class="doc-body">
+          This agreement is entered into between STRATUM GROUP (Outer Division) and the
+          Franchise Operator named above. The Operator acknowledges receipt of initial
+          equipment credits and agrees to operate under Standard Extraction Terms until
+          Tier III certification is achieved.
+        </div>
+        <div class="doc-rule"></div>
+        <div class="doc-body">
+          All resource extraction conducted within the designated franchise zone remains
+          the property of STRATUM GROUP until sold through approved Exchange channels.
+          Off-network sales are prohibited under Section 7(c).
+        </div>
+        <div class="doc-stamp">APPROVED</div>
+      </div>
+      <div class="surface-panel surface-signal">
+        <div class="surface-label">SIGNAL SURFACE</div>
+        <div class="signal-title">MARKET · LIVE RATES</div>
+        <div class="signal-row">
+          <span class="signal-row-name">Iron Bar</span>
+          <span class="signal-row-val signal-row-val--up">↑ 42.8</span>
+        </div>
+        <div class="signal-row">
+          <span class="signal-row-name">Copper Bar</span>
+          <span class="signal-row-val signal-row-val--down">↓ 38.1</span>
+        </div>
+        <div class="signal-row">
+          <span class="signal-row-name">Circuit Board</span>
+          <span class="signal-row-val signal-row-val--up">↑ 184.5</span>
+        </div>
+        <div class="signal-row">
+          <span class="signal-row-name">Refined Fuel</span>
+          <span class="signal-row-val signal-row-val--flat">→ 91.0</span>
+        </div>
+        <div class="signal-row">
+          <span class="signal-row-name">Nav Core</span>
+          <span class="signal-row-val signal-row-val--up">↑ 620.0</span>
+        </div>
+        <div class="signal-row">
+          <span class="signal-row-name">Engine Assembly</span>
+          <span class="signal-row-val signal-row-val--down">↓ 1,840</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- §7 DIVISIONS -->
+  <section id="divisions">
+    <div class="div-intro">
+      <div class="section-eyebrow">07 · DIVISIONS</div>
+      <h2 class="section-title">Eight divisions.<br>One company.</h2>
+      <p class="section-body">
+        Each division carries its colour and its code. Together they form the operational
+        spectrum of STRATUM GROUP's franchise system.
+      </p>
+    </div>
+    <div class="division-grid">
+      <div class="division-panel" style="background:#c49a2a">
+        <div class="div-num">01</div>
+        <div class="div-icon">◈</div>
+        <div class="div-name">Operations</div>
+        <div class="div-code">OPS · PRIMARY</div>
+      </div>
+      <div class="division-panel" style="background:#6088a0">
+        <div class="div-num">02</div>
+        <div class="div-icon">⛏</div>
+        <div class="div-name">Mining</div>
+        <div class="div-code">EXT · SURFACE</div>
+      </div>
+      <div class="division-panel" style="background:#e07030">
+        <div class="div-num">03</div>
+        <div class="div-icon">▲</div>
+        <div class="div-name">Smelting</div>
+        <div class="div-code">SMT · THERMAL</div>
+      </div>
+      <div class="division-panel" style="background:#18a050">
+        <div class="div-num">04</div>
+        <div class="div-icon">⚙</div>
+        <div class="div-name">Assembly</div>
+        <div class="div-code">ASM · PROCESS</div>
+      </div>
+      <div class="division-panel" style="background:#c83020">
+        <div class="div-num">05</div>
+        <div class="div-icon">■</div>
+        <div class="div-name">Manufacturing</div>
+        <div class="div-code">MFG · HEAVY</div>
+      </div>
+      <div class="division-panel" style="background:#20a0c0">
+        <div class="div-num">06</div>
+        <div class="div-icon">⇌</div>
+        <div class="div-name">Commerce</div>
+        <div class="div-code">CMX · EXCHANGE</div>
+      </div>
+      <div class="division-panel" style="background:#4068d0">
+        <div class="div-num">07</div>
+        <div class="div-icon">◯</div>
+        <div class="div-name">Orbital</div>
+        <div class="div-code">ORB · LOGISTICS</div>
+      </div>
+      <div class="division-panel" style="background:#90c010">
+        <div class="div-num">08</div>
+        <div class="div-icon">⚡</div>
+        <div class="div-name">Power</div>
+        <div class="div-code">PWR · GRID</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- §8 IN MOTION -->
+  <section id="motion">
+    <div class="section-eyebrow">08 · IN MOTION</div>
+    <h2 class="section-title">State has a language.</h2>
+    <p class="section-body">
+      How the system communicates change: boot, tier advancement, power state.
+      Motion is functional. It confirms state, not personality.
+    </p>
+    <div class="motion-grid">
+      <div class="motion-panel">
+        <div class="motion-label">BOOT SEQUENCE</div>
+        <div class="boot-lines" id="bootLines"></div>
+      </div>
+      <div class="motion-panel">
+        <div class="motion-label">TIER ADVANCEMENT</div>
+        <div class="tier-display">
+          <div class="tier-badge" id="tierBadge">II</div>
+          <div class="tier-label">TIER CERTIFIED</div>
+        </div>
+      </div>
+      <div class="motion-panel">
+        <div class="motion-label">POWER STATE</div>
+        <p style="font-family:var(--s);font-size:15px;font-style:italic;color:var(--muted);line-height:1.6;margin-bottom:auto;">
+          Eight segments. Green is nominal. Amber is warning. Red is critical.
+        </p>
+        <div class="vu-wrap" id="vuMeter"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ── NAV ACTIVE ───────────────────────────────────────────────
+const navItems = document.querySelectorAll('.nav-item');
+document.querySelectorAll('section[id]').forEach(s => {
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting)
+        navItems.forEach(n => n.classList.toggle('active', n.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { threshold: 0.3 }).observe(s);
+});
+
+// ── HERO LOGO ENTRANCE ───────────────────────────────────────
+const heroLogo = document.querySelector('.logo-lockup--hero');
+setTimeout(() => heroLogo.classList.add('drawn'), 200);
+
+// ── SCROLL REVEAL ────────────────────────────────────────────
+const srObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); srObserver.unobserve(e.target); } });
+}, { threshold: 0.15 });
+
+// Auto-tag and observe section headings
+document.querySelectorAll('.section-eyebrow').forEach((el, i) => {
+  el.classList.add('sr-l'); el.style.transitionDelay = '0s'; srObserver.observe(el);
+});
+document.querySelectorAll('.section-title').forEach(el => {
+  el.classList.add('sr'); el.style.transitionDelay = '0.1s'; srObserver.observe(el);
+});
+document.querySelectorAll('.section-body').forEach(el => {
+  el.classList.add('sr'); el.style.transitionDelay = '0.2s'; srObserver.observe(el);
+});
+document.querySelectorAll('.pull-quote').forEach(el => {
+  el.classList.add('sr'); el.style.transitionDelay = '0.1s'; srObserver.observe(el);
+});
+
+// Colour strips staggered
+document.querySelectorAll('.colour-strip').forEach((el, i) => {
+  el.style.setProperty('--strip-delay', i * 0.06 + 's');
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('in'), i * 60);
+        srObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 }).observe(el);
+});
+
+// Mark showcase lockup draw-in
+document.querySelectorAll('.mark-showcase-item').forEach((el, i) => {
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('in'), i * 140);
+        srObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.4 }).observe(el);
+});
+
+// Ratio bars on scroll
+document.querySelectorAll('.ratio-col').forEach(el => srObserver.observe(el));
+
+// Division panels flood up staggered
+document.querySelectorAll('.division-panel').forEach((el, i) => {
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('in'), i * 70);
+        srObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.2 }).observe(el);
+});
+
+// ── OSCILLOSCOPE ─────────────────────────────────────────────
+const osc = document.getElementById('oscillo');
+const octx = osc.getContext('2d');
+let oscT = 0;
+function drawOsc() {
+  const W = osc.offsetWidth, H = osc.offsetHeight;
+  if (osc.width !== W) osc.width = W;
+  osc.height = H;
+  octx.clearRect(0, 0, W, H);
+  octx.strokeStyle = 'rgba(196,154,42,0.5)';
+  octx.lineWidth = 1.5;
+  octx.beginPath();
+  for (let x = 0; x <= W; x++) {
+    const freq1 = 2.2, freq2 = 5.1, freq3 = 7.3;
+    const y = H / 2
+      + Math.sin(x / W * Math.PI * 2 * freq1 + oscT) * H * 0.22
+      + Math.sin(x / W * Math.PI * 2 * freq2 + oscT * 1.3) * H * 0.10
+      + Math.sin(x / W * Math.PI * 2 * freq3 + oscT * 0.7) * H * 0.05;
+    x === 0 ? octx.moveTo(x, y) : octx.lineTo(x, y);
+  }
+  octx.stroke();
+  // Glow pass
+  octx.strokeStyle = 'rgba(196,154,42,0.12)';
+  octx.lineWidth = 6;
+  octx.beginPath();
+  for (let x = 0; x <= W; x++) {
+    const freq1 = 2.2, freq2 = 5.1, freq3 = 7.3;
+    const y = H / 2
+      + Math.sin(x / W * Math.PI * 2 * freq1 + oscT) * H * 0.22
+      + Math.sin(x / W * Math.PI * 2 * freq2 + oscT * 1.3) * H * 0.10
+      + Math.sin(x / W * Math.PI * 2 * freq3 + oscT * 0.7) * H * 0.05;
+    x === 0 ? octx.moveTo(x, y) : octx.lineTo(x, y);
+  }
+  octx.stroke();
+  oscT += 0.022;
+  requestAnimationFrame(drawOsc);
+}
+drawOsc();
+
+// ── TICKER ───────────────────────────────────────────────────
+const tickerData = [
+  { label: 'IRON BAR',       val: 42.8,  dir: 1 },
+  { label: 'COPPER BAR',     val: 38.1,  dir: -1 },
+  { label: 'COAL',           val: 12.4,  dir: 0 },
+  { label: 'CIRCUIT BOARD',  val: 184.5, dir: 1 },
+  { label: 'REFINED FUEL',   val: 91.0,  dir: 0 },
+  { label: 'NAV CORE',       val: 620.0, dir: 1 },
+  { label: 'ENGINE ASSEMBLY',val: 1840,  dir: -1 },
+  { label: 'RARE MINERALS',  val: 340.0, dir: 1 },
+];
+function buildTicker() {
+  const track = document.getElementById('tickerTrack');
+  const fmt = v => v >= 1000 ? (v / 1000).toFixed(2) + 'k' : v.toFixed(1);
+  const items = [...tickerData, ...tickerData].map(d => {
+    const arrow = d.dir > 0 ? '↑' : d.dir < 0 ? '↓' : '—';
+    const cls   = d.dir > 0 ? 'up' : d.dir < 0 ? 'dn' : 'flat';
+    return `<span class="ticker-item"><span class="t-name">${d.label}</span><span class="t-val ${cls}">${arrow} ${fmt(d.val)}</span></span>`;
+  }).join('');
+  track.innerHTML = items;
+}
+buildTicker();
+setInterval(() => {
+  tickerData.forEach(d => {
+    d.val = Math.max(1, d.val + (Math.random() - 0.48) * d.val * 0.03);
+    d.dir = Math.random() > 0.5 ? 1 : Math.random() > 0.5 ? -1 : 0;
+  });
+  buildTicker();
+}, 3400);
+
+// ── BOOT SEQUENCE ────────────────────────────────────────────
+const bootSeq = [
+  { text: 'STRATUM GROUP · TERMINAL v4.2', cls: '' },
+  { text: 'CHECKING FRANCHISE LICENCE...', cls: '' },
+  { text: 'LICENCE VALID · OP-4471-C', cls: 'ok' },
+  { text: 'LOADING RESOURCE MANIFEST...', cls: '' },
+  { text: 'MANIFEST OK · 9 RESOURCES', cls: 'ok' },
+  { text: 'CONNECTING TO EXCHANGE...', cls: '' },
+  { text: 'EXCHANGE ONLINE', cls: 'ok' },
+  { text: 'POWER STATUS: WARNING', cls: 'err' },
+  { text: 'SYSTEM READY', cls: 'ok' },
+];
+const bootEl = document.getElementById('bootLines');
+function runBoot() {
+  bootEl.innerHTML = '';
+  bootSeq.forEach((line, i) => {
+    const el = document.createElement('div');
+    el.className = 'boot-line ' + line.cls;
+    el.style.animationDelay = i * 0.22 + 's';
+    el.textContent = line.text;
+    bootEl.appendChild(el);
+  });
+}
+runBoot();
+setInterval(runBoot, 5500);
+
+// ── TIER CYCLE ───────────────────────────────────────────────
+const tiers = ['I', 'II', 'III'];
+let ti = 1;
+const tierEl = document.getElementById('tierBadge');
+setInterval(() => {
+  ti = (ti + 1) % tiers.length;
+  tierEl.style.animation = 'none';
+  void tierEl.offsetWidth;
+  tierEl.textContent = tiers[ti];
+  tierEl.style.animation = '';
+}, 3200);
+
+// ── VU METER ─────────────────────────────────────────────────
+const vuEl = document.getElementById('vuMeter');
+const COLS = 14, SEGS = 8;
+const vuCols = Array.from({ length: COLS }, (_, i) => {
+  const col = document.createElement('div');
+  col.className = 'vu-col';
+  const segs = Array.from({ length: SEGS }, (_, s) => {
+    const seg = document.createElement('div');
+    seg.className = 'vu-seg' + (s >= 6 ? ' dang' : s >= 4 ? ' warn' : '');
+    col.appendChild(seg);
+    return seg;
+  });
+  vuEl.appendChild(col);
+  return { segs, phase: i * 0.45 };
+});
+let vuT = 0;
+(function vuTick() {
+  vuT += 0.04;
+  vuCols.forEach(c => {
+    const level = Math.round((0.3 + 0.55 * Math.abs(Math.sin(vuT + c.phase))) * SEGS);
+    c.segs.forEach((s, i) => s.classList.toggle('on', i < level));
+  });
+  requestAnimationFrame(vuTick);
+})();
+
+// ── LIVE SIGNAL PANEL ────────────────────────────────────────
+const signalRows = document.querySelectorAll('.signal-row');
+const signalVals = [42.8, 38.1, 184.5, 91.0, 620.0, 1840];
+setInterval(() => {
+  signalRows.forEach((row, i) => {
+    const el = row.querySelector('.signal-row-val');
+    if (!el) return;
+    const delta = (Math.random() - 0.48) * signalVals[i] * 0.04;
+    signalVals[i] = Math.max(1, signalVals[i] + delta);
+    const dir = delta > 0 ? '↑' : '↓';
+    const cls = delta > 0 ? 'signal-row-val--up' : 'signal-row-val--down';
+    el.className = 'signal-row-val ' + cls + ' flash';
+    el.textContent = dir + ' ' + (signalVals[i] >= 1000
+      ? (signalVals[i] / 1000).toFixed(2) + 'k'
+      : signalVals[i].toFixed(1));
+    setTimeout(() => el.classList.remove('flash'), 300);
+  });
+}, 1800);
+</script>
+</body>
+</html>

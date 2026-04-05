@@ -322,6 +322,9 @@ class SidebarManager {
             const buildingType = card.getAttribute('data-building');
             e.dataTransfer.setData('buildingType', buildingType);
             e.dataTransfer.effectAllowed = 'copy';
+            card.classList.remove('card-placing');
+            void card.offsetWidth; // force reflow to restart animation
+            card.classList.add('card-placing');
         });
 
         canvasContainer.addEventListener('dragover', (e) => {

@@ -3,6 +3,13 @@
 /* Import Boot Screen Styles */
 @import url('boot-screen.css');
 
+/* ── Design System Variables ─────────────────────────────────────────────── */
+:root {
+    --g: 'Archivo Black', sans-serif;
+    --s: 'Playfair Display', Georgia, serif;
+    --t: 'VT323', monospace;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -63,7 +70,8 @@ header::before {
 
 header h1 {
     color: #c49a2a;
-    font-size: 24px;
+    font-family: var(--g);
+    font-size: 20px;
     letter-spacing: 3px;
     text-transform: uppercase;
     margin-bottom: 2px;
@@ -75,8 +83,11 @@ header h1 {
 
 header p {
     color: #8a6b1a;
+    font-family: var(--s);
+    font-style: italic;
     font-size: 12px;
-    text-transform: uppercase;
+    text-transform: none;
+    letter-spacing: 0.02em;
 }
 
 .header-stats {
@@ -210,8 +221,10 @@ header p {
 
 .sidebar h2 {
     color: #c49a2a;
-    font-size: 16px;
+    font-family: var(--g);
+    font-size: 13px;
     text-transform: uppercase;
+    letter-spacing: 2px;
     margin-bottom: 15px;
     border-bottom: 1px solid #8a6b1a;
     padding-bottom: 5px;
@@ -219,8 +232,10 @@ header p {
 
 .sidebar h3 {
     color: #8a6b1a;
-    font-size: 14px;
+    font-family: var(--g);
+    font-size: 11px;
     text-transform: uppercase;
+    letter-spacing: 1.5px;
     margin-top: 20px;
     margin-bottom: 10px;
 }
@@ -238,9 +253,9 @@ header p {
 
 /* Palette section header */
 .palette-section-header {
-    font-family: 'VT323', 'Courier New', monospace;
-    font-size: 12px;
-    letter-spacing: 0.12em;
+    font-family: var(--g);
+    font-size: 9px;
+    letter-spacing: 3px;
     color: #6a5a30;
     padding: 0 0 6px 0;
     margin-bottom: 6px;
@@ -274,6 +289,7 @@ header p {
 
 /* Building Palette Cards */
 .palette-card {
+    position: relative;
     background-color: #0d1008;
     border: 1px solid #1e1a0a;
     border-left: 2px solid #5a4a1a;
@@ -281,6 +297,25 @@ header p {
     margin-bottom: 4px;
     cursor: grab;
     transition: border-color 0.12s, background-color 0.12s;
+    overflow: hidden;
+}
+
+/* H22: sliding left accent bar on hover */
+.palette-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: var(--card-cat-color, #c49a2a);
+    transform: scaleY(0);
+    transform-origin: top center;
+    transition: transform 0.15s ease-out;
+}
+
+.palette-card:hover::before {
+    transform: scaleY(1);
 }
 
 .palette-card:hover {
@@ -293,6 +328,16 @@ header p {
     cursor: grabbing;
 }
 
+/* H22: brief flash when card is picked up */
+@keyframes card-place-flash {
+    0%   { background-color: rgba(196, 154, 42, 0.2); }
+    100% { background-color: #0d1008; }
+}
+
+.palette-card.card-placing {
+    animation: card-place-flash 300ms ease-out;
+}
+
 /* Row 1: name + price */
 .palette-card-header {
     display: flex;
@@ -302,13 +347,14 @@ header p {
 }
 
 .palette-card-name {
-    font-size: 13px;
+    font-family: var(--g);
+    font-size: 11px;
     color: #c49a2a;
-    font-weight: bold;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+    letter-spacing: 0.5px;
 }
 
 .picker-icon {
@@ -342,10 +388,12 @@ header p {
 
 /* Row 2: output summary */
 .palette-card-output {
+    font-family: var(--s);
+    font-style: italic;
     font-size: 11px;
     color: #b0976a;
     margin-top: 2px;
-    letter-spacing: 0.03em;
+    letter-spacing: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -353,7 +401,6 @@ header p {
 
 .palette-card-output--dim {
     color: #7a6a48;
-    font-style: italic;
 }
 
 .palette-output-rate {
@@ -1063,16 +1110,42 @@ footer p {
 }
 
 #desktop-background::after {
-    content: 'STRATUM GROUP';
+    content: '';
     position: absolute;
-    bottom: 16px;
-    right: 24px;
-    color: rgba(212, 168, 50, 0.04);
-    font-size: 64px;
-    font-family: 'VT323', monospace;
-    letter-spacing: 10px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40vw;
+    height: 40px;
+    background:
+        linear-gradient(#c49a2a, #c49a2a) 0 0    / 100% 10px no-repeat,
+        linear-gradient(#c49a2a, #c49a2a) 0 18px / 70%  10px no-repeat,
+        linear-gradient(#c49a2a, #c49a2a) 0 36px / 42%  10px no-repeat;
+    opacity: 0.035;
     pointer-events: none;
     user-select: none;
+}
+
+/* Scan-down animation band */
+#desktop::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(
+        transparent 0%,
+        rgba(196, 154, 42, 0.03) 50%,
+        transparent 100%
+    );
+    animation: scan-down 10s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes scan-down {
+    0%   { top: -200px; }
+    100% { top: 100vh; }
 }
 
 /* Desktop Icons */
@@ -1172,7 +1245,6 @@ footer p {
 
 .os-window.focused {
     border-color: #3a3018;
-    border-top: 2px solid var(--window-accent, #c49a2a);
     border-left: 3px solid var(--window-accent, #c49a2a);
     box-shadow: 0 4px 32px rgba(0,0,0,0.75),
                 0 0 0 1px rgba(196,154,42,0.08),
@@ -1190,11 +1262,31 @@ footer p {
     display: none; /* Hidden, show in taskbar */
 }
 
+@keyframes win-open {
+    from { clip-path: inset(0 0 100% 0); opacity: 0.4; }
+    to   { clip-path: inset(0 0 0% 0);   opacity: 1; }
+}
+
+@keyframes win-close {
+    from { clip-path: inset(0 0 0% 0);   opacity: 1; }
+    to   { clip-path: inset(0 0 100% 0); opacity: 0; }
+}
+
+.os-window.win-opening {
+    animation: win-open 180ms ease-out forwards;
+}
+
+.os-window.win-closing {
+    animation: win-close 120ms ease-in forwards;
+    pointer-events: none;
+}
+
 /* Window Title Bar */
 .window-titlebar {
     display: flex;
     align-items: center;
     background: linear-gradient(180deg, #181309 0%, #0e0c09 100%);
+    border-top: 2px solid var(--window-accent, #c49a2a);
     border-bottom: 1px solid #2a2010;
     padding: 0 10px 0 0;
     cursor: move;
@@ -1226,9 +1318,10 @@ footer p {
 
 .window-title {
     flex: 1;
+    font-family: var(--g);
     color: #9a8b72;
-    font-size: 13px;
-    letter-spacing: 1.5px;
+    font-size: 11px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     white-space: nowrap;
     overflow: hidden;
@@ -1375,7 +1468,7 @@ footer p {
     right: 0;
     height: 40px;
     background: #0e0c09;
-    border-top: 1px solid #2a2010;
+    border-top: 2px solid #c49a2a;
     display: flex;
     align-items: center;
     z-index: 10000; /* Always on top */
@@ -1388,21 +1481,21 @@ footer p {
 
 #start-button {
     background: transparent;
-    border: 1px solid #3a2e18;
+    border: none;
+    border-right: 1px solid #c49a2a;
     color: #8a6b1a;
-    padding: 4px 14px;
-    font-family: 'VT323', 'Courier New', monospace;
-    font-size: 13px;
-    letter-spacing: 2px;
+    padding: 4px 16px;
+    font-family: var(--g);
+    font-size: 9px;
+    letter-spacing: 3px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: color 0.15s;
+    height: 100%;
 }
 
 #start-button:hover {
-    border-color: #c49a2a;
     color: #c49a2a;
-    background: rgba(196, 154, 42, 0.05);
 }
 
 .taskbar-apps {
@@ -2527,16 +2620,20 @@ footer p {
 .taskbar-app-button {
     background: #1e1a0a;
     color: #c49a2a;
-    border: 2px solid #8a6b1a;
+    border: 1px solid #3a2e18;
     border-left: 3px solid #3a2e18;
-    padding: 5px 15px;
-    padding-left: 10px;
-    margin: 0 5px;
-    font-family: 'VT323', 'Courier New', monospace;
-    font-size: 12px;
+    padding: 0 14px 0 10px;
+    margin: 0 3px;
+    font-family: var(--g);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.2s;
-    max-width: 150px;
+    transition: background 0.15s, border-left-color 0.15s;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2544,8 +2641,12 @@ footer p {
 
 .taskbar-app-button:hover {
     background: #2a2010;
-    border-color: #c49a2a;
-    box-shadow: 0 0 10px rgba(212, 168, 50, 0.3);
+    border-left-color: #c49a2a;
+}
+
+.taskbar-app-button.taskbar-app-active {
+    background: #221d0c;
+    border-left-color: #c49a2a;
 }
 
 /* ── Franchise / STRATUM Portal ─────────────────────────────────────────── */
@@ -2869,10 +2970,10 @@ footer p {
 }
 
 .palette-tab {
-    font-family: 'VT323', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    padding: 2px 7px;
+    font-family: var(--g);
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 3px 7px;
     border: 1px solid #2a2218;
     background: #0a0c08;
     color: #4a3e20;
@@ -3347,14 +3448,90 @@ footer p {
 /* Price % badge */
 .tr-pct-high {
     color: #5aaa5a;
-    font-size: 11px;
+    font-family: var(--t);
+    font-size: 13px;
     margin-left: 4px;
 }
 
 .tr-pct-low {
     color: #aa4a4a;
-    font-size: 11px;
+    font-family: var(--t);
+    font-size: 13px;
     margin-left: 4px;
+}
+
+.tr-pct-flat {
+    color: #c49a2a;
+    font-family: var(--t);
+    font-size: 13px;
+    margin-left: 4px;
+}
+
+/* ── H20: Market Signal Surface styles ───────────────────────────────────── */
+
+/* Live dot in EXCHANGE · LIVE header */
+.market-dot-sep {
+    color: #3a3020;
+    margin: 0 6px;
+}
+
+.market-live-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #18a050;
+    box-shadow: 0 0 6px rgba(24, 160, 80, 0.8);
+    vertical-align: middle;
+    margin-left: 4px;
+    animation: live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.75); }
+}
+
+/* Playfair italic resource names in market table */
+.tr-resource--editorial {
+    font-family: var(--s);
+    font-style: italic;
+    font-size: 14px;
+    color: #9a8b72;
+    letter-spacing: 0;
+}
+
+/* Market price value direction colours */
+.tr-price--up   { color: #90c010; font-family: var(--t); font-size: 16px; }
+.tr-price--down { color: #c83020; font-family: var(--t); font-size: 16px; }
+.tr-price--flat { color: #c49a2a; font-family: var(--t); font-size: 16px; }
+
+/* Value flash on update */
+@keyframes val-flash {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.val-flash {
+    animation: val-flash 280ms ease-out;
+}
+
+/* Market header amber top rule */
+.trader-header {
+    border-top: 2px solid #c49a2a;
+}
+
+/* Make .trader-title use Archivo Black */
+.trader-title {
+    font-family: var(--g);
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+/* Trader table column headers → Archivo Black */
+.trader-table thead th {
+    font-family: var(--g);
+    font-size: 9px;
 }
 
 /* ── Market price chart ───────────────────────────────────────────────────── */

@@ -52,6 +52,12 @@ class OSWindow {
 
         // Inject app content
         this.app.mount(this.content);
+
+        // Open animation
+        this.element.classList.add('win-opening');
+        this.element.addEventListener('animationend', () => {
+            this.element.classList.remove('win-opening');
+        }, { once: true });
     }
 
     setupEvents() {
@@ -194,9 +200,12 @@ class OSWindow {
     }
 
     close() {
-        this.app.close();
-        this.manager.closeWindow(this);
-        this.element.remove();
+        this.element.classList.add('win-closing');
+        setTimeout(() => {
+            this.app.close();
+            this.manager.closeWindow(this);
+            this.element.remove();
+        }, 120);
     }
 
     getSaveData() {

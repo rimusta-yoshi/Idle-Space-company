@@ -405,8 +405,8 @@ class CanvasManager {
         if (this.stage) this.stage.destroy();
     }
 
-    addNode(node) {
-        node.addToLayer(this.layer);
+    addNode(node, animate = false) {
+        node.addToLayer(this.layer, animate);
         this.nodes = [...this.nodes, node];
 
         // Port mousedown — start a connection drag from output port
@@ -570,7 +570,7 @@ class CanvasManager {
 
         const connection = new Connection(fromNode, toNode, resourceType);
         this.connections = [...this.connections, connection];
-        connection.addToLayer(this.layer);
+        connection.addToLayer(this.layer, true);
 
         fromNode.outputs = [...fromNode.outputs, toNode.id];
         toNode.inputs = [...toNode.inputs, fromNode.id];
